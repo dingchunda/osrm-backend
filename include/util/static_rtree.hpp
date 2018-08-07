@@ -334,7 +334,7 @@ class StaticRTree
                 TreeNode current_node;
                 pbmldrtree::RTreeNode *pb_node = pb_rtree.add_node();
                 uint64_t itemCount = 0;
-                util::Log() << "add node" << std::endl;
+
                 // Loop over the next block of EdgeDataT, calculate the bounding box
                 // for the block, and save the data to write to disk in the correct
                 // order.
@@ -347,8 +347,7 @@ class StaticRTree
                     const EdgeDataT &object = input_data_vector[input_object_index];
 
                     *objects_iter++ = object;
-                    pb_node->set_itemcount(++itemCount);
-                    osrm::extractor::EdgeBasedNodeSegment _n =
+                    ++itemCount osrm::extractor::EdgeBasedNodeSegment _n =
                         (osrm::extractor::EdgeBasedNodeSegment)(object);
 
                     pbmldrtree::EdgeBasedNodeSegment *pb_seg = pb_node->add_segments();
@@ -383,14 +382,13 @@ class StaticRTree
 
                     BOOST_ASSERT(rectangle.IsValid());
                     current_node.minimum_bounding_rectangle.MergeBoundingBoxes(rectangle);
-
-                    pbmldrtree::Rectangle *pb_rect = pb_node->mutable_rect();
-                    pb_rect->set_max_lat(current_node.minimum_bounding_rectangle.max_lat.__value);
-                    pb_rect->set_min_lat(current_node.minimum_bounding_rectangle.min_lat.__value);
-                    pb_rect->set_max_lon(current_node.minimum_bounding_rectangle.max_lon.__value);
-                    pb_rect->set_min_lon(current_node.minimum_bounding_rectangle.min_lon.__value);
                 }
-                util::Log() << "rtree node count:" << itemCount << std::endl;
+                pb_node->set_itemcount(itemCount);
+                pbmldrtree::Rectangle *pb_rect = pb_node->mutable_rect();
+                pb_rect->set_max_lat(current_node.minimum_bounding_rectangle.max_lat.__value);
+                pb_rect->set_min_lat(current_node.minimum_bounding_rectangle.min_lat.__value);
+                pb_rect->set_max_lon(current_node.minimum_bounding_rectangle.max_lon.__value);
+                pb_rect->set_min_lon(current_node.minimum_bounding_rectangle.min_lon.__value);
 
                 m_search_tree.emplace_back(current_node);
             }
