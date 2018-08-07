@@ -347,7 +347,8 @@ class StaticRTree
                     const EdgeDataT &object = input_data_vector[input_object_index];
 
                     *objects_iter++ = object;
-                    ++itemCount osrm::extractor::EdgeBasedNodeSegment _n =
+                    ++itemCount;
+                    osrm::extractor::EdgeBasedNodeSegment _n =
                         (osrm::extractor::EdgeBasedNodeSegment)(object);
 
                     pbmldrtree::EdgeBasedNodeSegment *pb_seg = pb_node->add_segments();
