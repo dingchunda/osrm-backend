@@ -38,7 +38,6 @@ inline void writePartition(const boost::filesystem::path &path, const MultiLevel
     storage::tar::FileWriter writer{path, fingerprint};
 
     serialization::write(writer, "/mld/multilevelpartition", mlp);
-    serialization::writePB(path.string(), mlp);
 }
 
 // reads .osrm.cells file
@@ -67,7 +66,6 @@ inline void writeCells(const boost::filesystem::path &path, CellStorageT &storag
     storage::tar::FileWriter writer{path, fingerprint};
 
     serialization::write(writer, "/mld/cellstorage", storage);
-    serialization::writePB(path.string(), storage);
 }
 
 // reads .osrm.mldgr file
@@ -98,8 +96,8 @@ inline void writeGraph(const boost::filesystem::path &path,
     writer.WriteFrom("/mld/connectivity_checksum", connectivity_checksum);
     serialization::write(writer, "/mld/multilevelgraph", graph);
 }
-} // namespace files
-} // namespace partitioner
-} // namespace osrm
+}
+}
+}
 
 #endif

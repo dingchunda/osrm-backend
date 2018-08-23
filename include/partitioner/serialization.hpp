@@ -6,13 +6,14 @@
 #include "partitioner/multi_level_graph.hpp"
 #include "partitioner/multi_level_partition.hpp"
 
-#include "../../src/protobuf/cells.pb.h"
-#include "../../src/protobuf/partition.pb.h"
 #include "storage/block.hpp"
 #include "storage/io.hpp"
 #include "storage/serialization.hpp"
 #include "storage/shared_memory_ownership.hpp"
 #include "storage/tar.hpp"
+
+#include "../../../src/protobuf/mld.pb.h"
+
 
 namespace osrm
 {
@@ -40,37 +41,35 @@ inline void write(storage::tar::FileWriter &writer,
     writer.WriteFrom(name + "/level_data", *mlp.level_data);
     storage::serialization::write(writer, name + "/partition", mlp.partition);
     storage::serialization::write(writer, name + "/cell_to_children", mlp.cell_to_children);
-}
 
-template <storage::Ownership Ownership>
-inline void writePB(const std::string &path, const detail::MultiLevelPartitionImpl<Ownership> &mlp)
-{
-    pbmldp::Partitions pb_partition;
-    for (auto index : util::irange<std::size_t>(0, mlp.partition.size()))
-    {
-        pb_partition.add_partition(mlp.partition[index]);
+    std::cout << "#### partitions: partition.size: " << mlp.partition.size()
+        << " cell_to_children.size: " << mlp.cell_to_children.size()
+        << " levelData.num_level: " << mlp.level_data->num_level
+        << " levelData.lidx_to_offset.size: " << mlp.level_data->lidx_to_offset.size()
+        << " levelData.lidx_to_mask.size: " << mlp.level_data->lidx_to_mask.size()
+        << " levelData.bit_to_level.size: " << mlp.level_data->bit_to_level.size()
+        << " levelData.lidx_to_children_offsets.size: " << mlp.level_data->lidx_to_children_offsets.size()
+        << std::endl;
+
+    pbmld::Partitions pb_partitions;
+    for (auto i : mlp.partition ){
+        pb_partitions.add_partition(i);
     }
 
-    pbmldp::LevelData *pb_level_data = pb_partition.mutable_leveldata();
-    pb_level_data->set_numberlevel(mlp.level_data->num_level);
-
-    for (auto elem : mlp.level_data->lidx_to_offset)
-    {
-        pb_level_data->add_lidxtooffset(elem);
+    auto pb_level_data = new pbmld::LevelData;
+    pb_level_data->set_number_level(mlp.level_data->num_level);
+    for(auto i : mlp.level_data->lidx_to_offset) {
+        pb_level_data->add_lidx_to_offset(i);
     }
-
-    for (auto elem : mlp.level_data->lidx_to_mask)
-    {
-        pb_level_data->add_lidxtomask(elem);
+    for(auto i : mlp.level_data->lidx_to_mask) {
+        pb_level_data->add_lidx_to_mask(i);
     }
-
-    for (auto elem : mlp.level_data->bit_to_level)
-    {
-        pb_level_data->add_bittolevel(elem);
+    for(auto i : mlp.level_data->bit_to_level) {
+        pb_level_data->add_bit_to_level(i);
     }
-
-    std::fstream pb_output(path + ".pb", std::ios::out | std::ios::binary);
-    pb_partition.SerializeToOstream(&pb_output);
+    pb_partitions.set_allocated_level_data(pb_level_data);
+    std::fstream pb_out("1.mld.partitions.pb", std::ios::out | std::ios::binary);
+    pb_partitions.SerializeToOstream(&pb_out);
 }
 
 template <storage::Ownership Ownership>
@@ -97,42 +96,35 @@ inline void write(storage::tar::FileWriter &writer,
     storage::serialization::write(writer, name + "/cells", storage.cells);
     storage::serialization::write(
         writer, name + "/level_to_cell_offset", storage.level_to_cell_offset);
+
+    std::cout << "#### cells: source_boundary: " << storage.source_boundary.size()
+        << " destination_boundary: " << storage.destination_boundary.size()
+        << " cells: " << storage.cells.size()
+        << " level_to_cell_offset: " << storage.level_to_cell_offset.size() << std::endl;
+
+    pbmld::Cells pb_cells;
+    for (auto i : storage.source_boundary ){
+        pb_cells.add_source_boundary(i);
+    }
+    for (auto i : storage.destination_boundary ){
+        pb_cells.add_destination_boundary(i);
+    }
+    for (auto i : storage.level_to_cell_offset ){
+        pb_cells.add_level_offset(i);
+    }
+    for (auto i : storage.cells ){
+        auto cell = pb_cells.add_cells();
+        cell->set_value_offset(i.value_offset);
+        cell->set_source_boundary_offset(i.source_boundary_offset);
+        cell->set_destination_boundary_offset(i.destination_boundary_offset);
+        cell->set_source_node_number(i.num_source_nodes);
+        cell->set_destination_node_number(i.num_destination_nodes);
+    }
+    std::fstream pb_out("1.mld.cells.pb", std::ios::out | std::ios::binary);
+    pb_cells.SerializeToOstream(&pb_out);
 }
-
-template <storage::Ownership Ownership>
-inline void writePB(const std::string &path, const detail::CellStorageImpl<Ownership> &storage)
-{
-    pbmldc::Cells pb_cells;
-    for (auto index : util::irange<std::size_t>(0, storage.source_boundary.size()))
-    {
-        pb_cells.add_sourceboundary(storage.source_boundary[index]);
-    }
-    for (auto index : util::irange<std::size_t>(0, storage.destination_boundary.size()))
-    {
-        pb_cells.add_destinationboundary(storage.destination_boundary[index]);
-    }
-
-    for (auto index : util::irange<std::size_t>(0, storage.cells.size()))
-    {
-        pbmldc::CellData *pb_cell_data = pb_cells.add_cells();
-        pb_cell_data->set_valueoffset(storage.cells[index].value_offset);
-        pb_cell_data->set_sourceboundaryoffset(storage.cells[index].source_boundary_offset);
-        pb_cell_data->set_destinationboundaryoffset(
-            storage.cells[index].destination_boundary_offset);
-        pb_cell_data->set_sourcenodesnumber(storage.cells[index].num_source_nodes);
-        pb_cell_data->set_destinationnodesnumber(storage.cells[index].num_destination_nodes);
-    }
-
-    for (auto index : util::irange<std::size_t>(0, storage.level_to_cell_offset.size()))
-    {
-        pb_cells.add_leveloffset(storage.level_to_cell_offset[index]);
-    }
-    std::fstream pb_output(path + ".pb", std::ios::out | std::ios::binary);
-    pb_cells.SerializeToOstream(&pb_output);
 }
-
-} // namespace serialization
-} // namespace partitioner
-} // namespace osrm
+}
+}
 
 #endif

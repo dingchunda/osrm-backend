@@ -1,17 +1,18 @@
 #!/bin/bash
-mkdir _build-test
-cd _build-test
-#cp ../build/berlin-latest.osm.pbf .
-echo
+cityname="SIN"
+cd build
+echo `date`
 echo "start osrm-extract"
-./osrm-extract -p /usr/local/share/osrm/profiles/car.lua testdata.pbf
-echo
-echo "start osrm-partition"
-./osrm-partition testdata.osrm
-echo
-echo "start osrm-customize"
-./osrm-customize testdata.osrm
+./osrm-extract -p car.lua ${cityname}.osm.pbf
+echo `date`
 
-echo
+echo "start osrm-partition"
+./osrm-partition ${cityname}.osrm
+echo `date`
+
+echo "start osrm-customize"
+./osrm-customize ${cityname}.osrm
+
+echo `date`
 echo "pb files"
 ls *.pb

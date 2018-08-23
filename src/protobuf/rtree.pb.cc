@@ -7,7 +7,6 @@
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/port.h>
-#include <google/protobuf/stubs/once.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/wire_format_lite_inl.h>
 #include <google/protobuf/descriptor.h>
@@ -19,228 +18,225 @@
 #include "third_party/protobuf/version.h"
 #endif
 // @@protoc_insertion_point(includes)
-namespace pbmldrtree {
-class EdgeBasedNodeSegmentDefaultTypeInternal {
+
+namespace protobuf_rtree_2eproto {
+extern PROTOBUF_INTERNAL_EXPORT_protobuf_rtree_2eproto ::google::protobuf::internal::SCCInfo<0> scc_info_Rectangle;
+extern PROTOBUF_INTERNAL_EXPORT_protobuf_rtree_2eproto ::google::protobuf::internal::SCCInfo<0> scc_info_Segment;
+extern PROTOBUF_INTERNAL_EXPORT_protobuf_rtree_2eproto ::google::protobuf::internal::SCCInfo<1> scc_info_LeafNode;
+}  // namespace protobuf_rtree_2eproto
+namespace pbrtree {
+class SegmentDefaultTypeInternal {
  public:
-  ::google::protobuf::internal::ExplicitlyConstructed<EdgeBasedNodeSegment>
+  ::google::protobuf::internal::ExplicitlyConstructed<Segment>
       _instance;
-} _EdgeBasedNodeSegment_default_instance_;
+} _Segment_default_instance_;
 class RectangleDefaultTypeInternal {
  public:
   ::google::protobuf::internal::ExplicitlyConstructed<Rectangle>
       _instance;
 } _Rectangle_default_instance_;
-class RTreeNodeDefaultTypeInternal {
+class LeafNodeDefaultTypeInternal {
  public:
-  ::google::protobuf::internal::ExplicitlyConstructed<RTreeNode>
+  ::google::protobuf::internal::ExplicitlyConstructed<LeafNode>
       _instance;
-} _RTreeNode_default_instance_;
-class RTreeDefaultTypeInternal {
+} _LeafNode_default_instance_;
+class LeavesDefaultTypeInternal {
  public:
-  ::google::protobuf::internal::ExplicitlyConstructed<RTree>
+  ::google::protobuf::internal::ExplicitlyConstructed<Leaves>
       _instance;
-} _RTree_default_instance_;
-}  // namespace pbmldrtree
+} _Leaves_default_instance_;
+class SegmentsDefaultTypeInternal {
+ public:
+  ::google::protobuf::internal::ExplicitlyConstructed<Segments>
+      _instance;
+} _Segments_default_instance_;
+}  // namespace pbrtree
 namespace protobuf_rtree_2eproto {
-void InitDefaultsEdgeBasedNodeSegmentImpl() {
+static void InitDefaultsSegment() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-#ifdef GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
-  ::google::protobuf::internal::InitProtobufDefaultsForceUnique();
-#else
-  ::google::protobuf::internal::InitProtobufDefaults();
-#endif  // GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
   {
-    void* ptr = &::pbmldrtree::_EdgeBasedNodeSegment_default_instance_;
-    new (ptr) ::pbmldrtree::EdgeBasedNodeSegment();
+    void* ptr = &::pbrtree::_Segment_default_instance_;
+    new (ptr) ::pbrtree::Segment();
     ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::pbmldrtree::EdgeBasedNodeSegment::InitAsDefaultInstance();
+  ::pbrtree::Segment::InitAsDefaultInstance();
 }
 
-void InitDefaultsEdgeBasedNodeSegment() {
-  static GOOGLE_PROTOBUF_DECLARE_ONCE(once);
-  ::google::protobuf::GoogleOnceInit(&once, &InitDefaultsEdgeBasedNodeSegmentImpl);
-}
+::google::protobuf::internal::SCCInfo<0> scc_info_Segment =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsSegment}, {}};
 
-void InitDefaultsRectangleImpl() {
+static void InitDefaultsRectangle() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-#ifdef GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
-  ::google::protobuf::internal::InitProtobufDefaultsForceUnique();
-#else
-  ::google::protobuf::internal::InitProtobufDefaults();
-#endif  // GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
   {
-    void* ptr = &::pbmldrtree::_Rectangle_default_instance_;
-    new (ptr) ::pbmldrtree::Rectangle();
+    void* ptr = &::pbrtree::_Rectangle_default_instance_;
+    new (ptr) ::pbrtree::Rectangle();
     ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::pbmldrtree::Rectangle::InitAsDefaultInstance();
+  ::pbrtree::Rectangle::InitAsDefaultInstance();
 }
 
-void InitDefaultsRectangle() {
-  static GOOGLE_PROTOBUF_DECLARE_ONCE(once);
-  ::google::protobuf::GoogleOnceInit(&once, &InitDefaultsRectangleImpl);
-}
+::google::protobuf::internal::SCCInfo<0> scc_info_Rectangle =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsRectangle}, {}};
 
-void InitDefaultsRTreeNodeImpl() {
+static void InitDefaultsLeafNode() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-#ifdef GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
-  ::google::protobuf::internal::InitProtobufDefaultsForceUnique();
-#else
-  ::google::protobuf::internal::InitProtobufDefaults();
-#endif  // GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
-  protobuf_rtree_2eproto::InitDefaultsRectangle();
-  protobuf_rtree_2eproto::InitDefaultsEdgeBasedNodeSegment();
   {
-    void* ptr = &::pbmldrtree::_RTreeNode_default_instance_;
-    new (ptr) ::pbmldrtree::RTreeNode();
+    void* ptr = &::pbrtree::_LeafNode_default_instance_;
+    new (ptr) ::pbrtree::LeafNode();
     ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::pbmldrtree::RTreeNode::InitAsDefaultInstance();
+  ::pbrtree::LeafNode::InitAsDefaultInstance();
 }
 
-void InitDefaultsRTreeNode() {
-  static GOOGLE_PROTOBUF_DECLARE_ONCE(once);
-  ::google::protobuf::GoogleOnceInit(&once, &InitDefaultsRTreeNodeImpl);
-}
+::google::protobuf::internal::SCCInfo<1> scc_info_LeafNode =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsLeafNode}, {
+      &protobuf_rtree_2eproto::scc_info_Rectangle.base,}};
 
-void InitDefaultsRTreeImpl() {
+static void InitDefaultsLeaves() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-#ifdef GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
-  ::google::protobuf::internal::InitProtobufDefaultsForceUnique();
-#else
-  ::google::protobuf::internal::InitProtobufDefaults();
-#endif  // GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
-  protobuf_rtree_2eproto::InitDefaultsRTreeNode();
   {
-    void* ptr = &::pbmldrtree::_RTree_default_instance_;
-    new (ptr) ::pbmldrtree::RTree();
+    void* ptr = &::pbrtree::_Leaves_default_instance_;
+    new (ptr) ::pbrtree::Leaves();
     ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::pbmldrtree::RTree::InitAsDefaultInstance();
+  ::pbrtree::Leaves::InitAsDefaultInstance();
 }
 
-void InitDefaultsRTree() {
-  static GOOGLE_PROTOBUF_DECLARE_ONCE(once);
-  ::google::protobuf::GoogleOnceInit(&once, &InitDefaultsRTreeImpl);
+::google::protobuf::internal::SCCInfo<1> scc_info_Leaves =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsLeaves}, {
+      &protobuf_rtree_2eproto::scc_info_LeafNode.base,}};
+
+static void InitDefaultsSegments() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::pbrtree::_Segments_default_instance_;
+    new (ptr) ::pbrtree::Segments();
+    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::pbrtree::Segments::InitAsDefaultInstance();
 }
 
-::google::protobuf::Metadata file_level_metadata[4];
+::google::protobuf::internal::SCCInfo<1> scc_info_Segments =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsSegments}, {
+      &protobuf_rtree_2eproto::scc_info_Segment.base,}};
+
+void InitDefaults() {
+  ::google::protobuf::internal::InitSCC(&scc_info_Segment.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_Rectangle.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_LeafNode.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_Leaves.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_Segments.base);
+}
+
+::google::protobuf::Metadata file_level_metadata[5];
 
 const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::EdgeBasedNodeSegment, _has_bits_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::EdgeBasedNodeSegment, _internal_metadata_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Segment, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::EdgeBasedNodeSegment, u_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::EdgeBasedNodeSegment, v_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::EdgeBasedNodeSegment, forward_segment_id_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::EdgeBasedNodeSegment, reverse_segment_id_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::EdgeBasedNodeSegment, fwd_segment_position_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::EdgeBasedNodeSegment, forwardenabled_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::EdgeBasedNodeSegment, reverseenabled_),
-  0,
-  1,
-  2,
-  3,
-  4,
-  5,
-  6,
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::Rectangle, _has_bits_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::Rectangle, _internal_metadata_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Segment, u_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Segment, v_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Segment, forward_segment_id_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Segment, reverse_segment_id_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Segment, forward_segment_position_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Segment, forward_enabled_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Segment, reverse_enabled_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Rectangle, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::Rectangle, min_lat_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::Rectangle, min_lon_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::Rectangle, max_lat_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::Rectangle, max_lon_),
-  0,
-  1,
-  2,
-  3,
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::RTreeNode, _has_bits_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::RTreeNode, _internal_metadata_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Rectangle, min_lat_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Rectangle, min_lon_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Rectangle, max_lat_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Rectangle, max_lon_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::LeafNode, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::RTreeNode, itemcount_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::RTreeNode, rect_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::RTreeNode, segments_),
-  1,
-  0,
-  ~0u,
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::RTree, _has_bits_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::RTree, _internal_metadata_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::LeafNode, minimum_bounding_rectangle_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::LeafNode, indexstart_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::LeafNode, indexend_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Leaves, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbmldrtree::RTree, node_),
-  ~0u,
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Leaves, items_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Segments, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::pbrtree::Segments, items_),
 };
 static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, 12, sizeof(::pbmldrtree::EdgeBasedNodeSegment)},
-  { 19, 28, sizeof(::pbmldrtree::Rectangle)},
-  { 32, 40, sizeof(::pbmldrtree::RTreeNode)},
-  { 43, 49, sizeof(::pbmldrtree::RTree)},
+  { 0, -1, sizeof(::pbrtree::Segment)},
+  { 12, -1, sizeof(::pbrtree::Rectangle)},
+  { 21, -1, sizeof(::pbrtree::LeafNode)},
+  { 29, -1, sizeof(::pbrtree::Leaves)},
+  { 35, -1, sizeof(::pbrtree::Segments)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
-  reinterpret_cast<const ::google::protobuf::Message*>(&::pbmldrtree::_EdgeBasedNodeSegment_default_instance_),
-  reinterpret_cast<const ::google::protobuf::Message*>(&::pbmldrtree::_Rectangle_default_instance_),
-  reinterpret_cast<const ::google::protobuf::Message*>(&::pbmldrtree::_RTreeNode_default_instance_),
-  reinterpret_cast<const ::google::protobuf::Message*>(&::pbmldrtree::_RTree_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::pbrtree::_Segment_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::pbrtree::_Rectangle_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::pbrtree::_LeafNode_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::pbrtree::_Leaves_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::pbrtree::_Segments_default_instance_),
 };
 
 void protobuf_AssignDescriptors() {
   AddDescriptors();
-  ::google::protobuf::MessageFactory* factory = NULL;
   AssignDescriptors(
-      "rtree.proto", schemas, file_default_instances, TableStruct::offsets, factory,
+      "rtree.proto", schemas, file_default_instances, TableStruct::offsets,
       file_level_metadata, NULL, NULL);
 }
 
 void protobuf_AssignDescriptorsOnce() {
-  static GOOGLE_PROTOBUF_DECLARE_ONCE(once);
-  ::google::protobuf::GoogleOnceInit(&once, &protobuf_AssignDescriptors);
+  static ::google::protobuf::internal::once_flag once;
+  ::google::protobuf::internal::call_once(once, protobuf_AssignDescriptors);
 }
 
 void protobuf_RegisterTypes(const ::std::string&) GOOGLE_PROTOBUF_ATTRIBUTE_COLD;
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 4);
+  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 5);
 }
 
 void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-      "\n\013rtree.proto\022\npbmldrtree\"\262\001\n\024EdgeBasedN"
-      "odeSegment\022\t\n\001u\030\001 \001(\r\022\t\n\001v\030\002 \001(\r\022\032\n\022forw"
-      "ard_segment_id\030\003 \001(\r\022\032\n\022reverse_segment_"
-      "id\030\004 \001(\r\022\034\n\024fwd_segment_position\030\005 \001(\r\022\026"
-      "\n\016forwardEnabled\030\006 \001(\r\022\026\n\016reverseEnabled"
-      "\030\007 \001(\r\"O\n\tRectangle\022\017\n\007min_lat\030\001 \001(\022\022\017\n\007"
-      "min_lon\030\002 \001(\022\022\017\n\007max_lat\030\003 \001(\022\022\017\n\007max_lo"
-      "n\030\004 \001(\022\"w\n\tRTreeNode\022\021\n\titemCount\030\001 \001(\004\022"
-      "#\n\004rect\030\002 \001(\0132\025.pbmldrtree.Rectangle\0222\n\010"
-      "segments\030\003 \003(\0132 .pbmldrtree.EdgeBasedNod"
-      "eSegment\",\n\005RTree\022#\n\004node\030\001 \003(\0132\025.pbmldr"
-      "tree.RTreeNode"
+      "\n\013rtree.proto\022\007pbrtree\"\253\001\n\007Segment\022\t\n\001u\030"
+      "\001 \001(\r\022\t\n\001v\030\002 \001(\r\022\032\n\022forward_segment_id\030\003"
+      " \001(\r\022\032\n\022reverse_segment_id\030\004 \001(\r\022 \n\030forw"
+      "ard_segment_position\030\005 \001(\r\022\027\n\017forward_en"
+      "abled\030\006 \001(\010\022\027\n\017reverse_enabled\030\007 \001(\010\"O\n\t"
+      "Rectangle\022\017\n\007min_lat\030\001 \001(\004\022\017\n\007min_lon\030\002 "
+      "\001(\004\022\017\n\007max_lat\030\003 \001(\004\022\017\n\007max_lon\030\004 \001(\004\"h\n"
+      "\010LeafNode\0226\n\032minimum_bounding_rectangle\030"
+      "\001 \001(\0132\022.pbrtree.Rectangle\022\022\n\nindexStart\030"
+      "\002 \001(\r\022\020\n\010indexEnd\030\003 \001(\r\"*\n\006Leaves\022 \n\005ite"
+      "ms\030\001 \003(\0132\021.pbrtree.LeafNode\"+\n\010Segments\022"
+      "\037\n\005items\030\001 \003(\0132\020.pbrtree.Segmentb\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 454);
+      descriptor, 480);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "rtree.proto", &protobuf_RegisterTypes);
 }
 
 void AddDescriptors() {
-  static GOOGLE_PROTOBUF_DECLARE_ONCE(once);
-  ::google::protobuf::GoogleOnceInit(&once, &AddDescriptorsImpl);
+  static ::google::protobuf::internal::once_flag once;
+  ::google::protobuf::internal::call_once(once, AddDescriptorsImpl);
 }
 // Force AddDescriptors() to be called at dynamic initialization time.
 struct StaticDescriptorInitializer {
@@ -249,111 +245,94 @@ struct StaticDescriptorInitializer {
   }
 } static_descriptor_initializer;
 }  // namespace protobuf_rtree_2eproto
-namespace pbmldrtree {
+namespace pbrtree {
 
 // ===================================================================
 
-void EdgeBasedNodeSegment::InitAsDefaultInstance() {
+void Segment::InitAsDefaultInstance() {
 }
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int EdgeBasedNodeSegment::kUFieldNumber;
-const int EdgeBasedNodeSegment::kVFieldNumber;
-const int EdgeBasedNodeSegment::kForwardSegmentIdFieldNumber;
-const int EdgeBasedNodeSegment::kReverseSegmentIdFieldNumber;
-const int EdgeBasedNodeSegment::kFwdSegmentPositionFieldNumber;
-const int EdgeBasedNodeSegment::kForwardEnabledFieldNumber;
-const int EdgeBasedNodeSegment::kReverseEnabledFieldNumber;
+const int Segment::kUFieldNumber;
+const int Segment::kVFieldNumber;
+const int Segment::kForwardSegmentIdFieldNumber;
+const int Segment::kReverseSegmentIdFieldNumber;
+const int Segment::kForwardSegmentPositionFieldNumber;
+const int Segment::kForwardEnabledFieldNumber;
+const int Segment::kReverseEnabledFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
-EdgeBasedNodeSegment::EdgeBasedNodeSegment()
+Segment::Segment()
   : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
-    ::protobuf_rtree_2eproto::InitDefaultsEdgeBasedNodeSegment();
-  }
+  ::google::protobuf::internal::InitSCC(
+      &protobuf_rtree_2eproto::scc_info_Segment.base);
   SharedCtor();
-  // @@protoc_insertion_point(constructor:pbmldrtree.EdgeBasedNodeSegment)
+  // @@protoc_insertion_point(constructor:pbrtree.Segment)
 }
-EdgeBasedNodeSegment::EdgeBasedNodeSegment(const EdgeBasedNodeSegment& from)
+Segment::Segment(const Segment& from)
   : ::google::protobuf::Message(),
-      _internal_metadata_(NULL),
-      _has_bits_(from._has_bits_),
-      _cached_size_(0) {
+      _internal_metadata_(NULL) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::memcpy(&u_, &from.u_,
-    static_cast<size_t>(reinterpret_cast<char*>(&reverseenabled_) -
-    reinterpret_cast<char*>(&u_)) + sizeof(reverseenabled_));
-  // @@protoc_insertion_point(copy_constructor:pbmldrtree.EdgeBasedNodeSegment)
+    static_cast<size_t>(reinterpret_cast<char*>(&reverse_enabled_) -
+    reinterpret_cast<char*>(&u_)) + sizeof(reverse_enabled_));
+  // @@protoc_insertion_point(copy_constructor:pbrtree.Segment)
 }
 
-void EdgeBasedNodeSegment::SharedCtor() {
-  _cached_size_ = 0;
+void Segment::SharedCtor() {
   ::memset(&u_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&reverseenabled_) -
-      reinterpret_cast<char*>(&u_)) + sizeof(reverseenabled_));
+      reinterpret_cast<char*>(&reverse_enabled_) -
+      reinterpret_cast<char*>(&u_)) + sizeof(reverse_enabled_));
 }
 
-EdgeBasedNodeSegment::~EdgeBasedNodeSegment() {
-  // @@protoc_insertion_point(destructor:pbmldrtree.EdgeBasedNodeSegment)
+Segment::~Segment() {
+  // @@protoc_insertion_point(destructor:pbrtree.Segment)
   SharedDtor();
 }
 
-void EdgeBasedNodeSegment::SharedDtor() {
+void Segment::SharedDtor() {
 }
 
-void EdgeBasedNodeSegment::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+void Segment::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
 }
-const ::google::protobuf::Descriptor* EdgeBasedNodeSegment::descriptor() {
+const ::google::protobuf::Descriptor* Segment::descriptor() {
   ::protobuf_rtree_2eproto::protobuf_AssignDescriptorsOnce();
   return ::protobuf_rtree_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
 }
 
-const EdgeBasedNodeSegment& EdgeBasedNodeSegment::default_instance() {
-  ::protobuf_rtree_2eproto::InitDefaultsEdgeBasedNodeSegment();
+const Segment& Segment::default_instance() {
+  ::google::protobuf::internal::InitSCC(&protobuf_rtree_2eproto::scc_info_Segment.base);
   return *internal_default_instance();
 }
 
-EdgeBasedNodeSegment* EdgeBasedNodeSegment::New(::google::protobuf::Arena* arena) const {
-  EdgeBasedNodeSegment* n = new EdgeBasedNodeSegment;
-  if (arena != NULL) {
-    arena->Own(n);
-  }
-  return n;
-}
 
-void EdgeBasedNodeSegment::Clear() {
-// @@protoc_insertion_point(message_clear_start:pbmldrtree.EdgeBasedNodeSegment)
+void Segment::Clear() {
+// @@protoc_insertion_point(message_clear_start:pbrtree.Segment)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 127u) {
-    ::memset(&u_, 0, static_cast<size_t>(
-        reinterpret_cast<char*>(&reverseenabled_) -
-        reinterpret_cast<char*>(&u_)) + sizeof(reverseenabled_));
-  }
-  _has_bits_.Clear();
+  ::memset(&u_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&reverse_enabled_) -
+      reinterpret_cast<char*>(&u_)) + sizeof(reverse_enabled_));
   _internal_metadata_.Clear();
 }
 
-bool EdgeBasedNodeSegment::MergePartialFromCodedStream(
+bool Segment::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:pbmldrtree.EdgeBasedNodeSegment)
+  // @@protoc_insertion_point(parse_start:pbrtree.Segment)
   for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional uint32 u = 1;
+      // uint32 u = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
-          set_has_u();
+
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
                  input, &u_)));
@@ -363,11 +342,11 @@ bool EdgeBasedNodeSegment::MergePartialFromCodedStream(
         break;
       }
 
-      // optional uint32 v = 2;
+      // uint32 v = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(16u /* 16 & 0xFF */)) {
-          set_has_v();
+
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
                  input, &v_)));
@@ -377,11 +356,11 @@ bool EdgeBasedNodeSegment::MergePartialFromCodedStream(
         break;
       }
 
-      // optional uint32 forward_segment_id = 3;
+      // uint32 forward_segment_id = 3;
       case 3: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(24u /* 24 & 0xFF */)) {
-          set_has_forward_segment_id();
+
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
                  input, &forward_segment_id_)));
@@ -391,11 +370,11 @@ bool EdgeBasedNodeSegment::MergePartialFromCodedStream(
         break;
       }
 
-      // optional uint32 reverse_segment_id = 4;
+      // uint32 reverse_segment_id = 4;
       case 4: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(32u /* 32 & 0xFF */)) {
-          set_has_reverse_segment_id();
+
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
                  input, &reverse_segment_id_)));
@@ -405,42 +384,42 @@ bool EdgeBasedNodeSegment::MergePartialFromCodedStream(
         break;
       }
 
-      // optional uint32 fwd_segment_position = 5;
+      // uint32 forward_segment_position = 5;
       case 5: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(40u /* 40 & 0xFF */)) {
-          set_has_fwd_segment_position();
+
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 input, &fwd_segment_position_)));
+                 input, &forward_segment_position_)));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // optional uint32 forwardEnabled = 6;
+      // bool forward_enabled = 6;
       case 6: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(48u /* 48 & 0xFF */)) {
-          set_has_forwardenabled();
+
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 input, &forwardenabled_)));
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &forward_enabled_)));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // optional uint32 reverseEnabled = 7;
+      // bool reverse_enabled = 7;
       case 7: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(56u /* 56 & 0xFF */)) {
-          set_has_reverseenabled();
+
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 input, &reverseenabled_)));
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &reverse_enabled_)));
         } else {
           goto handle_unusual;
         }
@@ -459,267 +438,251 @@ bool EdgeBasedNodeSegment::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:pbmldrtree.EdgeBasedNodeSegment)
+  // @@protoc_insertion_point(parse_success:pbrtree.Segment)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:pbmldrtree.EdgeBasedNodeSegment)
+  // @@protoc_insertion_point(parse_failure:pbrtree.Segment)
   return false;
 #undef DO_
 }
 
-void EdgeBasedNodeSegment::SerializeWithCachedSizes(
+void Segment::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:pbmldrtree.EdgeBasedNodeSegment)
+  // @@protoc_insertion_point(serialize_start:pbrtree.Segment)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = _has_bits_[0];
-  // optional uint32 u = 1;
-  if (cached_has_bits & 0x00000001u) {
+  // uint32 u = 1;
+  if (this->u() != 0) {
     ::google::protobuf::internal::WireFormatLite::WriteUInt32(1, this->u(), output);
   }
 
-  // optional uint32 v = 2;
-  if (cached_has_bits & 0x00000002u) {
+  // uint32 v = 2;
+  if (this->v() != 0) {
     ::google::protobuf::internal::WireFormatLite::WriteUInt32(2, this->v(), output);
   }
 
-  // optional uint32 forward_segment_id = 3;
-  if (cached_has_bits & 0x00000004u) {
+  // uint32 forward_segment_id = 3;
+  if (this->forward_segment_id() != 0) {
     ::google::protobuf::internal::WireFormatLite::WriteUInt32(3, this->forward_segment_id(), output);
   }
 
-  // optional uint32 reverse_segment_id = 4;
-  if (cached_has_bits & 0x00000008u) {
+  // uint32 reverse_segment_id = 4;
+  if (this->reverse_segment_id() != 0) {
     ::google::protobuf::internal::WireFormatLite::WriteUInt32(4, this->reverse_segment_id(), output);
   }
 
-  // optional uint32 fwd_segment_position = 5;
-  if (cached_has_bits & 0x00000010u) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(5, this->fwd_segment_position(), output);
+  // uint32 forward_segment_position = 5;
+  if (this->forward_segment_position() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(5, this->forward_segment_position(), output);
   }
 
-  // optional uint32 forwardEnabled = 6;
-  if (cached_has_bits & 0x00000020u) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(6, this->forwardenabled(), output);
+  // bool forward_enabled = 6;
+  if (this->forward_enabled() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(6, this->forward_enabled(), output);
   }
 
-  // optional uint32 reverseEnabled = 7;
-  if (cached_has_bits & 0x00000040u) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(7, this->reverseenabled(), output);
+  // bool reverse_enabled = 7;
+  if (this->reverse_enabled() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(7, this->reverse_enabled(), output);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:pbmldrtree.EdgeBasedNodeSegment)
+  // @@protoc_insertion_point(serialize_end:pbrtree.Segment)
 }
 
-::google::protobuf::uint8* EdgeBasedNodeSegment::InternalSerializeWithCachedSizesToArray(
+::google::protobuf::uint8* Segment::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:pbmldrtree.EdgeBasedNodeSegment)
+  // @@protoc_insertion_point(serialize_to_array_start:pbrtree.Segment)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = _has_bits_[0];
-  // optional uint32 u = 1;
-  if (cached_has_bits & 0x00000001u) {
+  // uint32 u = 1;
+  if (this->u() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(1, this->u(), target);
   }
 
-  // optional uint32 v = 2;
-  if (cached_has_bits & 0x00000002u) {
+  // uint32 v = 2;
+  if (this->v() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(2, this->v(), target);
   }
 
-  // optional uint32 forward_segment_id = 3;
-  if (cached_has_bits & 0x00000004u) {
+  // uint32 forward_segment_id = 3;
+  if (this->forward_segment_id() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(3, this->forward_segment_id(), target);
   }
 
-  // optional uint32 reverse_segment_id = 4;
-  if (cached_has_bits & 0x00000008u) {
+  // uint32 reverse_segment_id = 4;
+  if (this->reverse_segment_id() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(4, this->reverse_segment_id(), target);
   }
 
-  // optional uint32 fwd_segment_position = 5;
-  if (cached_has_bits & 0x00000010u) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(5, this->fwd_segment_position(), target);
+  // uint32 forward_segment_position = 5;
+  if (this->forward_segment_position() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(5, this->forward_segment_position(), target);
   }
 
-  // optional uint32 forwardEnabled = 6;
-  if (cached_has_bits & 0x00000020u) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(6, this->forwardenabled(), target);
+  // bool forward_enabled = 6;
+  if (this->forward_enabled() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(6, this->forward_enabled(), target);
   }
 
-  // optional uint32 reverseEnabled = 7;
-  if (cached_has_bits & 0x00000040u) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(7, this->reverseenabled(), target);
+  // bool reverse_enabled = 7;
+  if (this->reverse_enabled() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(7, this->reverse_enabled(), target);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:pbmldrtree.EdgeBasedNodeSegment)
+  // @@protoc_insertion_point(serialize_to_array_end:pbrtree.Segment)
   return target;
 }
 
-size_t EdgeBasedNodeSegment::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:pbmldrtree.EdgeBasedNodeSegment)
+size_t Segment::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:pbrtree.Segment)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  if (_has_bits_[0 / 32] & 127u) {
-    // optional uint32 u = 1;
-    if (has_u()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt32Size(
-          this->u());
-    }
-
-    // optional uint32 v = 2;
-    if (has_v()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt32Size(
-          this->v());
-    }
-
-    // optional uint32 forward_segment_id = 3;
-    if (has_forward_segment_id()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt32Size(
-          this->forward_segment_id());
-    }
-
-    // optional uint32 reverse_segment_id = 4;
-    if (has_reverse_segment_id()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt32Size(
-          this->reverse_segment_id());
-    }
-
-    // optional uint32 fwd_segment_position = 5;
-    if (has_fwd_segment_position()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt32Size(
-          this->fwd_segment_position());
-    }
-
-    // optional uint32 forwardEnabled = 6;
-    if (has_forwardenabled()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt32Size(
-          this->forwardenabled());
-    }
-
-    // optional uint32 reverseEnabled = 7;
-    if (has_reverseenabled()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt32Size(
-          this->reverseenabled());
-    }
-
+  // uint32 u = 1;
+  if (this->u() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        this->u());
   }
+
+  // uint32 v = 2;
+  if (this->v() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        this->v());
+  }
+
+  // uint32 forward_segment_id = 3;
+  if (this->forward_segment_id() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        this->forward_segment_id());
+  }
+
+  // uint32 reverse_segment_id = 4;
+  if (this->reverse_segment_id() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        this->reverse_segment_id());
+  }
+
+  // uint32 forward_segment_position = 5;
+  if (this->forward_segment_position() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        this->forward_segment_position());
+  }
+
+  // bool forward_enabled = 6;
+  if (this->forward_enabled() != 0) {
+    total_size += 1 + 1;
+  }
+
+  // bool reverse_enabled = 7;
+  if (this->reverse_enabled() != 0) {
+    total_size += 1 + 1;
+  }
+
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = cached_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  SetCachedSize(cached_size);
   return total_size;
 }
 
-void EdgeBasedNodeSegment::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:pbmldrtree.EdgeBasedNodeSegment)
+void Segment::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:pbrtree.Segment)
   GOOGLE_DCHECK_NE(&from, this);
-  const EdgeBasedNodeSegment* source =
-      ::google::protobuf::internal::DynamicCastToGenerated<const EdgeBasedNodeSegment>(
+  const Segment* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const Segment>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:pbmldrtree.EdgeBasedNodeSegment)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:pbrtree.Segment)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:pbmldrtree.EdgeBasedNodeSegment)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:pbrtree.Segment)
     MergeFrom(*source);
   }
 }
 
-void EdgeBasedNodeSegment::MergeFrom(const EdgeBasedNodeSegment& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:pbmldrtree.EdgeBasedNodeSegment)
+void Segment::MergeFrom(const Segment& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:pbrtree.Segment)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = from._has_bits_[0];
-  if (cached_has_bits & 127u) {
-    if (cached_has_bits & 0x00000001u) {
-      u_ = from.u_;
-    }
-    if (cached_has_bits & 0x00000002u) {
-      v_ = from.v_;
-    }
-    if (cached_has_bits & 0x00000004u) {
-      forward_segment_id_ = from.forward_segment_id_;
-    }
-    if (cached_has_bits & 0x00000008u) {
-      reverse_segment_id_ = from.reverse_segment_id_;
-    }
-    if (cached_has_bits & 0x00000010u) {
-      fwd_segment_position_ = from.fwd_segment_position_;
-    }
-    if (cached_has_bits & 0x00000020u) {
-      forwardenabled_ = from.forwardenabled_;
-    }
-    if (cached_has_bits & 0x00000040u) {
-      reverseenabled_ = from.reverseenabled_;
-    }
-    _has_bits_[0] |= cached_has_bits;
+  if (from.u() != 0) {
+    set_u(from.u());
+  }
+  if (from.v() != 0) {
+    set_v(from.v());
+  }
+  if (from.forward_segment_id() != 0) {
+    set_forward_segment_id(from.forward_segment_id());
+  }
+  if (from.reverse_segment_id() != 0) {
+    set_reverse_segment_id(from.reverse_segment_id());
+  }
+  if (from.forward_segment_position() != 0) {
+    set_forward_segment_position(from.forward_segment_position());
+  }
+  if (from.forward_enabled() != 0) {
+    set_forward_enabled(from.forward_enabled());
+  }
+  if (from.reverse_enabled() != 0) {
+    set_reverse_enabled(from.reverse_enabled());
   }
 }
 
-void EdgeBasedNodeSegment::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:pbmldrtree.EdgeBasedNodeSegment)
+void Segment::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:pbrtree.Segment)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void EdgeBasedNodeSegment::CopyFrom(const EdgeBasedNodeSegment& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:pbmldrtree.EdgeBasedNodeSegment)
+void Segment::CopyFrom(const Segment& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:pbrtree.Segment)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool EdgeBasedNodeSegment::IsInitialized() const {
+bool Segment::IsInitialized() const {
   return true;
 }
 
-void EdgeBasedNodeSegment::Swap(EdgeBasedNodeSegment* other) {
+void Segment::Swap(Segment* other) {
   if (other == this) return;
   InternalSwap(other);
 }
-void EdgeBasedNodeSegment::InternalSwap(EdgeBasedNodeSegment* other) {
+void Segment::InternalSwap(Segment* other) {
   using std::swap;
   swap(u_, other->u_);
   swap(v_, other->v_);
   swap(forward_segment_id_, other->forward_segment_id_);
   swap(reverse_segment_id_, other->reverse_segment_id_);
-  swap(fwd_segment_position_, other->fwd_segment_position_);
-  swap(forwardenabled_, other->forwardenabled_);
-  swap(reverseenabled_, other->reverseenabled_);
-  swap(_has_bits_[0], other->_has_bits_[0]);
+  swap(forward_segment_position_, other->forward_segment_position_);
+  swap(forward_enabled_, other->forward_enabled_);
+  swap(reverse_enabled_, other->reverse_enabled_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  swap(_cached_size_, other->_cached_size_);
 }
 
-::google::protobuf::Metadata EdgeBasedNodeSegment::GetMetadata() const {
+::google::protobuf::Metadata Segment::GetMetadata() const {
   protobuf_rtree_2eproto::protobuf_AssignDescriptorsOnce();
   return ::protobuf_rtree_2eproto::file_level_metadata[kIndexInFileMessages];
 }
@@ -738,33 +701,29 @@ const int Rectangle::kMaxLonFieldNumber;
 
 Rectangle::Rectangle()
   : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
-    ::protobuf_rtree_2eproto::InitDefaultsRectangle();
-  }
+  ::google::protobuf::internal::InitSCC(
+      &protobuf_rtree_2eproto::scc_info_Rectangle.base);
   SharedCtor();
-  // @@protoc_insertion_point(constructor:pbmldrtree.Rectangle)
+  // @@protoc_insertion_point(constructor:pbrtree.Rectangle)
 }
 Rectangle::Rectangle(const Rectangle& from)
   : ::google::protobuf::Message(),
-      _internal_metadata_(NULL),
-      _has_bits_(from._has_bits_),
-      _cached_size_(0) {
+      _internal_metadata_(NULL) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::memcpy(&min_lat_, &from.min_lat_,
     static_cast<size_t>(reinterpret_cast<char*>(&max_lon_) -
     reinterpret_cast<char*>(&min_lat_)) + sizeof(max_lon_));
-  // @@protoc_insertion_point(copy_constructor:pbmldrtree.Rectangle)
+  // @@protoc_insertion_point(copy_constructor:pbrtree.Rectangle)
 }
 
 void Rectangle::SharedCtor() {
-  _cached_size_ = 0;
   ::memset(&min_lat_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&max_lon_) -
       reinterpret_cast<char*>(&min_lat_)) + sizeof(max_lon_));
 }
 
 Rectangle::~Rectangle() {
-  // @@protoc_insertion_point(destructor:pbmldrtree.Rectangle)
+  // @@protoc_insertion_point(destructor:pbrtree.Rectangle)
   SharedDtor();
 }
 
@@ -772,9 +731,7 @@ void Rectangle::SharedDtor() {
 }
 
 void Rectangle::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  _cached_size_.Set(size);
 }
 const ::google::protobuf::Descriptor* Rectangle::descriptor() {
   ::protobuf_rtree_2eproto::protobuf_AssignDescriptorsOnce();
@@ -782,31 +739,20 @@ const ::google::protobuf::Descriptor* Rectangle::descriptor() {
 }
 
 const Rectangle& Rectangle::default_instance() {
-  ::protobuf_rtree_2eproto::InitDefaultsRectangle();
+  ::google::protobuf::internal::InitSCC(&protobuf_rtree_2eproto::scc_info_Rectangle.base);
   return *internal_default_instance();
 }
 
-Rectangle* Rectangle::New(::google::protobuf::Arena* arena) const {
-  Rectangle* n = new Rectangle;
-  if (arena != NULL) {
-    arena->Own(n);
-  }
-  return n;
-}
 
 void Rectangle::Clear() {
-// @@protoc_insertion_point(message_clear_start:pbmldrtree.Rectangle)
+// @@protoc_insertion_point(message_clear_start:pbrtree.Rectangle)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 15u) {
-    ::memset(&min_lat_, 0, static_cast<size_t>(
-        reinterpret_cast<char*>(&max_lon_) -
-        reinterpret_cast<char*>(&min_lat_)) + sizeof(max_lon_));
-  }
-  _has_bits_.Clear();
+  ::memset(&min_lat_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&max_lon_) -
+      reinterpret_cast<char*>(&min_lat_)) + sizeof(max_lon_));
   _internal_metadata_.Clear();
 }
 
@@ -814,19 +760,19 @@ bool Rectangle::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:pbmldrtree.Rectangle)
+  // @@protoc_insertion_point(parse_start:pbrtree.Rectangle)
   for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional sint64 min_lat = 1;
+      // uint64 min_lat = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
-          set_has_min_lat();
+
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_SINT64>(
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
                  input, &min_lat_)));
         } else {
           goto handle_unusual;
@@ -834,13 +780,13 @@ bool Rectangle::MergePartialFromCodedStream(
         break;
       }
 
-      // optional sint64 min_lon = 2;
+      // uint64 min_lon = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(16u /* 16 & 0xFF */)) {
-          set_has_min_lon();
+
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_SINT64>(
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
                  input, &min_lon_)));
         } else {
           goto handle_unusual;
@@ -848,13 +794,13 @@ bool Rectangle::MergePartialFromCodedStream(
         break;
       }
 
-      // optional sint64 max_lat = 3;
+      // uint64 max_lat = 3;
       case 3: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(24u /* 24 & 0xFF */)) {
-          set_has_max_lat();
+
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_SINT64>(
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
                  input, &max_lat_)));
         } else {
           goto handle_unusual;
@@ -862,13 +808,13 @@ bool Rectangle::MergePartialFromCodedStream(
         break;
       }
 
-      // optional sint64 max_lon = 4;
+      // uint64 max_lon = 4;
       case 4: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(32u /* 32 & 0xFF */)) {
-          set_has_max_lon();
+
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_SINT64>(
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
                  input, &max_lon_)));
         } else {
           goto handle_unusual;
@@ -888,179 +834,169 @@ bool Rectangle::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:pbmldrtree.Rectangle)
+  // @@protoc_insertion_point(parse_success:pbrtree.Rectangle)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:pbmldrtree.Rectangle)
+  // @@protoc_insertion_point(parse_failure:pbrtree.Rectangle)
   return false;
 #undef DO_
 }
 
 void Rectangle::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:pbmldrtree.Rectangle)
+  // @@protoc_insertion_point(serialize_start:pbrtree.Rectangle)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = _has_bits_[0];
-  // optional sint64 min_lat = 1;
-  if (cached_has_bits & 0x00000001u) {
-    ::google::protobuf::internal::WireFormatLite::WriteSInt64(1, this->min_lat(), output);
+  // uint64 min_lat = 1;
+  if (this->min_lat() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(1, this->min_lat(), output);
   }
 
-  // optional sint64 min_lon = 2;
-  if (cached_has_bits & 0x00000002u) {
-    ::google::protobuf::internal::WireFormatLite::WriteSInt64(2, this->min_lon(), output);
+  // uint64 min_lon = 2;
+  if (this->min_lon() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->min_lon(), output);
   }
 
-  // optional sint64 max_lat = 3;
-  if (cached_has_bits & 0x00000004u) {
-    ::google::protobuf::internal::WireFormatLite::WriteSInt64(3, this->max_lat(), output);
+  // uint64 max_lat = 3;
+  if (this->max_lat() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(3, this->max_lat(), output);
   }
 
-  // optional sint64 max_lon = 4;
-  if (cached_has_bits & 0x00000008u) {
-    ::google::protobuf::internal::WireFormatLite::WriteSInt64(4, this->max_lon(), output);
+  // uint64 max_lon = 4;
+  if (this->max_lon() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(4, this->max_lon(), output);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:pbmldrtree.Rectangle)
+  // @@protoc_insertion_point(serialize_end:pbrtree.Rectangle)
 }
 
 ::google::protobuf::uint8* Rectangle::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:pbmldrtree.Rectangle)
+  // @@protoc_insertion_point(serialize_to_array_start:pbrtree.Rectangle)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = _has_bits_[0];
-  // optional sint64 min_lat = 1;
-  if (cached_has_bits & 0x00000001u) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteSInt64ToArray(1, this->min_lat(), target);
+  // uint64 min_lat = 1;
+  if (this->min_lat() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(1, this->min_lat(), target);
   }
 
-  // optional sint64 min_lon = 2;
-  if (cached_has_bits & 0x00000002u) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteSInt64ToArray(2, this->min_lon(), target);
+  // uint64 min_lon = 2;
+  if (this->min_lon() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->min_lon(), target);
   }
 
-  // optional sint64 max_lat = 3;
-  if (cached_has_bits & 0x00000004u) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteSInt64ToArray(3, this->max_lat(), target);
+  // uint64 max_lat = 3;
+  if (this->max_lat() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(3, this->max_lat(), target);
   }
 
-  // optional sint64 max_lon = 4;
-  if (cached_has_bits & 0x00000008u) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteSInt64ToArray(4, this->max_lon(), target);
+  // uint64 max_lon = 4;
+  if (this->max_lon() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(4, this->max_lon(), target);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:pbmldrtree.Rectangle)
+  // @@protoc_insertion_point(serialize_to_array_end:pbrtree.Rectangle)
   return target;
 }
 
 size_t Rectangle::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:pbmldrtree.Rectangle)
+// @@protoc_insertion_point(message_byte_size_start:pbrtree.Rectangle)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  if (_has_bits_[0 / 32] & 15u) {
-    // optional sint64 min_lat = 1;
-    if (has_min_lat()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::SInt64Size(
-          this->min_lat());
-    }
-
-    // optional sint64 min_lon = 2;
-    if (has_min_lon()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::SInt64Size(
-          this->min_lon());
-    }
-
-    // optional sint64 max_lat = 3;
-    if (has_max_lat()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::SInt64Size(
-          this->max_lat());
-    }
-
-    // optional sint64 max_lon = 4;
-    if (has_max_lon()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::SInt64Size(
-          this->max_lon());
-    }
-
+  // uint64 min_lat = 1;
+  if (this->min_lat() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt64Size(
+        this->min_lat());
   }
+
+  // uint64 min_lon = 2;
+  if (this->min_lon() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt64Size(
+        this->min_lon());
+  }
+
+  // uint64 max_lat = 3;
+  if (this->max_lat() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt64Size(
+        this->max_lat());
+  }
+
+  // uint64 max_lon = 4;
+  if (this->max_lon() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt64Size(
+        this->max_lon());
+  }
+
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = cached_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  SetCachedSize(cached_size);
   return total_size;
 }
 
 void Rectangle::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:pbmldrtree.Rectangle)
+// @@protoc_insertion_point(generalized_merge_from_start:pbrtree.Rectangle)
   GOOGLE_DCHECK_NE(&from, this);
   const Rectangle* source =
       ::google::protobuf::internal::DynamicCastToGenerated<const Rectangle>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:pbmldrtree.Rectangle)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:pbrtree.Rectangle)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:pbmldrtree.Rectangle)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:pbrtree.Rectangle)
     MergeFrom(*source);
   }
 }
 
 void Rectangle::MergeFrom(const Rectangle& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:pbmldrtree.Rectangle)
+// @@protoc_insertion_point(class_specific_merge_from_start:pbrtree.Rectangle)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = from._has_bits_[0];
-  if (cached_has_bits & 15u) {
-    if (cached_has_bits & 0x00000001u) {
-      min_lat_ = from.min_lat_;
-    }
-    if (cached_has_bits & 0x00000002u) {
-      min_lon_ = from.min_lon_;
-    }
-    if (cached_has_bits & 0x00000004u) {
-      max_lat_ = from.max_lat_;
-    }
-    if (cached_has_bits & 0x00000008u) {
-      max_lon_ = from.max_lon_;
-    }
-    _has_bits_[0] |= cached_has_bits;
+  if (from.min_lat() != 0) {
+    set_min_lat(from.min_lat());
+  }
+  if (from.min_lon() != 0) {
+    set_min_lon(from.min_lon());
+  }
+  if (from.max_lat() != 0) {
+    set_max_lat(from.max_lat());
+  }
+  if (from.max_lon() != 0) {
+    set_max_lon(from.max_lon());
   }
 }
 
 void Rectangle::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:pbmldrtree.Rectangle)
+// @@protoc_insertion_point(generalized_copy_from_start:pbrtree.Rectangle)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void Rectangle::CopyFrom(const Rectangle& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:pbmldrtree.Rectangle)
+// @@protoc_insertion_point(class_specific_copy_from_start:pbrtree.Rectangle)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -1080,9 +1016,7 @@ void Rectangle::InternalSwap(Rectangle* other) {
   swap(min_lon_, other->min_lon_);
   swap(max_lat_, other->max_lat_);
   swap(max_lon_, other->max_lon_);
-  swap(_has_bits_[0], other->_has_bits_[0]);
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  swap(_cached_size_, other->_cached_size_);
 }
 
 ::google::protobuf::Metadata Rectangle::GetMetadata() const {
@@ -1093,137 +1027,127 @@ void Rectangle::InternalSwap(Rectangle* other) {
 
 // ===================================================================
 
-void RTreeNode::InitAsDefaultInstance() {
-  ::pbmldrtree::_RTreeNode_default_instance_._instance.get_mutable()->rect_ = const_cast< ::pbmldrtree::Rectangle*>(
-      ::pbmldrtree::Rectangle::internal_default_instance());
+void LeafNode::InitAsDefaultInstance() {
+  ::pbrtree::_LeafNode_default_instance_._instance.get_mutable()->minimum_bounding_rectangle_ = const_cast< ::pbrtree::Rectangle*>(
+      ::pbrtree::Rectangle::internal_default_instance());
 }
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int RTreeNode::kItemCountFieldNumber;
-const int RTreeNode::kRectFieldNumber;
-const int RTreeNode::kSegmentsFieldNumber;
+const int LeafNode::kMinimumBoundingRectangleFieldNumber;
+const int LeafNode::kIndexStartFieldNumber;
+const int LeafNode::kIndexEndFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
-RTreeNode::RTreeNode()
+LeafNode::LeafNode()
   : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
-    ::protobuf_rtree_2eproto::InitDefaultsRTreeNode();
-  }
+  ::google::protobuf::internal::InitSCC(
+      &protobuf_rtree_2eproto::scc_info_LeafNode.base);
   SharedCtor();
-  // @@protoc_insertion_point(constructor:pbmldrtree.RTreeNode)
+  // @@protoc_insertion_point(constructor:pbrtree.LeafNode)
 }
-RTreeNode::RTreeNode(const RTreeNode& from)
+LeafNode::LeafNode(const LeafNode& from)
   : ::google::protobuf::Message(),
-      _internal_metadata_(NULL),
-      _has_bits_(from._has_bits_),
-      _cached_size_(0),
-      segments_(from.segments_) {
+      _internal_metadata_(NULL) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  if (from.has_rect()) {
-    rect_ = new ::pbmldrtree::Rectangle(*from.rect_);
+  if (from.has_minimum_bounding_rectangle()) {
+    minimum_bounding_rectangle_ = new ::pbrtree::Rectangle(*from.minimum_bounding_rectangle_);
   } else {
-    rect_ = NULL;
+    minimum_bounding_rectangle_ = NULL;
   }
-  itemcount_ = from.itemcount_;
-  // @@protoc_insertion_point(copy_constructor:pbmldrtree.RTreeNode)
+  ::memcpy(&indexstart_, &from.indexstart_,
+    static_cast<size_t>(reinterpret_cast<char*>(&indexend_) -
+    reinterpret_cast<char*>(&indexstart_)) + sizeof(indexend_));
+  // @@protoc_insertion_point(copy_constructor:pbrtree.LeafNode)
 }
 
-void RTreeNode::SharedCtor() {
-  _cached_size_ = 0;
-  ::memset(&rect_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&itemcount_) -
-      reinterpret_cast<char*>(&rect_)) + sizeof(itemcount_));
+void LeafNode::SharedCtor() {
+  ::memset(&minimum_bounding_rectangle_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&indexend_) -
+      reinterpret_cast<char*>(&minimum_bounding_rectangle_)) + sizeof(indexend_));
 }
 
-RTreeNode::~RTreeNode() {
-  // @@protoc_insertion_point(destructor:pbmldrtree.RTreeNode)
+LeafNode::~LeafNode() {
+  // @@protoc_insertion_point(destructor:pbrtree.LeafNode)
   SharedDtor();
 }
 
-void RTreeNode::SharedDtor() {
-  if (this != internal_default_instance()) delete rect_;
+void LeafNode::SharedDtor() {
+  if (this != internal_default_instance()) delete minimum_bounding_rectangle_;
 }
 
-void RTreeNode::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+void LeafNode::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
 }
-const ::google::protobuf::Descriptor* RTreeNode::descriptor() {
+const ::google::protobuf::Descriptor* LeafNode::descriptor() {
   ::protobuf_rtree_2eproto::protobuf_AssignDescriptorsOnce();
   return ::protobuf_rtree_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
 }
 
-const RTreeNode& RTreeNode::default_instance() {
-  ::protobuf_rtree_2eproto::InitDefaultsRTreeNode();
+const LeafNode& LeafNode::default_instance() {
+  ::google::protobuf::internal::InitSCC(&protobuf_rtree_2eproto::scc_info_LeafNode.base);
   return *internal_default_instance();
 }
 
-RTreeNode* RTreeNode::New(::google::protobuf::Arena* arena) const {
-  RTreeNode* n = new RTreeNode;
-  if (arena != NULL) {
-    arena->Own(n);
-  }
-  return n;
-}
 
-void RTreeNode::Clear() {
-// @@protoc_insertion_point(message_clear_start:pbmldrtree.RTreeNode)
+void LeafNode::Clear() {
+// @@protoc_insertion_point(message_clear_start:pbrtree.LeafNode)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  segments_.Clear();
-  cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x00000001u) {
-    GOOGLE_DCHECK(rect_ != NULL);
-    rect_->Clear();
+  if (GetArenaNoVirtual() == NULL && minimum_bounding_rectangle_ != NULL) {
+    delete minimum_bounding_rectangle_;
   }
-  itemcount_ = GOOGLE_ULONGLONG(0);
-  _has_bits_.Clear();
+  minimum_bounding_rectangle_ = NULL;
+  ::memset(&indexstart_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&indexend_) -
+      reinterpret_cast<char*>(&indexstart_)) + sizeof(indexend_));
   _internal_metadata_.Clear();
 }
 
-bool RTreeNode::MergePartialFromCodedStream(
+bool LeafNode::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:pbmldrtree.RTreeNode)
+  // @@protoc_insertion_point(parse_start:pbrtree.LeafNode)
   for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional uint64 itemCount = 1;
+      // .pbrtree.Rectangle minimum_bounding_rectangle = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
-          set_has_itemcount();
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 input, &itemcount_)));
+            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(
+               input, mutable_minimum_bounding_rectangle()));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // optional .pbmldrtree.Rectangle rect = 2;
+      // uint32 indexStart = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(
-               input, mutable_rect()));
+            static_cast< ::google::protobuf::uint8>(16u /* 16 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &indexstart_)));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // repeated .pbmldrtree.EdgeBasedNodeSegment segments = 3;
+      // uint32 indexEnd = 3;
       case 3: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(26u /* 26 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(input, add_segments()));
+            static_cast< ::google::protobuf::uint8>(24u /* 24 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &indexend_)));
         } else {
           goto handle_unusual;
         }
@@ -1242,193 +1166,174 @@ bool RTreeNode::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:pbmldrtree.RTreeNode)
+  // @@protoc_insertion_point(parse_success:pbrtree.LeafNode)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:pbmldrtree.RTreeNode)
+  // @@protoc_insertion_point(parse_failure:pbrtree.LeafNode)
   return false;
 #undef DO_
 }
 
-void RTreeNode::SerializeWithCachedSizes(
+void LeafNode::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:pbmldrtree.RTreeNode)
+  // @@protoc_insertion_point(serialize_start:pbrtree.LeafNode)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = _has_bits_[0];
-  // optional uint64 itemCount = 1;
-  if (cached_has_bits & 0x00000002u) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(1, this->itemcount(), output);
-  }
-
-  // optional .pbmldrtree.Rectangle rect = 2;
-  if (cached_has_bits & 0x00000001u) {
+  // .pbrtree.Rectangle minimum_bounding_rectangle = 1;
+  if (this->has_minimum_bounding_rectangle()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      2, *this->rect_, output);
+      1, this->_internal_minimum_bounding_rectangle(), output);
   }
 
-  // repeated .pbmldrtree.EdgeBasedNodeSegment segments = 3;
-  for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->segments_size()); i < n; i++) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      3, this->segments(static_cast<int>(i)), output);
+  // uint32 indexStart = 2;
+  if (this->indexstart() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(2, this->indexstart(), output);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  // uint32 indexEnd = 3;
+  if (this->indexend() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(3, this->indexend(), output);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:pbmldrtree.RTreeNode)
+  // @@protoc_insertion_point(serialize_end:pbrtree.LeafNode)
 }
 
-::google::protobuf::uint8* RTreeNode::InternalSerializeWithCachedSizesToArray(
+::google::protobuf::uint8* LeafNode::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:pbmldrtree.RTreeNode)
+  // @@protoc_insertion_point(serialize_to_array_start:pbrtree.LeafNode)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = _has_bits_[0];
-  // optional uint64 itemCount = 1;
-  if (cached_has_bits & 0x00000002u) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(1, this->itemcount(), target);
-  }
-
-  // optional .pbmldrtree.Rectangle rect = 2;
-  if (cached_has_bits & 0x00000001u) {
+  // .pbrtree.Rectangle minimum_bounding_rectangle = 1;
+  if (this->has_minimum_bounding_rectangle()) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageToArray(
-        2, *this->rect_, deterministic, target);
+        1, this->_internal_minimum_bounding_rectangle(), deterministic, target);
   }
 
-  // repeated .pbmldrtree.EdgeBasedNodeSegment segments = 3;
-  for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->segments_size()); i < n; i++) {
-    target = ::google::protobuf::internal::WireFormatLite::
-      InternalWriteMessageToArray(
-        3, this->segments(static_cast<int>(i)), deterministic, target);
+  // uint32 indexStart = 2;
+  if (this->indexstart() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(2, this->indexstart(), target);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  // uint32 indexEnd = 3;
+  if (this->indexend() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(3, this->indexend(), target);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:pbmldrtree.RTreeNode)
+  // @@protoc_insertion_point(serialize_to_array_end:pbrtree.LeafNode)
   return target;
 }
 
-size_t RTreeNode::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:pbmldrtree.RTreeNode)
+size_t LeafNode::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:pbrtree.LeafNode)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  // repeated .pbmldrtree.EdgeBasedNodeSegment segments = 3;
-  {
-    unsigned int count = static_cast<unsigned int>(this->segments_size());
-    total_size += 1UL * count;
-    for (unsigned int i = 0; i < count; i++) {
-      total_size +=
-        ::google::protobuf::internal::WireFormatLite::MessageSize(
-          this->segments(static_cast<int>(i)));
-    }
+  // .pbrtree.Rectangle minimum_bounding_rectangle = 1;
+  if (this->has_minimum_bounding_rectangle()) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::MessageSize(
+        *minimum_bounding_rectangle_);
   }
 
-  if (_has_bits_[0 / 32] & 3u) {
-    // optional .pbmldrtree.Rectangle rect = 2;
-    if (has_rect()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::MessageSize(
-          *this->rect_);
-    }
-
-    // optional uint64 itemCount = 1;
-    if (has_itemcount()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt64Size(
-          this->itemcount());
-    }
-
+  // uint32 indexStart = 2;
+  if (this->indexstart() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        this->indexstart());
   }
+
+  // uint32 indexEnd = 3;
+  if (this->indexend() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        this->indexend());
+  }
+
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = cached_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  SetCachedSize(cached_size);
   return total_size;
 }
 
-void RTreeNode::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:pbmldrtree.RTreeNode)
+void LeafNode::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:pbrtree.LeafNode)
   GOOGLE_DCHECK_NE(&from, this);
-  const RTreeNode* source =
-      ::google::protobuf::internal::DynamicCastToGenerated<const RTreeNode>(
+  const LeafNode* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const LeafNode>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:pbmldrtree.RTreeNode)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:pbrtree.LeafNode)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:pbmldrtree.RTreeNode)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:pbrtree.LeafNode)
     MergeFrom(*source);
   }
 }
 
-void RTreeNode::MergeFrom(const RTreeNode& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:pbmldrtree.RTreeNode)
+void LeafNode::MergeFrom(const LeafNode& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:pbrtree.LeafNode)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  segments_.MergeFrom(from.segments_);
-  cached_has_bits = from._has_bits_[0];
-  if (cached_has_bits & 3u) {
-    if (cached_has_bits & 0x00000001u) {
-      mutable_rect()->::pbmldrtree::Rectangle::MergeFrom(from.rect());
-    }
-    if (cached_has_bits & 0x00000002u) {
-      itemcount_ = from.itemcount_;
-    }
-    _has_bits_[0] |= cached_has_bits;
+  if (from.has_minimum_bounding_rectangle()) {
+    mutable_minimum_bounding_rectangle()->::pbrtree::Rectangle::MergeFrom(from.minimum_bounding_rectangle());
+  }
+  if (from.indexstart() != 0) {
+    set_indexstart(from.indexstart());
+  }
+  if (from.indexend() != 0) {
+    set_indexend(from.indexend());
   }
 }
 
-void RTreeNode::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:pbmldrtree.RTreeNode)
+void LeafNode::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:pbrtree.LeafNode)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void RTreeNode::CopyFrom(const RTreeNode& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:pbmldrtree.RTreeNode)
+void LeafNode::CopyFrom(const LeafNode& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:pbrtree.LeafNode)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool RTreeNode::IsInitialized() const {
+bool LeafNode::IsInitialized() const {
   return true;
 }
 
-void RTreeNode::Swap(RTreeNode* other) {
+void LeafNode::Swap(LeafNode* other) {
   if (other == this) return;
   InternalSwap(other);
 }
-void RTreeNode::InternalSwap(RTreeNode* other) {
+void LeafNode::InternalSwap(LeafNode* other) {
   using std::swap;
-  segments_.InternalSwap(&other->segments_);
-  swap(rect_, other->rect_);
-  swap(itemcount_, other->itemcount_);
-  swap(_has_bits_[0], other->_has_bits_[0]);
+  swap(minimum_bounding_rectangle_, other->minimum_bounding_rectangle_);
+  swap(indexstart_, other->indexstart_);
+  swap(indexend_, other->indexend_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  swap(_cached_size_, other->_cached_size_);
 }
 
-::google::protobuf::Metadata RTreeNode::GetMetadata() const {
+::google::protobuf::Metadata LeafNode::GetMetadata() const {
   protobuf_rtree_2eproto::protobuf_AssignDescriptorsOnce();
   return ::protobuf_rtree_2eproto::file_level_metadata[kIndexInFileMessages];
 }
@@ -1436,91 +1341,78 @@ void RTreeNode::InternalSwap(RTreeNode* other) {
 
 // ===================================================================
 
-void RTree::InitAsDefaultInstance() {
+void Leaves::InitAsDefaultInstance() {
 }
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int RTree::kNodeFieldNumber;
+const int Leaves::kItemsFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
-RTree::RTree()
+Leaves::Leaves()
   : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
-    ::protobuf_rtree_2eproto::InitDefaultsRTree();
-  }
+  ::google::protobuf::internal::InitSCC(
+      &protobuf_rtree_2eproto::scc_info_Leaves.base);
   SharedCtor();
-  // @@protoc_insertion_point(constructor:pbmldrtree.RTree)
+  // @@protoc_insertion_point(constructor:pbrtree.Leaves)
 }
-RTree::RTree(const RTree& from)
+Leaves::Leaves(const Leaves& from)
   : ::google::protobuf::Message(),
       _internal_metadata_(NULL),
-      _has_bits_(from._has_bits_),
-      _cached_size_(0),
-      node_(from.node_) {
+      items_(from.items_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:pbmldrtree.RTree)
+  // @@protoc_insertion_point(copy_constructor:pbrtree.Leaves)
 }
 
-void RTree::SharedCtor() {
-  _cached_size_ = 0;
+void Leaves::SharedCtor() {
 }
 
-RTree::~RTree() {
-  // @@protoc_insertion_point(destructor:pbmldrtree.RTree)
+Leaves::~Leaves() {
+  // @@protoc_insertion_point(destructor:pbrtree.Leaves)
   SharedDtor();
 }
 
-void RTree::SharedDtor() {
+void Leaves::SharedDtor() {
 }
 
-void RTree::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+void Leaves::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
 }
-const ::google::protobuf::Descriptor* RTree::descriptor() {
+const ::google::protobuf::Descriptor* Leaves::descriptor() {
   ::protobuf_rtree_2eproto::protobuf_AssignDescriptorsOnce();
   return ::protobuf_rtree_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
 }
 
-const RTree& RTree::default_instance() {
-  ::protobuf_rtree_2eproto::InitDefaultsRTree();
+const Leaves& Leaves::default_instance() {
+  ::google::protobuf::internal::InitSCC(&protobuf_rtree_2eproto::scc_info_Leaves.base);
   return *internal_default_instance();
 }
 
-RTree* RTree::New(::google::protobuf::Arena* arena) const {
-  RTree* n = new RTree;
-  if (arena != NULL) {
-    arena->Own(n);
-  }
-  return n;
-}
 
-void RTree::Clear() {
-// @@protoc_insertion_point(message_clear_start:pbmldrtree.RTree)
+void Leaves::Clear() {
+// @@protoc_insertion_point(message_clear_start:pbrtree.Leaves)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  node_.Clear();
-  _has_bits_.Clear();
+  items_.Clear();
   _internal_metadata_.Clear();
 }
 
-bool RTree::MergePartialFromCodedStream(
+bool Leaves::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:pbmldrtree.RTree)
+  // @@protoc_insertion_point(parse_start:pbrtree.Leaves)
   for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // repeated .pbmldrtree.RTreeNode node = 1;
+      // repeated .pbrtree.LeafNode items = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(input, add_node()));
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(
+                input, add_items()));
         } else {
           goto handle_unusual;
         }
@@ -1539,146 +1431,392 @@ bool RTree::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:pbmldrtree.RTree)
+  // @@protoc_insertion_point(parse_success:pbrtree.Leaves)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:pbmldrtree.RTree)
+  // @@protoc_insertion_point(parse_failure:pbrtree.Leaves)
   return false;
 #undef DO_
 }
 
-void RTree::SerializeWithCachedSizes(
+void Leaves::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:pbmldrtree.RTree)
+  // @@protoc_insertion_point(serialize_start:pbrtree.Leaves)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // repeated .pbmldrtree.RTreeNode node = 1;
+  // repeated .pbrtree.LeafNode items = 1;
   for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->node_size()); i < n; i++) {
+      n = static_cast<unsigned int>(this->items_size()); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      1, this->node(static_cast<int>(i)), output);
+      1,
+      this->items(static_cast<int>(i)),
+      output);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:pbmldrtree.RTree)
+  // @@protoc_insertion_point(serialize_end:pbrtree.Leaves)
 }
 
-::google::protobuf::uint8* RTree::InternalSerializeWithCachedSizesToArray(
+::google::protobuf::uint8* Leaves::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:pbmldrtree.RTree)
+  // @@protoc_insertion_point(serialize_to_array_start:pbrtree.Leaves)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // repeated .pbmldrtree.RTreeNode node = 1;
+  // repeated .pbrtree.LeafNode items = 1;
   for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->node_size()); i < n; i++) {
+      n = static_cast<unsigned int>(this->items_size()); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageToArray(
-        1, this->node(static_cast<int>(i)), deterministic, target);
+        1, this->items(static_cast<int>(i)), deterministic, target);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:pbmldrtree.RTree)
+  // @@protoc_insertion_point(serialize_to_array_end:pbrtree.Leaves)
   return target;
 }
 
-size_t RTree::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:pbmldrtree.RTree)
+size_t Leaves::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:pbrtree.Leaves)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  // repeated .pbmldrtree.RTreeNode node = 1;
+  // repeated .pbrtree.LeafNode items = 1;
   {
-    unsigned int count = static_cast<unsigned int>(this->node_size());
+    unsigned int count = static_cast<unsigned int>(this->items_size());
     total_size += 1UL * count;
     for (unsigned int i = 0; i < count; i++) {
       total_size +=
         ::google::protobuf::internal::WireFormatLite::MessageSize(
-          this->node(static_cast<int>(i)));
+          this->items(static_cast<int>(i)));
     }
   }
 
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = cached_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  SetCachedSize(cached_size);
   return total_size;
 }
 
-void RTree::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:pbmldrtree.RTree)
+void Leaves::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:pbrtree.Leaves)
   GOOGLE_DCHECK_NE(&from, this);
-  const RTree* source =
-      ::google::protobuf::internal::DynamicCastToGenerated<const RTree>(
+  const Leaves* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const Leaves>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:pbmldrtree.RTree)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:pbrtree.Leaves)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:pbmldrtree.RTree)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:pbrtree.Leaves)
     MergeFrom(*source);
   }
 }
 
-void RTree::MergeFrom(const RTree& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:pbmldrtree.RTree)
+void Leaves::MergeFrom(const Leaves& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:pbrtree.Leaves)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  node_.MergeFrom(from.node_);
+  items_.MergeFrom(from.items_);
 }
 
-void RTree::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:pbmldrtree.RTree)
+void Leaves::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:pbrtree.Leaves)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void RTree::CopyFrom(const RTree& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:pbmldrtree.RTree)
+void Leaves::CopyFrom(const Leaves& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:pbrtree.Leaves)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool RTree::IsInitialized() const {
+bool Leaves::IsInitialized() const {
   return true;
 }
 
-void RTree::Swap(RTree* other) {
+void Leaves::Swap(Leaves* other) {
   if (other == this) return;
   InternalSwap(other);
 }
-void RTree::InternalSwap(RTree* other) {
+void Leaves::InternalSwap(Leaves* other) {
   using std::swap;
-  node_.InternalSwap(&other->node_);
-  swap(_has_bits_[0], other->_has_bits_[0]);
+  CastToBase(&items_)->InternalSwap(CastToBase(&other->items_));
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  swap(_cached_size_, other->_cached_size_);
 }
 
-::google::protobuf::Metadata RTree::GetMetadata() const {
+::google::protobuf::Metadata Leaves::GetMetadata() const {
+  protobuf_rtree_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_rtree_2eproto::file_level_metadata[kIndexInFileMessages];
+}
+
+
+// ===================================================================
+
+void Segments::InitAsDefaultInstance() {
+}
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int Segments::kItemsFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+Segments::Segments()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  ::google::protobuf::internal::InitSCC(
+      &protobuf_rtree_2eproto::scc_info_Segments.base);
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:pbrtree.Segments)
+}
+Segments::Segments(const Segments& from)
+  : ::google::protobuf::Message(),
+      _internal_metadata_(NULL),
+      items_(from.items_) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  // @@protoc_insertion_point(copy_constructor:pbrtree.Segments)
+}
+
+void Segments::SharedCtor() {
+}
+
+Segments::~Segments() {
+  // @@protoc_insertion_point(destructor:pbrtree.Segments)
+  SharedDtor();
+}
+
+void Segments::SharedDtor() {
+}
+
+void Segments::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const ::google::protobuf::Descriptor* Segments::descriptor() {
+  ::protobuf_rtree_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_rtree_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
+const Segments& Segments::default_instance() {
+  ::google::protobuf::internal::InitSCC(&protobuf_rtree_2eproto::scc_info_Segments.base);
+  return *internal_default_instance();
+}
+
+
+void Segments::Clear() {
+// @@protoc_insertion_point(message_clear_start:pbrtree.Segments)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  items_.Clear();
+  _internal_metadata_.Clear();
+}
+
+bool Segments::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:pbrtree.Segments)
+  for (;;) {
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // repeated .pbrtree.Segment items = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(
+                input, add_items()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:pbrtree.Segments)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:pbrtree.Segments)
+  return false;
+#undef DO_
+}
+
+void Segments::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:pbrtree.Segments)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated .pbrtree.Segment items = 1;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->items_size()); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      1,
+      this->items(static_cast<int>(i)),
+      output);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
+  }
+  // @@protoc_insertion_point(serialize_end:pbrtree.Segments)
+}
+
+::google::protobuf::uint8* Segments::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
+  // @@protoc_insertion_point(serialize_to_array_start:pbrtree.Segments)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated .pbrtree.Segment items = 1;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->items_size()); i < n; i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageToArray(
+        1, this->items(static_cast<int>(i)), deterministic, target);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:pbrtree.Segments)
+  return target;
+}
+
+size_t Segments::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:pbrtree.Segments)
+  size_t total_size = 0;
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
+  }
+  // repeated .pbrtree.Segment items = 1;
+  {
+    unsigned int count = static_cast<unsigned int>(this->items_size());
+    total_size += 1UL * count;
+    for (unsigned int i = 0; i < count; i++) {
+      total_size +=
+        ::google::protobuf::internal::WireFormatLite::MessageSize(
+          this->items(static_cast<int>(i)));
+    }
+  }
+
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void Segments::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:pbrtree.Segments)
+  GOOGLE_DCHECK_NE(&from, this);
+  const Segments* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const Segments>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:pbrtree.Segments)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:pbrtree.Segments)
+    MergeFrom(*source);
+  }
+}
+
+void Segments::MergeFrom(const Segments& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:pbrtree.Segments)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  items_.MergeFrom(from.items_);
+}
+
+void Segments::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:pbrtree.Segments)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void Segments::CopyFrom(const Segments& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:pbrtree.Segments)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool Segments::IsInitialized() const {
+  return true;
+}
+
+void Segments::Swap(Segments* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void Segments::InternalSwap(Segments* other) {
+  using std::swap;
+  CastToBase(&items_)->InternalSwap(CastToBase(&other->items_));
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+}
+
+::google::protobuf::Metadata Segments::GetMetadata() const {
   protobuf_rtree_2eproto::protobuf_AssignDescriptorsOnce();
   return ::protobuf_rtree_2eproto::file_level_metadata[kIndexInFileMessages];
 }
 
 
 // @@protoc_insertion_point(namespace_scope)
-}  // namespace pbmldrtree
+}  // namespace pbrtree
+namespace google {
+namespace protobuf {
+template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::pbrtree::Segment* Arena::CreateMaybeMessage< ::pbrtree::Segment >(Arena* arena) {
+  return Arena::CreateInternal< ::pbrtree::Segment >(arena);
+}
+template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::pbrtree::Rectangle* Arena::CreateMaybeMessage< ::pbrtree::Rectangle >(Arena* arena) {
+  return Arena::CreateInternal< ::pbrtree::Rectangle >(arena);
+}
+template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::pbrtree::LeafNode* Arena::CreateMaybeMessage< ::pbrtree::LeafNode >(Arena* arena) {
+  return Arena::CreateInternal< ::pbrtree::LeafNode >(arena);
+}
+template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::pbrtree::Leaves* Arena::CreateMaybeMessage< ::pbrtree::Leaves >(Arena* arena) {
+  return Arena::CreateInternal< ::pbrtree::Leaves >(arena);
+}
+template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::pbrtree::Segments* Arena::CreateMaybeMessage< ::pbrtree::Segments >(Arena* arena) {
+  return Arena::CreateInternal< ::pbrtree::Segments >(arena);
+}
+}  // namespace protobuf
+}  // namespace google
 
 // @@protoc_insertion_point(global_scope)

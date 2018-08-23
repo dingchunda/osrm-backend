@@ -1,7 +1,6 @@
 #ifndef OSMR_UTIL_SERIALIZATION_HPP
 #define OSMR_UTIL_SERIALIZATION_HPP
 
-#include "../../src/protobuf/nbg_nodes.pb.h"
 #include "util/dynamic_graph.hpp"
 #include "util/indexed_data.hpp"
 #include "util/packed_vector.hpp"
@@ -55,15 +54,6 @@ inline void write(storage::tar::FileWriter &writer,
 {
     writer.WriteFrom(name + "/number_of_elements.meta", vec.num_elements);
     storage::serialization::write(writer, name + "/packed", vec.vec);
-}
-
-template <typename T, std::size_t Bits, storage::Ownership Ownership>
-inline void writePB(pbmldnbg::MLDNBG &pb_nbg, const detail::PackedVector<T, Bits, Ownership> &vec)
-{
-    for (auto index : util::irange<std::size_t>(0, vec.num_elements))
-    {
-        pb_nbg.add_osmid(std::uint64_t(vec[index]));
-    }
 }
 
 template <typename EdgeDataT, storage::Ownership Ownership>
@@ -153,8 +143,8 @@ void write(storage::tar::FileWriter &writer,
     storage::serialization::write(
         writer, name + "/search_tree_level_starts", rtree.m_tree_level_starts);
 }
-} // namespace serialization
-} // namespace util
-} // namespace osrm
+}
+}
+}
 
 #endif

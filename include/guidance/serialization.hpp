@@ -1,13 +1,15 @@
 #ifndef OSRM_GUIDANCE_IO_HPP
 #define OSRM_GUIDANCE_IO_HPP
 
-#include "../../src/protobuf/edges.pb.h"
 #include "guidance/turn_data_container.hpp"
 
 #include "storage/serialization.hpp"
 #include "storage/tar.hpp"
 
 #include <boost/assert.hpp>
+
+#include "../../../src/protobuf/edge-based-graph.pb.h"
+
 
 namespace osrm
 {
@@ -49,25 +51,17 @@ inline void write(storage::tar::FileWriter &writer,
         writer, name + "/pre_turn_bearings", turn_data_container.pre_turn_bearings);
     storage::serialization::write(
         writer, name + "/post_turn_bearings", turn_data_container.post_turn_bearings);
-}
 
-template <storage::Ownership Ownership>
-inline void writePB(const std::string &name,
-                    const guidance::detail::TurnDataContainerImpl<Ownership> &turn_data_container)
-{
-    pbmlde::Edges pb_edges;
-    for (auto index : util::irange<std::size_t>(0, turn_data_container.turn_instructions.size()))
-    {
-        pb_edges.add_turntype(turn_data_container.turn_instructions[index].type);
-        pb_edges.add_directionmodifier(
-            turn_data_container.turn_instructions[index].direction_modifier);
+    std::cout << "#### turn instruction: " << turn_data_container.turn_instructions.size() << std::endl;
+    pbebg::TurnInstructions pb_instructions;
+    for (auto i : turn_data_container.turn_instructions){
+        pb_instructions.add_turn_instruction(i.pack_to_uint32());
     }
-
-    std::fstream pb_output(name + ".pb", std::ios::out | std::ios::binary);
-    pb_edges.SerializeToOstream(&pb_output);
+    std::fstream pb_out("1.ebg.turn.instruction.pb", std::ios::out | std::ios::binary);
+    pb_instructions.SerializeToOstream(&pb_out);
 }
-} // namespace serialization
-} // namespace guidance
-} // namespace osrm
+}
+}
+}
 
 #endif

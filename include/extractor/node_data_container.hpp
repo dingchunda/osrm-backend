@@ -2,6 +2,7 @@
 #define OSRM_EXTRACTOR_NODE_DATA_CONTAINER_HPP
 
 #include "extractor/class_data.hpp"
+#include "extractor/edge_based_edge.hpp"
 #include "extractor/edge_based_node.hpp"
 #include "extractor/node_based_edge.hpp"
 #include "extractor/travel_mode.hpp"
@@ -9,6 +10,7 @@
 #include "storage/shared_memory_ownership.hpp"
 #include "storage/tar_fwd.hpp"
 
+#include "util/deallocating_vector.hpp"
 #include "util/permutation.hpp"
 #include "util/typedefs.hpp"
 #include "util/vector_view.hpp"
@@ -39,9 +41,9 @@ void write(storage::tar::FileWriter &writer,
            const detail::EdgeBasedNodeDataContainerImpl<Ownership> &ebn_data);
 
 template <storage::Ownership Ownership>
-void writeEBGPB(const std::string &name,
-                const detail::EdgeBasedNodeDataContainerImpl<Ownership> &ebn_data);
-} // namespace serialization
+void writeScc(const detail::EdgeBasedNodeDataContainerImpl<Ownership> &node_data_container,
+              util::DeallocatingVector<extractor::EdgeBasedEdge> &edge_based_edge_list);
+}
 
 namespace detail
 {
@@ -104,8 +106,8 @@ template <storage::Ownership Ownership> class EdgeBasedNodeDataContainerImpl
                                     const EdgeBasedNodeDataContainerImpl &ebn_data_container);
 
     friend void
-    serialization::writeEBGPB<Ownership>(const std::string &name,
-                                         const EdgeBasedNodeDataContainerImpl &ebn_data_container);
+    serialization::writeScc<Ownership>(const detail::EdgeBasedNodeDataContainerImpl<Ownership> &node_data_container,
+                                       util::DeallocatingVector<extractor::EdgeBasedEdge> &edge_based_edge_list);
 
     template <typename = std::enable_if<Ownership == storage::Ownership::Container>>
     void Renumber(const std::vector<std::uint32_t> &permutation)
@@ -130,7 +132,7 @@ template <storage::Ownership Ownership> class EdgeBasedNodeDataContainerImpl
     Vector<EdgeBasedNode> nodes;
     Vector<NodeBasedEdgeAnnotation> annotation_data;
 };
-} // namespace detail
+}
 
 using EdgeBasedNodeDataExternalContainer =
     detail::EdgeBasedNodeDataContainerImpl<storage::Ownership::External>;

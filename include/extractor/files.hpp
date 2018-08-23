@@ -8,8 +8,6 @@
 #include "extractor/serialization.hpp"
 #include "extractor/turn_lane_types.hpp"
 
-#include "../../src/protobuf/nbg_nodes.pb.h"
-#include "../../src/protobuf/turn-penalty.pb.h"
 #include "util/coordinate.hpp"
 #include "util/guidance/bearing_class.hpp"
 #include "util/guidance/entry_class.hpp"
@@ -17,6 +15,10 @@
 #include "util/packed_vector.hpp"
 #include "util/range_table.hpp"
 #include "util/serialization.hpp"
+
+#include "../../../src/protobuf/node-based-graph.pb.h"
+#include "../../../src/protobuf/edge-based-graph.pb.h"
+
 
 #include <boost/assert.hpp>
 
@@ -140,26 +142,6 @@ inline void readNodeCoordinates(const boost::filesystem::path &path, Coordinates
     storage::serialization::read(reader, "/common/nbn_data/coordinates", coordinates);
 }
 
-// writes .osrm.nbg_nodes pb
-template <typename CoordinatesT, typename PackedOSMIDsT>
-inline void writeNbg_nodesPB(const boost::filesystem::path &path,
-                             const CoordinatesT &coordinates,
-                             const PackedOSMIDsT &osm_node_ids)
-{
-    pbmldnbg::MLDNBG pb_nbg;
-    for (auto index : util::irange<std::size_t>(0, coordinates.size()))
-    {
-        pbmldnbg::Coordinates *coord = pb_nbg.add_coord();
-        coord->set_lon(coordinates[index].lon.__value);
-        coord->set_lat(coordinates[index].lat.__value);
-    }
-
-    util::serialization::writePB(pb_nbg, osm_node_ids);
-
-    std::fstream pb_output(path.string() + ".pb", std::ios::out | std::ios::binary);
-    pb_nbg.SerializeToOstream(&pb_output);
-}
-
 // writes .osrm.nbg_nodes
 template <typename CoordinatesT, typename PackedOSMIDsT>
 inline void writeNodes(const boost::filesystem::path &path,
@@ -172,9 +154,24 @@ inline void writeNodes(const boost::filesystem::path &path,
     const auto fingerprint = storage::tar::FileWriter::GenerateFingerprint;
     storage::tar::FileWriter writer{path, fingerprint};
 
-    writeNbg_nodesPB(path, coordinates, osm_node_ids);
     storage::serialization::write(writer, "/common/nbn_data/coordinates", coordinates);
     util::serialization::write(writer, "/common/nbn_data/osm_node_ids", osm_node_ids);
+
+
+    std::cout << "#### coordinate, osmid: " << coordinates.size() << ", "<< osm_node_ids.size() << std::endl;
+    pbnbg::Nodes pb_nodes;
+    for (auto i : coordinates){
+        auto c = pb_nodes.add_latlon();
+        c->set_lat(::google::protobuf::int32(i.lat));
+        c->set_lon(::google::protobuf::int32(i.lon));
+    }
+
+    for (unsigned long  i = 0; i < osm_node_ids.size(); ++i){
+        pb_nodes.add_osmid(uint64_t(osm_node_ids[i]));
+    }
+
+    std::fstream pb_out("1.nbg.nodes.pb", std::ios::out | std::ios::binary);
+    pb_nodes.SerializeToOstream(&pb_out);
 }
 
 // reads .osrm.cnbg_to_ebg
@@ -238,7 +235,6 @@ inline void writeSegmentData(const boost::filesystem::path &path, const SegmentD
     storage::tar::FileWriter writer{path, fingerprint};
 
     serialization::write(writer, "/common/segment_data", segment_data);
-    serialization::writeGeometryPB(path.string(), segment_data);
 }
 
 // reads .osrm.ebg_nodes
@@ -267,7 +263,6 @@ inline void writeNodeData(const boost::filesystem::path &path, const NodeDataT &
     storage::tar::FileWriter writer{path, fingerprint};
 
     serialization::write(writer, "/common/ebg_node_data", node_data);
-    serialization::writeEBGPB(path.string(), node_data);
 }
 
 // reads .osrm.tls
@@ -371,21 +366,15 @@ inline void writeTurnWeightPenalty(const boost::filesystem::path &path,
     storage::tar::FileWriter writer{path, fingerprint};
 
     storage::serialization::write(writer, "/common/turn_penalty/weight", turn_penalty);
-}
 
-// writes .osrm.turn_weight_penalties pb
-template <typename TurnPenaltyType>
-inline void writeTurnWeightPenaltyPB(const boost::filesystem::path &path,
-                                     const TurnPenaltyType &turn_penalty)
-{
-    pbtp::TurnPenalty pb_turn_penalty;
-    for (auto index : util::irange<std::size_t>(0, turn_penalty.size()))
-    {
-        pb_turn_penalty.add_penalty(turn_penalty[index]);
+    std::cout << "#### turn penalty: " << turn_penalty.size() << std::endl;
+    pbebg::TurnPenalties pb_turn_penalty;
+    for (auto i : turn_penalty){
+        pb_turn_penalty.add_turn_penalties(i);
     }
+    std::fstream pb_out("1.ebg.turn.penalty.pb", std::ios::out | std::ios::binary);
+    pb_turn_penalty.SerializeToOstream(&pb_out);
 
-    std::fstream pb_output(path.string() + ".pb", std::ios::out | std::ios::binary);
-    pb_turn_penalty.SerializeToOstream(&pb_output);
 }
 
 // read .osrm.turn_weight_penalties
@@ -560,8 +549,8 @@ void readCompressedNodeBasedGraph(const boost::filesystem::path &path, EdgeListT
 
     storage::serialization::read(reader, "/extractor/cnbg", edge_list);
 }
-} // namespace files
-} // namespace extractor
-} // namespace osrm
+}
+}
+}
 
 #endif
