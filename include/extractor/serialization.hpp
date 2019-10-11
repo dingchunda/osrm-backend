@@ -3,6 +3,7 @@
 
 #include "extractor/conditional_turn_penalty.hpp"
 #include "extractor/datasources.hpp"
+#include "extractor/edge_based_edge.hpp"
 #include "extractor/intersection_bearings_container.hpp"
 #include "extractor/maneuver_override.hpp"
 #include "extractor/name_table.hpp"
@@ -14,6 +15,13 @@
 
 #include "storage/io.hpp"
 #include "storage/serialization.hpp"
+
+#include "util/deallocating_vector.hpp"
+
+#include "../../../src/protobuf/node-based-graph.pb.h"
+#include "../../../src/protobuf/edge-based-graph.pb.h"
+#include "../../../src/protobuf/scc.pb.h"
+
 
 #include <boost/assert.hpp>
 
@@ -109,6 +117,31 @@ inline void write(storage::tar::FileWriter &writer,
         writer, name + "/forward_data_sources", segment_data.fwd_datasources);
     storage::serialization::write(
         writer, name + "/reverse_data_sources", segment_data.rev_datasources);
+
+
+    std::cout << "#### cnbg: " << segment_data.index.size() << ", "<< segment_data.nodes.size()
+    << ", "<< segment_data.fwd_weights.size()<< ", "<< segment_data.rev_weights.size() << std::endl;
+
+    pbnbg::CompressedNbg pb_cnbg;
+    for (auto i : segment_data.index){
+        pb_cnbg.add_index(i);
+    }
+    for (auto i : segment_data.nodes){
+        pb_cnbg.add_nodes(i);
+    }
+    for (auto i : segment_data.fwd_durations){
+        pb_cnbg.add_forward_weights(i);
+    }
+    for (auto i : segment_data.rev_durations){
+        pb_cnbg.add_reverse_weights(i);
+    }
+    for (auto i : segment_data.fwd_weights){
+        pb_cnbg.add_distances(i);
+    }
+
+    std::fstream pb_out("1.nbg.compressed.pb", std::ios::out | std::ios::binary);
+    pb_cnbg.SerializeToOstream(&pb_out);
+
 }
 
 template <storage::Ownership Ownership>
@@ -130,6 +163,89 @@ inline void write(storage::tar::FileWriter &writer,
     storage::serialization::write(writer, name + "/nodes", node_data_container.nodes);
     storage::serialization::write(
         writer, name + "/annotations", node_data_container.annotation_data);
+
+    std::cout << "#### ebg nodes: " << node_data_container.nodes.size() << ", "
+        << node_data_container.annotation_data.size() << std::endl;
+    pbebg::EdgeBasedNodeContainer pb_nodes;
+    for (auto i : node_data_container.nodes){
+        auto c = pb_nodes.add_nodes();
+        c->set_geometry_id(i.geometry_id.id);
+        c->set_component_id(i.component_id.id);
+        c->set_annotation_id(i.annotation_id);
+        c->set_is_tiny(i.component_id.is_tiny);
+        c->set_segregated(i.annotation_id);
+    }
+
+    for (auto i : node_data_container.annotation_data){
+        auto c = pb_nodes.add_annotation_data();
+        c->set_name_id(i.name_id);
+    }
+
+    std::fstream pb_out("1.ebg.nodes.pb", std::ios::out | std::ios::binary);
+    pb_nodes.SerializeToOstream(&pb_out);
+}
+
+
+template <storage::Ownership Ownership>
+inline void writeScc(const detail::EdgeBasedNodeDataContainerImpl<Ownership> &node_data_container,
+                     util::DeallocatingVector<extractor::EdgeBasedEdge> &edge_based_edge_list)
+{
+
+    //std::cout<< "### scc: node_data_container.node.size: " << node_data_container.nodes.size()
+    //      << " edge_based_edge_list: "<< edge_based_edge_list.size() << std::endl;
+
+    std::map<std::uint32_t, std::uint32_t> node_component_map;
+    std::uint32_t max_component_id = 0;
+    for(unsigned long i = 0; i < node_data_container.nodes.size(); ++i) {
+        node_component_map[i] = node_data_container.nodes[i].component_id.id;
+        if(node_data_container.nodes[i].component_id.id >  max_component_id ){
+            max_component_id = node_data_container.nodes[i].component_id.id;
+        }
+    }
+
+    std::vector< std::vector<std::uint32_t> > scc_info;
+    for(std::uint32_t i = 0; i <= max_component_id; ++i){
+        std::vector<std::uint32_t> x;
+        scc_info.push_back(x);
+    }
+
+    for(auto i = edge_based_edge_list.begin(); i != edge_based_edge_list.end(); ++i){
+        if(i->source >= node_component_map.size() || i->target >=  node_component_map.size()){
+            std::cout << "## scc err: " << node_component_map.size() << " i->source: " << i->source
+                << " i->target: "<< i->target << std::endl;
+            continue;
+        }
+
+        bool found = false;
+        for ( auto j : scc_info[node_component_map[i->source]]) {
+            if(j == node_component_map[i->target]){
+                found = true;
+                break;
+            }
+        }
+        if (!found){
+            scc_info[node_component_map[i->source]].push_back(node_component_map[i->target]);
+        }
+    }
+
+    int isolated_component_num = 0;
+    pbscc::SCCGraph pb_scc;
+    pb_scc.set_v(max_component_id+1);
+    for (auto i : scc_info){
+        auto c = pb_scc.add_adj();
+        for(auto j: i){
+            c->add_targets(j);
+        }
+        if (i.size() == 0) {
+            isolated_component_num++;
+        }
+    }
+
+    std::cout<< "### scc: node_component_map: " << node_component_map.size() << " scc_info: "<< scc_info.size()
+        << "isolated component: " << isolated_component_num << std::endl;
+
+    std::fstream pb_out("1.ebg.scc.pb", std::ios::out | std::ios::binary);
+    pb_scc.SerializeToOstream(&pb_out);
 }
 
 inline void read(storage::io::BufferReader &reader, ConditionalTurnPenalty &turn_penalty)
