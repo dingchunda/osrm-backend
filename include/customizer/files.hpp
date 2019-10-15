@@ -9,6 +9,9 @@
 
 #include <unordered_map>
 
+#include "../../../src/protobuf/mld.pb.h"
+
+
 namespace osrm
 {
 namespace customizer
@@ -58,8 +61,13 @@ writeCellMetrics(const boost::filesystem::path &path,
     const auto fingerprint = storage::tar::FileWriter::GenerateFingerprint;
     storage::tar::FileWriter writer{path, fingerprint};
 
+    std::cout << "#### cell metrics: pair size: " << metrics.size() << std::endl;
+    pbmld::Metrics pb_metrics;
     for (const auto &pair : metrics)
     {
+        std::cout << "#### cell metrics metrics name: " << pair.first
+            << " metrics number:"<< pair.second.size() << std::endl;
+
         const auto &metric_name = pair.first;
         const auto &metric_exclude_classes = pair.second;
 
@@ -70,8 +78,21 @@ writeCellMetrics(const boost::filesystem::path &path,
         for (auto &exclude_metric : metric_exclude_classes)
         {
             serialization::write(writer, prefix + "/" + std::to_string(id++), exclude_metric);
+
+            // osrm weights are measured by distance
+            // osrm duration -> re weight
+            // osrm weight -> re distance
+            auto pb_metric = pb_metrics.add_metrics();
+            for(auto i : exclude_metric.durations) {
+                pb_metric->add_weights(i);
+            }
+            for(auto i : exclude_metric.weights) {
+                pb_metric->add_distances(i);
+            }
         }
     }
+    std::fstream pb_out("1.mld.metrics.pb", std::ios::out | std::ios::binary);
+    pb_metrics.SerializeToOstream(&pb_out);
 }
 
 // reads .osrm.mldgr file
