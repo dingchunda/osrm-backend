@@ -1,6 +1,5 @@
 'use strict';
 
-const path = require('path');
 const fs = require('fs');
 const util = require('util');
 const child_process = require('child_process');
@@ -37,7 +36,7 @@ module.exports = function () {
     };
 
     this.runBin = (bin, options, env, callback) => {
-        let cmd = path.resolve(util.format('%s/%s%s', this.BIN_PATH, bin, this.EXE));
+        let cmd = util.format('%s%s/%s%s%s', this.QQ, this.BIN_PATH, bin, this.EXE, this.QQ);
         let opts = options.split(' ').filter((x) => { return x && x.length > 0; });
         let log = fs.createWriteStream(this.scenarioLogFile, {'flags': 'a'});
         log.write(util.format('*** running %s %s\n', cmd, options));

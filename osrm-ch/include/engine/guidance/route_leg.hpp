@@ -17,9 +17,8 @@ namespace guidance
 
 struct RouteLeg
 {
-    double distance;
     double duration;
-    double weight;
+    double distance;
     std::string summary;
     std::vector<RouteStep> steps;
 };

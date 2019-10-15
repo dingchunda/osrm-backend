@@ -11,11 +11,9 @@ Feature: Estimation of travel time
     Scenario: Basic travel time, 10m scale
         Given a grid size of 10 meters
         Given the node map
-            """
-            h a b
-            g x c
-            f e d
-            """
+            | h | a | b |
+            | g | x | c |
+            | f | e | d |
 
         And the ways
             | nodes | highway |
@@ -42,11 +40,9 @@ Feature: Estimation of travel time
     Scenario: Basic travel time, 100m scale
         Given a grid size of 100 meters
         Given the node map
-            """
-            h a b
-            g x c
-            f e d
-            """
+            | h | a | b |
+            | g | x | c |
+            | f | e | d |
 
         And the ways
             | nodes | highway |
@@ -73,11 +69,9 @@ Feature: Estimation of travel time
     Scenario: Basic travel time, 1km scale
         Given a grid size of 1000 meters
         Given the node map
-            """
-            h a b
-            g x c
-            f e d
-            """
+            | h | a | b |
+            | g | x | c |
+            | f | e | d |
 
         And the ways
             | nodes | highway |
@@ -104,11 +98,9 @@ Feature: Estimation of travel time
     Scenario: Basic travel time, 10km scale
         Given a grid size of 10000 meters
         Given the node map
-            """
-            h a b
-            g x c
-            f e d
-            """
+            | h | a | b |
+            | g | x | c |
+            | f | e | d |
 
         And the ways
             | nodes | highway |
@@ -134,11 +126,9 @@ Feature: Estimation of travel time
 
     Scenario: Time of travel depending on way type
         Given the node map
-            """
-            a b
-            c d
-            e f
-            """
+            | a | b |
+            | c | d |
+            | e | f |
 
         And the ways
             | nodes | highway   |
@@ -155,10 +145,8 @@ Feature: Estimation of travel time
 
     Scenario: Time of travel on a series of ways
         Given the node map
-            """
-            a b e
-            f c d
-            """
+            | a | b | e |
+            | f | c | d |
 
         And the ways
             | nodes | highway |
@@ -176,11 +164,9 @@ Feature: Estimation of travel time
 
     Scenario: Time of travel on a winding way
         Given the node map
-            """
-            a   i h
-            b c   g
-              d e f
-            """
+            | a |   | i | h |
+            | b | c |   | g |
+            |   | d | e | f |
 
         And the ways
             | nodes     | highway |
@@ -194,11 +180,9 @@ Feature: Estimation of travel time
 
     Scenario: Time of travel on combination of road types
         Given the node map
-            """
-            a b c
-                d
-                e
-            """
+            | a | b | c |
+            |   |   | d |
+            |   |   | e |
 
         And the ways
             | nodes | highway  |
@@ -214,12 +198,10 @@ Feature: Estimation of travel time
 
     Scenario: Time of travel on part of a way
         Given the node map
-            """
-            a 1
-              2
-              3
-            b 4
-            """
+            | a | 1 |
+            |   | 2 |
+            |   | 3 |
+            | b | 4 |
 
         And the ways
             | nodes | highway |
@@ -237,11 +219,9 @@ Feature: Estimation of travel time
     Scenario: Total travel time should match sum of times of individual ways
         Given a grid size of 1000 meters
         And the node map
-            """
-            a b
-
-              c     d
-            """
+            | a | b |  |  |   |
+            |   |   |  |  |   |
+            |   | c |  |  | d |
 
         And the ways
             | nodes | highway |

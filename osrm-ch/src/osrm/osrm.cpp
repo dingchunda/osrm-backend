@@ -7,23 +7,21 @@
 #include "engine/engine.hpp"
 #include "engine/engine_config.hpp"
 #include "engine/status.hpp"
-
-#include <memory>
+#include "util/make_unique.hpp"
 
 namespace osrm
 {
 
 // Pimpl idiom
 
-OSRM::OSRM(engine::EngineConfig &config) : engine_(std::make_unique<engine::Engine>(config)) {}
+OSRM::OSRM(engine::EngineConfig &config) : engine_(util::make_unique<engine::Engine>(config)) {}
 OSRM::~OSRM() = default;
 OSRM::OSRM(OSRM &&) noexcept = default;
 OSRM &OSRM::operator=(OSRM &&) noexcept = default;
 
 // Forward to implementation
 
-engine::Status OSRM::Route(const engine::api::RouteParameters &params,
-                           util::json::Object &result) const
+engine::Status OSRM::Route(const engine::api::RouteParameters &params, util::json::Object &result) const
 {
     return engine_->Route(params, result);
 }
@@ -33,8 +31,7 @@ engine::Status OSRM::Table(const engine::api::TableParameters &params, json::Obj
     return engine_->Table(params, result);
 }
 
-engine::Status OSRM::Nearest(const engine::api::NearestParameters &params,
-                             json::Object &result) const
+engine::Status OSRM::Nearest(const engine::api::NearestParameters &params, json::Object &result) const
 {
     return engine_->Nearest(params, result);
 }

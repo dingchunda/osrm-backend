@@ -35,9 +35,6 @@ template <typename ParameterT> std::size_t testInvalidOptions(std::string option
 
 BOOST_AUTO_TEST_CASE(invalid_route_urls)
 {
-    BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>("a;3,4"), 0UL);
-    BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>("120;3,4"), 3UL);
-    BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>("90000000,2;3,4"), 0UL);
     BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>("1,2;3,4?overview=false&bla=foo"), 22UL);
     BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>("1,2;3,4?overview=false&bearings=foo"),
                       32UL);
@@ -49,8 +46,6 @@ BOOST_AUTO_TEST_CASE(invalid_route_urls)
                       29UL);
     BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>("1,2;3,4?overview=false&hints=;;; ;"),
                       32UL);
-    BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>("1,2;3,4?generate_hints=notboolean"),
-                      23UL);
     BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>("1,2;3,4?overview=false&geometries=foo"),
                       34UL);
     BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>("1,2;3,4?overview=false&overview=foo"),
@@ -65,11 +60,6 @@ BOOST_AUTO_TEST_CASE(invalid_route_urls)
     BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>(std::string{"1,2;3,4"} + '\0' + ".json"),
                       7);
     BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>(std::string{"1,2;3,"} + '\0'), 6);
-    BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>("1,2;3,4?annotations=distances"), 28UL);
-    BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>("1,2;3,4?annotations="), 20UL);
-    BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>("1,2;3,4?annotations=true,false"), 24UL);
-    BOOST_CHECK_EQUAL(
-        testInvalidOptions<RouteParameters>("1,2;3,4?annotations=&overview=simplified"), 20UL);
 
     // BOOST_CHECK_EQUAL(testInvalidOptions<RouteParameters>(), );
 }
@@ -82,16 +72,6 @@ BOOST_AUTO_TEST_CASE(invalid_table_urls)
         testInvalidOptions<TableParameters>("1,2;3,4?sources=1&destinations=1&bla=foo"), 32UL);
     BOOST_CHECK_EQUAL(testInvalidOptions<TableParameters>("1,2;3,4?sources=foo"), 16UL);
     BOOST_CHECK_EQUAL(testInvalidOptions<TableParameters>("1,2;3,4?destinations=foo"), 21UL);
-}
-
-BOOST_AUTO_TEST_CASE(valid_route_hint)
-{
-    auto hint = engine::Hint::FromBase64("XAYAgP___3-"
-                                         "QAAAABQAAACgAAABMAAAAJQAAAAUAAAAoAAAATAAAACUAAAB7BQAAFAAA"
-                                         "AGpocQC3gpsCO2hxAMuCmwIFAAEBDJujEQ==");
-    BOOST_CHECK_EQUAL(
-        hint.phantom.input_location,
-        util::Coordinate(util::FloatLongitude{7.432251}, util::FloatLatitude{43.745995}));
 }
 
 BOOST_AUTO_TEST_CASE(valid_route_urls)
@@ -133,7 +113,6 @@ BOOST_AUTO_TEST_CASE(valid_route_urls)
     CHECK_EQUAL_RANGE(reference_2.radiuses, result_2->radiuses);
     CHECK_EQUAL_RANGE(reference_2.coordinates, result_2->coordinates);
     CHECK_EQUAL_RANGE(reference_2.hints, result_2->hints);
-    BOOST_CHECK_EQUAL(result_2->annotations_type == RouteParameters::AnnotationsType::All, true);
 
     RouteParameters reference_3{false,
                                 false,
@@ -158,14 +137,15 @@ BOOST_AUTO_TEST_CASE(valid_route_urls)
     CHECK_EQUAL_RANGE(reference_3.hints, result_3->hints);
 
     std::vector<boost::optional<engine::Hint>> hints_4 = {
-        engine::Hint::FromBase64("XAYAgP___3-"
-                                 "QAAAABQAAACgAAABMAAAAJQAAAAUAAAAoAAAATAAAACUAAAB7BQAAFAAAAGpocQC3"
-                                 "gpsCO2hxAMuCmwIFAAEBDJujEQ=="),
-        engine::Hint::FromBase64("lgQAgP___3-"
-                                 "QAAAAEwAAABgAAAAyAAAAOAAAABMAAAAYAAAAMgAAADgAAAA0AAAAFAAAAJphcQC-"
-                                 "c5sC3GFxALtzmwIEAAEBDJujEQ=="),
-        engine::Hint::FromBase64("OAUAgMUFAIAAAAAAHgAAAAUAAAAAAAAALQEAAB4AAAAFAAAAAAAAAC0BAAC8BAAAF"
-                                 "AAAAIM-cQBQVpsCiD5xAFBWmwIAAAEBDJujEQ==")};
+        engine::Hint::FromBase64("DAIAgP___"
+                                 "38AAAAAAAAAAAIAAAAAAAAAEAAAAOgDAAD0AwAAGwAAAOUacQBQP5sCshpxAB0_"
+                                 "mwIAAAEBl-Umfg=="),
+        engine::Hint::FromBase64("cgAAgP___"
+                                 "39jAAAADgAAACIAAABeAAAAkQAAANoDAABOAgAAGwAAAFVGcQCiRJsCR0VxAOZFmw"
+                                 "IFAAEBl-Umfg=="),
+        engine::Hint::FromBase64("3gAAgP___"
+                                 "39KAAAAHgAAACEAAAAAAAAAGAAAAE0BAABOAQAAGwAAAIAzcQBkUJsC1zNxAHBQmw"
+                                 "IAAAEBl-Umfg==")};
     RouteParameters reference_4{false,
                                 false,
                                 false,
@@ -178,13 +158,9 @@ BOOST_AUTO_TEST_CASE(valid_route_urls)
                                 std::vector<boost::optional<engine::Bearing>>{}};
     auto result_4 = parseParameters<RouteParameters>(
         "1,2;3,4?steps=false&hints="
-        "XAYAgP___3-"
-        "QAAAABQAAACgAAABMAAAAJQAAAAUAAAAoAAAATAAAACUAAAB7BQAAFAAAAGpocQC3gpsCO2hxAMuCmwIFAAEBDJujE"
-        "Q==;"
-        "lgQAgP___3-QAAAAEwAAABgAAAAyAAAAOAAAABMAAAAYAAAAMgAAADgAAAA0AAAAFAAAAJphcQC-"
-        "c5sC3GFxALtzmwIEAAEBDJujEQ==;"
-        "OAUAgMUFAIAAAAAAHgAAAAUAAAAAAAAALQEAAB4AAAAFAAAAAAAAAC0BAAC8BAAAFAAAAIM-"
-        "cQBQVpsCiD5xAFBWmwIAAAEBDJujEQ==");
+        "DAIAgP___38AAAAAAAAAAAIAAAAAAAAAEAAAAOgDAAD0AwAAGwAAAOUacQBQP5sCshpxAB0_mwIAAAEBl-Umfg==;"
+        "cgAAgP___39jAAAADgAAACIAAABeAAAAkQAAANoDAABOAgAAGwAAAFVGcQCiRJsCR0VxAOZFmwIFAAEBl-Umfg==;"
+        "3gAAgP___39KAAAAHgAAACEAAAAAAAAAGAAAAE0BAABOAQAAGwAAAIAzcQBkUJsC1zNxAHBQmwIAAAEBl-Umfg==");
     BOOST_CHECK(result_4);
     BOOST_CHECK_EQUAL(reference_4.steps, result_4->steps);
     BOOST_CHECK_EQUAL(reference_4.alternatives, result_4->alternatives);
@@ -279,12 +255,13 @@ BOOST_AUTO_TEST_CASE(valid_route_urls)
                                               {util::FloatLongitude{5}, util::FloatLatitude{6}},
                                               {util::FloatLongitude{7}, util::FloatLatitude{8}}};
     std::vector<boost::optional<engine::Hint>> hints_10 = {
-        engine::Hint::FromBase64("XAYAgP___3-"
-                                 "QAAAABQAAACgAAABMAAAAJQAAAAUAAAAoAAAATAAAACUAAAB7BQAAFAAAAGpocQC3"
-                                 "gpsCO2hxAMuCmwIFAAEBDJujEQ=="),
+        engine::Hint::FromBase64("DAIAgP___"
+                                 "38AAAAAAAAAAAIAAAAAAAAAEAAAAOgDAAD0AwAAGwAAAOUacQBQP5sCshpxAB0_"
+                                 "mwIAAAEBl-Umfg=="),
         boost::none,
-        engine::Hint::FromBase64("OAUAgMUFAIAAAAAAHgAAAAUAAAAAAAAALQEAAB4AAAAFAAAAAAAAAC0BAAC8BAAAF"
-                                 "AAAAIM-cQBQVpsCiD5xAFBWmwIAAAEBDJujEQ=="),
+        engine::Hint::FromBase64("cgAAgP___"
+                                 "39jAAAADgAAACIAAABeAAAAkQAAANoDAABOAgAAGwAAAFVGcQCiRJsCR0VxAOZFmw"
+                                 "IFAAEBl-Umfg=="),
         boost::none};
     RouteParameters reference_10{false,
                                  false,
@@ -296,13 +273,11 @@ BOOST_AUTO_TEST_CASE(valid_route_urls)
                                  hints_10,
                                  std::vector<boost::optional<double>>{},
                                  std::vector<boost::optional<engine::Bearing>>{}};
-    auto result_10 =
-        parseParameters<RouteParameters>("1,2;3,4;5,6;7,8?steps=false&hints="
-                                         "XAYAgP___3-"
-                                         "QAAAABQAAACgAAABMAAAAJQAAAAUAAAAoAAAATAAAACUAAAB7BQAAFAAA"
-                                         "AGpocQC3gpsCO2hxAMuCmwIFAAEBDJujEQ==;;"
-                                         "OAUAgMUFAIAAAAAAHgAAAAUAAAAAAAAALQEAAB4AAAAFAAAAAAAAAC0BA"
-                                         "AC8BAAAFAAAAIM-cQBQVpsCiD5xAFBWmwIAAAEBDJujEQ==;");
+    auto result_10 = parseParameters<RouteParameters>(
+        "1,2;3,4;5,6;7,8?steps=false&hints="
+        "DAIAgP___38AAAAAAAAAAAIAAAAAAAAAEAAAAOgDAAD0AwAAGwAAAOUacQBQP5sCshpxAB0_mwIAAAEBl-Umfg==;;"
+        "cgAAgP___39jAAAADgAAACIAAABeAAAAkQAAANoDAABOAgAAGwAAAFVGcQCiRJsCR0VxAOZFmwIFAAEBl-Umfg=="
+        ";");
     BOOST_CHECK(result_10);
     BOOST_CHECK_EQUAL(reference_10.steps, result_10->steps);
     BOOST_CHECK_EQUAL(reference_10.alternatives, result_10->alternatives);
@@ -314,86 +289,6 @@ BOOST_AUTO_TEST_CASE(valid_route_urls)
     CHECK_EQUAL_RANGE(reference_10.radiuses, result_10->radiuses);
     CHECK_EQUAL_RANGE(reference_10.coordinates, result_10->coordinates);
     CHECK_EQUAL_RANGE(reference_10.hints, result_10->hints);
-
-    // Do not generate Hints when they are explicitly disabled
-    auto result_11 = parseParameters<RouteParameters>("1,2;3,4?generate_hints=false");
-    BOOST_CHECK(result_11);
-    BOOST_CHECK_EQUAL(result_11->generate_hints, false);
-
-    auto result_12 = parseParameters<RouteParameters>("1,2;3,4?generate_hints=true");
-    BOOST_CHECK(result_12);
-    BOOST_CHECK_EQUAL(result_12->generate_hints, true);
-
-    auto result_13 = parseParameters<RouteParameters>("1,2;3,4");
-    BOOST_CHECK(result_13);
-    BOOST_CHECK_EQUAL(result_13->generate_hints, true);
-
-    // parse none annotations value correctly
-    RouteParameters reference_14{};
-    reference_14.annotations_type = RouteParameters::AnnotationsType::None;
-    reference_14.coordinates = coords_1;
-    auto result_14 = parseParameters<RouteParameters>("1,2;3,4?geometries=polyline");
-    BOOST_CHECK(result_14);
-    BOOST_CHECK_EQUAL(reference_14.geometries, result_14->geometries);
-    BOOST_CHECK_EQUAL(result_14->annotations_type == RouteParameters::AnnotationsType::None, true);
-    BOOST_CHECK_EQUAL(result_14->annotations, false);
-
-    // parse single annotations value correctly
-    RouteParameters reference_15{};
-    reference_15.annotations_type = RouteParameters::AnnotationsType::Duration;
-    reference_15.coordinates = coords_1;
-    auto result_15 = parseParameters<RouteParameters>("1,2;3,4?geometries=polyline&"
-                                                      "overview=simplified&annotations=duration");
-    BOOST_CHECK(result_15);
-    BOOST_CHECK_EQUAL(reference_15.geometries, result_15->geometries);
-    BOOST_CHECK_EQUAL(result_15->annotations_type == RouteParameters::AnnotationsType::Duration,
-                      true);
-    BOOST_CHECK_EQUAL(result_15->annotations, true);
-
-    RouteParameters reference_speed{};
-    reference_speed.annotations_type = RouteParameters::AnnotationsType::Duration;
-    reference_speed.coordinates = coords_1;
-    auto result_speed =
-        parseParameters<RouteParameters>("1,2;3,4?geometries=polyline&"
-                                         "overview=simplified&annotations=duration,distance,speed");
-    BOOST_CHECK(result_speed);
-    BOOST_CHECK_EQUAL(reference_speed.geometries, result_speed->geometries);
-    BOOST_CHECK_EQUAL(reference_speed.overview, result_speed->overview);
-    BOOST_CHECK_EQUAL(result_speed->annotations_type ==
-                          (RouteParameters::AnnotationsType::Duration |
-                           RouteParameters::AnnotationsType::Distance |
-                           RouteParameters::AnnotationsType::Speed),
-                      true);
-    BOOST_CHECK_EQUAL(result_speed->annotations, true);
-
-    // parse multiple annotations correctly
-    RouteParameters reference_16{};
-    reference_16.annotations_type = RouteParameters::AnnotationsType::Duration |
-                                    RouteParameters::AnnotationsType::Weight |
-                                    RouteParameters::AnnotationsType::Nodes;
-    reference_16.coordinates = coords_1;
-    auto result_16 =
-        parseParameters<RouteParameters>("1,2;3,4?geometries=polyline&"
-                                         "overview=simplified&annotations=duration,weight,nodes");
-    BOOST_CHECK(result_16);
-    BOOST_CHECK_EQUAL(reference_16.geometries, result_16->geometries);
-    BOOST_CHECK_EQUAL(
-        static_cast<bool>(result_2->annotations_type & (RouteParameters::AnnotationsType::Weight |
-                                                        RouteParameters::AnnotationsType::Duration |
-                                                        RouteParameters::AnnotationsType::Nodes)),
-        true);
-    BOOST_CHECK_EQUAL(result_16->annotations, true);
-
-    // parse all annotations correctly
-    RouteParameters reference_17{};
-    reference_17.annotations_type = RouteParameters::AnnotationsType::All;
-    reference_17.coordinates = coords_1;
-    auto result_17 = parseParameters<RouteParameters>(
-        "1,2;3,4?overview=simplified&annotations=duration,weight,nodes,datasources,distance");
-    BOOST_CHECK(result_17);
-    BOOST_CHECK_EQUAL(reference_17.geometries, result_17->geometries);
-    BOOST_CHECK_EQUAL(result_2->annotations_type == RouteParameters::AnnotationsType::All, true);
-    BOOST_CHECK_EQUAL(result_17->annotations, true);
 }
 
 BOOST_AUTO_TEST_CASE(valid_table_urls)
@@ -481,22 +376,10 @@ BOOST_AUTO_TEST_CASE(valid_nearest_urls)
     CHECK_EQUAL_RANGE(reference_2.coordinates, result_2->coordinates);
 }
 
-BOOST_AUTO_TEST_CASE(invalid_tile_urls)
+BOOST_AUTO_TEST_CASE(valid_tile_urls)
 {
     TileParameters reference_1{1, 2, 3};
     auto result_1 = parseParameters<TileParameters>("tile(1,2,3).mvt");
-    BOOST_CHECK(result_1);
-    BOOST_CHECK(!result_1->IsValid());
-    BOOST_CHECK_EQUAL(reference_1.x, result_1->x);
-    BOOST_CHECK_EQUAL(reference_1.y, result_1->y);
-    BOOST_CHECK_EQUAL(reference_1.z, result_1->z);
-}
-
-BOOST_AUTO_TEST_CASE(valid_tile_urls)
-{
-    TileParameters reference_1{1, 2, 12};
-    auto result_1 = parseParameters<TileParameters>("tile(1,2,12).mvt");
-    BOOST_CHECK(result_1->IsValid());
     BOOST_CHECK(result_1);
     BOOST_CHECK_EQUAL(reference_1.x, result_1->x);
     BOOST_CHECK_EQUAL(reference_1.y, result_1->y);
@@ -512,43 +395,9 @@ BOOST_AUTO_TEST_CASE(valid_trip_urls)
     reference_1.coordinates = coords_1;
     auto result_1 = parseParameters<TripParameters>("1,2;3,4");
     BOOST_CHECK(result_1);
+    CHECK_EQUAL_RANGE(reference_1.bearings, result_1->bearings);
     CHECK_EQUAL_RANGE(reference_1.radiuses, result_1->radiuses);
     CHECK_EQUAL_RANGE(reference_1.coordinates, result_1->coordinates);
-
-    TripParameters reference_2{};
-    reference_2.coordinates = coords_1;
-    reference_2.source = TripParameters::SourceType::First;
-    reference_2.destination = TripParameters::DestinationType::Last;
-    auto result_2 = parseParameters<TripParameters>("1,2;3,4?source=first&destination=last");
-    BOOST_CHECK(result_2);
-    CHECK_EQUAL_RANGE(reference_2.radiuses, result_2->radiuses);
-    CHECK_EQUAL_RANGE(reference_2.coordinates, result_2->coordinates);
-
-    // check supported source/destination/rountrip combinations
-    auto param_fse_r =
-        parseParameters<TripParameters>("1,2;3,4?source=first&destination=last&roundtrip=true");
-    BOOST_CHECK(param_fse_r->IsValid());
-    auto param_fse_nr_ =
-        parseParameters<TripParameters>("1,2;3,4?source=first&destination=last&roundtrip=false");
-    BOOST_CHECK(param_fse_nr_->IsValid());
-    auto param_fs_r = parseParameters<TripParameters>("1,2;3,4?source=first&roundtrip=true");
-    BOOST_CHECK(param_fs_r->IsValid());
-    auto param_fs_nr = parseParameters<TripParameters>("1,2;3,4?source=first&roundtrip=false");
-    BOOST_CHECK(param_fs_nr->IsValid());
-    auto param_fe_r = parseParameters<TripParameters>("1,2;3,4?destination=last&roundtrip=true");
-    BOOST_CHECK(param_fe_r->IsValid());
-    auto param_fe_nr = parseParameters<TripParameters>("1,2;3,4?destination=last&roundtrip=false");
-    BOOST_CHECK(param_fe_nr->IsValid());
-    auto param_r = parseParameters<TripParameters>("1,2;3,4?roundtrip=true");
-    BOOST_CHECK(param_r->IsValid());
-    auto param_nr = parseParameters<TripParameters>("1,2;3,4?roundtrip=false");
-    BOOST_CHECK(param_nr->IsValid());
-
-    auto param_fail_1 =
-        testInvalidOptions<TripParameters>("1,2;3,4?source=blubb&destination=random");
-    BOOST_CHECK_EQUAL(param_fail_1, 15UL);
-    auto param_fail_2 = testInvalidOptions<TripParameters>("1,2;3,4?source=first&destination=nah");
-    BOOST_CHECK_EQUAL(param_fail_2, 33UL);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

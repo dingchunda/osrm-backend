@@ -14,10 +14,8 @@ Feature: Bike - Stop areas for public transport
 
     Scenario: Bike - railway platforms
         Given the node map
-            """
-            a b c d
-              s t
-            """
+            | a | b | c | d |
+            |   | s | t |   |
 
         And the nodes
             | node | public_transport |

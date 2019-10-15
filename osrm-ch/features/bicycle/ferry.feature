@@ -6,11 +6,9 @@ Feature: Bike - Handle ferry routes
 
     Scenario: Bike - Ferry route
         Given the node map
-            """
-            a b c
-                d
-                e f g
-            """
+            | a | b | c |   |   |
+            |   |   | d |   |   |
+            |   |   | e | f | g |
 
         And the ways
             | nodes | highway | route | bicycle |
@@ -31,12 +29,10 @@ Feature: Bike - Handle ferry routes
 
     Scenario: Bike - Ferry duration, single node
         Given the node map
-            """
-            a b c d
-                e f
-                g h
-                i j
-            """
+            | a | b | c | d |
+            |   |   | e | f |
+            |   |   | g | h |
+            |   |   | i | j |
 
         And the ways
             | nodes | highway | route | bicycle | duration |
@@ -52,10 +48,8 @@ Feature: Bike - Handle ferry routes
 
     Scenario: Bike - Ferry duration, multiple nodes
         Given the node map
-            """
-            x         y
-              a b c d
-            """
+            | x |   |   |   |   | y |
+            |   | a | b | c | d |   |
 
         And the ways
             | nodes | highway | route | bicycle | duration |
@@ -64,6 +58,6 @@ Feature: Bike - Handle ferry routes
             | abcd  |         | ferry | yes     | 1:00     |
 
         When I route I should get
-            | from | to | route     | time  |
-            | a    | d  | abcd,abcd | 3600s |
-            | d    | a  | abcd,abcd | 3600s |
+            | from | to | route | time       |
+            | a    | d  | abcd,abcd  | 3600s +-10 |
+            | d    | a  | abcd,abcd  | 3600s +-10 |

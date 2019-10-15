@@ -8,11 +8,9 @@ Feature: Foot - Turn restrictions
     @no_turning
     Scenario: Foot - No left turn
         Given the node map
-            """
-              n
-            w j e
-              s
-            """
+            |   | n |   |
+            | w | j | e |
+            |   | s |   |
 
         And the ways
             | nodes | oneway |
@@ -34,11 +32,9 @@ Feature: Foot - Turn restrictions
     @no_turning
     Scenario: Foot - No right turn
         Given the node map
-            """
-              n
-            w j e
-              s
-            """
+            |   | n |   |
+            | w | j | e |
+            |   | s |   |
 
         And the ways
             | nodes | oneway |
@@ -60,11 +56,9 @@ Feature: Foot - Turn restrictions
     @no_turning
     Scenario: Foot - No u-turn
         Given the node map
-            """
-              n
-            w j e
-              s
-            """
+            |   | n |   |
+            | w | j | e |
+            |   | s |   |
 
         And the ways
             | nodes | oneway |
@@ -86,11 +80,9 @@ Feature: Foot - Turn restrictions
     @no_turning
     Scenario: Foot - Handle any no_* relation
         Given the node map
-            """
-              n
-            w j e
-              s
-            """
+            |   | n |   |
+            | w | j | e |
+            |   | s |   |
 
         And the ways
             | nodes | oneway |
@@ -112,11 +104,9 @@ Feature: Foot - Turn restrictions
     @only_turning
     Scenario: Foot - Only left turn
         Given the node map
-            """
-              n
-            w j e
-              s
-            """
+            |   | n |   |
+            | w | j | e |
+            |   | s |   |
 
         And the ways
             | nodes | oneway |
@@ -138,11 +128,9 @@ Feature: Foot - Turn restrictions
     @only_turning
     Scenario: Foot - Only right turn
         Given the node map
-            """
-              n
-            w j e
-              s
-            """
+            |   | n |   |
+            | w | j | e |
+            |   | s |   |
 
         And the ways
             | nodes | oneway |
@@ -164,11 +152,9 @@ Feature: Foot - Turn restrictions
     @only_turning
     Scenario: Foot - Only straight on
         Given the node map
-            """
-              n
-            w j e
-              s
-            """
+            |   | n |   |
+            | w | j | e |
+            |   | s |   |
 
         And the ways
             | nodes | oneway |
@@ -190,11 +176,9 @@ Feature: Foot - Turn restrictions
     @no_turning
     Scenario: Foot - Handle any only_* restriction
         Given the node map
-            """
-              n
-            w j e
-              s
-            """
+            |   | n |   |
+            | w | j | e |
+            |   | s |   |
 
         And the ways
             | nodes | oneway |
@@ -216,11 +200,9 @@ Feature: Foot - Turn restrictions
     @except
     Scenario: Foot - Except tag and on no_ restrictions
         Given the node map
-            """
-            b x c
-            a j d
-              s
-            """
+            | b | x | c |
+            | a | j | d |
+            |   | s |   |
 
         And the ways
             | nodes | oneway |
@@ -248,11 +230,9 @@ Feature: Foot - Turn restrictions
     @except
     Scenario: Foot - Except tag and on only_ restrictions
         Given the node map
-            """
-            a   b
-              j
-              s
-            """
+            | a |   | b |
+            |   | j |   |
+            |   | s |   |
 
         And the ways
             | nodes | oneway |
@@ -272,14 +252,12 @@ Feature: Foot - Turn restrictions
     @except
     Scenario: Foot - Multiple except tag values
         Given the node map
-            """
-            s j a
-                b
-                c
-                d
-                e
-                f
-            """
+            | s | j | a |
+            |   |   | b |
+            |   |   | c |
+            |   |   | d |
+            |   |   | e |
+            |   |   | f |
 
         And the ways
             | nodes | oneway |

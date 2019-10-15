@@ -1,9 +1,7 @@
 
-#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <map>
-#include <string>
 
 #include <gdalcpp.hpp>
 
@@ -19,20 +17,21 @@
 #include <osmium/io/xml_input.hpp>
 #include <osmium/visitor.hpp>
 
-using index_type = osmium::index::map::SparseMemArray<osmium::unsigned_object_id_type, osmium::Location>;
-using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
+typedef osmium::index::map::SparseMemArray<osmium::unsigned_object_id_type, osmium::Location> index_type;
+
+typedef osmium::handler::NodeLocationsForWays<index_type> location_handler_type;
 
 struct less_charptr {
 
-    bool operator()(const char* a, const char* b) const noexcept {
+    bool operator()(const char* a, const char* b) const {
         return std::strcmp(a, b) < 0;
     }
 
 }; // less_charptr
 
-using tagmap_type = std::map<const char*, const char*, less_charptr>;
+typedef std::map<const char*, const char*, less_charptr> tagmap_type;
 
-tagmap_type create_map(const osmium::TagList& taglist) {
+inline tagmap_type create_map(const osmium::TagList& taglist) {
     tagmap_type map;
 
     for (auto& tag : taglist) {
@@ -53,7 +52,7 @@ class TestHandler : public osmium::handler::Handler {
 
     std::ofstream m_out;
 
-    bool m_first_out{true};
+    bool m_first_out {true};
 
 public:
 
@@ -78,7 +77,7 @@ public:
     }
 
     void node(const osmium::Node& node) {
-        gdalcpp::Feature feature{m_layer_point, m_ogr_factory.create_point(node)};
+        gdalcpp::Feature feature(m_layer_point, m_ogr_factory.create_point(node));
         feature.set_field("id", static_cast<double>(node.id()));
         feature.set_field("type", node.tags().get_value_by_key("type"));
         feature.add_to_layer();
@@ -86,11 +85,11 @@ public:
 
     void way(const osmium::Way& way) {
         try {
-            gdalcpp::Feature feature{m_layer_lines, m_ogr_factory.create_linestring(way)};
+            gdalcpp::Feature feature(m_layer_lines, m_ogr_factory.create_linestring(way));
             feature.set_field("id", static_cast<double>(way.id()));
             feature.set_field("type", way.tags().get_value_by_key("type"));
             feature.add_to_layer();
-        } catch (const osmium::geometry_error&) {
+        } catch (osmium::geometry_error&) {
             std::cerr << "Ignoring illegal geometry for way " << way.id() << ".\n";
         }
     }
@@ -104,10 +103,10 @@ public:
         }
         m_out << "{\n  \"test_id\": " << (area.orig_id() / 1000) << ",\n  \"area_id\": " << area.id() << ",\n  \"from_id\": " << area.orig_id() << ",\n  \"from_type\": \"" << (area.from_way() ? "way" : "relation") << "\",\n  \"wkt\": \"";
         try {
-            const std::string wkt = m_wkt_factory.create_multipolygon(area);
+            std::string wkt = m_wkt_factory.create_multipolygon(area);
             m_out << wkt << "\",\n  \"tags\": {";
 
-            const auto tagmap = create_map(area.tags());
+            auto tagmap = create_map(area.tags());
             bool first = true;
             for (auto& tag : tagmap) {
                 if (first) {
@@ -118,11 +117,11 @@ public:
                 m_out << '"' << tag.first << "\": \"" << tag.second << '"';
             }
             m_out << "}\n}";
-        } catch (const osmium::geometry_error&) {
+        } catch (osmium::geometry_error&) {
             m_out << "INVALID\"\n}";
         }
         try {
-            gdalcpp::Feature feature{m_layer_mpoly, m_ogr_factory.create_multipolygon(area)};
+            gdalcpp::Feature feature(m_layer_mpoly, m_ogr_factory.create_multipolygon(area));
             feature.set_field("id", static_cast<double>(area.orig_id()));
 
             std::string from_type;
@@ -133,7 +132,7 @@ public:
             }
             feature.set_field("from_type", from_type.c_str());
             feature.add_to_layer();
-        } catch (const osmium::geometry_error&) {
+        } catch (osmium::geometry_error&) {
             std::cerr << "Ignoring illegal geometry for area " << area.id() << " created from " << (area.from_way() ? "way" : "relation") << " with id=" << area.orig_id() << ".\n";
         }
     }
@@ -145,38 +144,35 @@ public:
 int main(int argc, char* argv[]) {
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " INFILE\n";
-        std::exit(1);
+        exit(1);
     }
 
-    const std::string output_format{"SQLite"};
-    const std::string input_filename{argv[1]};
-    const std::string output_filename{"multipolygon.db"};
+    std::string output_format("SQLite");
+    std::string input_filename(argv[1]);
+    std::string output_filename("multipolygon.db");
 
     CPLSetConfigOption("OGR_SQLITE_SYNCHRONOUS", "FALSE");
-    gdalcpp::Dataset dataset{output_format, output_filename, gdalcpp::SRS{}, {"SPATIALITE=TRUE"}};
+    gdalcpp::Dataset dataset{output_format, output_filename, gdalcpp::SRS{}, { "SPATIALITE=TRUE" }};
 
-    osmium::area::ProblemReporterOGR problem_reporter{dataset};
-    osmium::area::Assembler::config_type assembler_config;
-    assembler_config.problem_reporter = &problem_reporter;
-    assembler_config.check_roles = true;
-    assembler_config.create_empty_areas = true;
-    assembler_config.debug_level = 2;
-    osmium::area::MultipolygonCollector<osmium::area::Assembler> collector{assembler_config};
+    osmium::area::ProblemReporterOGR problem_reporter(dataset);
+    osmium::area::Assembler::config_type assembler_config(&problem_reporter);
+    assembler_config.enable_debug_output();
+    osmium::area::MultipolygonCollector<osmium::area::Assembler> collector(assembler_config);
 
     std::cerr << "Pass 1...\n";
-    osmium::io::Reader reader1{input_filename};
+    osmium::io::Reader reader1(input_filename);
     collector.read_relations(reader1);
     reader1.close();
     std::cerr << "Pass 1 done\n";
 
     index_type index;
-    location_handler_type location_handler{index};
+    location_handler_type location_handler(index);
     location_handler.ignore_errors();
 
-    TestHandler test_handler{dataset};
+    TestHandler test_handler(dataset);
 
     std::cerr << "Pass 2...\n";
-    osmium::io::Reader reader2{input_filename};
+    osmium::io::Reader reader2(input_filename);
     osmium::apply(reader2, location_handler, test_handler, collector.handler([&test_handler](const osmium::memory::Buffer& area_buffer) {
         osmium::apply(area_buffer, test_handler);
     }));

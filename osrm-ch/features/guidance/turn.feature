@@ -7,11 +7,9 @@ Feature: Simple Turns
 
     Scenario: Four Way Intersection
         Given the node map
-            """
-              c
-            a b e
-              d
-            """
+            |   | c |   |
+            | a | b | e |
+            |   | d |   |
 
         And the ways
             | nodes  | highway |
@@ -37,11 +35,9 @@ Feature: Simple Turns
 
     Scenario: Rotated Four Way Intersection
         Given the node map
-            """
-            a   c
-              b
-            d   e
-            """
+            | a |   | c |
+            |   | b |   |
+            | d |   | e |
 
         And the ways
             | nodes  | highway |
@@ -68,11 +64,9 @@ Feature: Simple Turns
 
     Scenario: Four Way Intersection Through Street
         Given the node map
-            """
-              c
-            a b e
-              d
-            """
+            |   | c |   |
+            | a | b | e |
+            |   | d |   |
 
         And the ways
             | nodes  | highway |
@@ -97,11 +91,9 @@ Feature: Simple Turns
 
     Scenario: Four Way Intersection Double Through Street
         Given the node map
-            """
-              c
-            a b e
-              d
-            """
+            |   | c |   |
+            | a | b | e |
+            |   | d |   |
 
         And the ways
             | nodes  | highway |
@@ -125,10 +117,8 @@ Feature: Simple Turns
 
     Scenario: Three Way Intersection
         Given the node map
-            """
-              c
-            a b d
-            """
+            |   | c |   |
+            | a | b | d |
 
         And the ways
             | nodes  | highway |
@@ -143,30 +133,10 @@ Feature: Simple Turns
             | d,c       | db,cb,cb | depart,turn right,arrive        |
             | d,a       | db,ab,ab | depart,new name straight,arrive |
 
-    Scenario: Three Way Intersection - Meeting Oneways
-        Given the node map
-            """
-              c
-            a b d
-            """
-
-        And the ways
-            | nodes  | highway | oneway |
-            | ab     | primary | yes    |
-            | bc     | primary | yes    |
-            | db     | primary | yes    |
-
-       When I route I should get
-            | waypoints | route    | turns                           |
-            | a,c       | ab,bc,bc | depart,turn left,arrive         |
-            | d,c       | db,bc,bc | depart,turn right,arrive        |
-
     Scenario: Three Way Intersection on Through Street
         Given the node map
-            """
-              d
-            a b c
-            """
+            |   | d |   |
+            | a | b | c |
 
         And the ways
             | nodes  | highway |
@@ -182,15 +152,13 @@ Feature: Simple Turns
 
      Scenario: High Degree Intersection
         Given the node map
-            """
-            i   b   c
-
-
-            h   a   d
-
-
-            g   f   e
-            """
+            | i |   | b |   | c |
+            |   |   |   |   |   |
+            |   |   |   |   |   |
+            | h |   | a |   | d |
+            |   |   |   |   |   |
+            |   |   |   |   |   |
+            | g |   | f |   | e |
 
         And the ways
             | nodes | highway |
@@ -215,15 +183,13 @@ Feature: Simple Turns
 
     Scenario: Disturbed High Degree Intersection
         Given the node map
-            """
-                b
-            i       c
-
-            h   a   d
-
-            g       e
-                f
-            """
+            |   |   | b |   |   |
+            | i |   |   |   | c |
+            |   |   |   |   |   |
+            | h |   | a |   | d |
+            |   |   |   |   |   |
+            | g |   |   |   | e |
+            |   |   | f |   |   |
 
         And the ways
             | nodes | highway |
@@ -278,13 +244,55 @@ Feature: Simple Turns
             | x    | z  | xy,yz,yz | depart,turn right,arrive |
             | z    | x  | yz,xy,xy | depart,turn left,arrive  |
 
+    Scenario: Four Way Intersection Double Through Street Segregated
+        Given the node map
+            |   |   |   |   | q |   | p |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   | b |   | c |   |   |   |   |
+            | j |   |   | i |   |   |   | d |   |   | o |
+            |   |   |   |   |   | a |   |   |   |   |   |
+            | k |   |   | h |   |   |   | e |   |   | n |
+            |   |   |   |   | g |   | f |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   | l |   | m |   |   |   |   |
+
+        And the ways
+            | nodes  | highway | oneway | name   |
+            | khaij  | primary | yes    | first  |
+            | odaen  | primary | yes    | first  |
+            | qbacp  | primary | yes    | second |
+            | mfagl  | primary | yes    | second |
+
+       When I route I should get
+            | waypoints | route                | turns                        |
+            | f,e       | second,first,first   | depart,turn right,arrive     |
+            | f,c       | second,second        | depart,arrive                |
+            | f,i       | second,first,first   | depart,turn left,arrive      |
+            | f,g       | second,second,second | depart,continue uturn,arrive |
+            | d,c       | first,second,second  | depart,turn right,arrive     |
+            | d,i       | first,first          | depart,arrive                |
+            | d,g       | first,second,second  | depart,turn left,arrive      |
+            | d,e       | first,first,first    | depart,continue uturn,arrive |
+            | b,i       | second,first,first   | depart,turn right,arrive     |
+            | b,g       | second,second        | depart,arrive                |
+            | b,e       | second,first,first   | depart,turn left,arrive      |
+            | b,c       | second,second,second | depart,continue uturn,arrive |
+            | h,g       | first,second,second  | depart,turn right,arrive     |
+            | h,e       | first,first          | depart,arrive                |
+            | h,c       | first,second,second  | depart,turn left,arrive      |
+            | h,i       | first,first,first    | depart,continue uturn,arrive |
+
     Scenario: Three Way Similar Sharp Turns
         Given the node map
-            """
-            a       b
-            c
-              d
-            """
+            | a |   |   |   | b |
+            | c |   |   |   |   |
+            |   | d |   |   |   |
 
         And the ways
             | nodes | highway |
@@ -301,11 +309,9 @@ Feature: Simple Turns
 
     Scenario: Left Turn Assignment (1)
         Given the node map
-            """
-                    d
-            a   b   c
-                e
-            """
+            |   |   |   |   | d |
+            | a |   | b |   | c |
+            |   |   | e |   |   |
 
         And the ways
             | nodes | highway |
@@ -319,12 +325,10 @@ Feature: Simple Turns
 
     Scenario: Left Turn Assignment (2)
         Given the node map
-            """
-                    d
-
-            a   b   c
-                e
-            """
+            |   |   |   |   | d |
+            |   |   |   |   |   |
+            | a |   | b |   | c |
+            |   |   | e |   |   |
 
         And the ways
             | nodes | highway |
@@ -338,13 +342,11 @@ Feature: Simple Turns
 
     Scenario: Left Turn Assignment (3)
         Given the node map
-            """
-                  d
-
-
-            a   b   c
-                e
-            """
+            |   |   |   | d |   |
+            |   |   |   |   |   |
+            |   |   |   |   |   |
+            | a |   | b |   | c |
+            |   |   | e |   |   |
 
         And the ways
             | nodes | highway |
@@ -358,14 +360,12 @@ Feature: Simple Turns
 
     Scenario: Left Turn Assignment (4)
         Given the node map
-            """
-                d
-
-
-
-            a   b   c
-                e
-            """
+            |   |   | d |   |   |
+            |   |   |   |   |   |
+            |   |   |   |   |   |
+            |   |   |   |   |   |
+            | a |   | b |   | c |
+            |   |   | e |   |   |
 
         And the ways
             | nodes | highway |
@@ -379,13 +379,11 @@ Feature: Simple Turns
 
     Scenario: Left Turn Assignment (5)
         Given the node map
-            """
-              d
-
-
-            a   b   c
-                e
-            """
+            |   | d |   |   |   |
+            |   |   |   |   |   |
+            |   |   |   |   |   |
+            | a |   | b |   | c |
+            |   |   | e |   |   |
 
         And the ways
             | nodes | highway |
@@ -399,12 +397,10 @@ Feature: Simple Turns
 
     Scenario: Left Turn Assignment (6)
         Given the node map
-            """
-            d
-
-            a   b   c
-                e
-            """
+            | d |   |   |   |   |
+            |   |   |   |   |   |
+            | a |   | b |   | c |
+            |   |   | e |   |   |
 
         And the ways
             | nodes | highway |
@@ -418,11 +414,9 @@ Feature: Simple Turns
 
     Scenario: Left Turn Assignment (7)
         Given the node map
-            """
-            d
-            a   b   c
-                e
-            """
+            | d |   |   |   |   |
+            | a |   | b |   | c |
+            |   |   | e |   |   |
 
         And the ways
             | nodes | highway |
@@ -436,11 +430,9 @@ Feature: Simple Turns
 
     Scenario: Right Turn Assignment (1)
         Given the node map
-            """
-                e
-            a   b   c
-                    d
-            """
+            |   |   | e |   |   |
+            | a |   | b |   | c |
+            |   |   |   |   | d |
 
         And the ways
             | nodes | highway |
@@ -454,12 +446,10 @@ Feature: Simple Turns
 
     Scenario: Right Turn Assignment (2)
         Given the node map
-            """
-                e
-            a   b   c
-
-                    d
-            """
+            |   |   | e |   |   |
+            | a |   | b |   | c |
+            |   |   |   |   |   |
+            |   |   |   |   | d |
 
         And the ways
             | nodes | highway |
@@ -473,13 +463,11 @@ Feature: Simple Turns
 
     Scenario: Right Turn Assignment (3)
         Given the node map
-            """
-                e
-            a   b   c
-
-
-                  d
-            """
+            |   |   | e |   |   |
+            | a |   | b |   | c |
+            |   |   |   |   |   |
+            |   |   |   |   |   |
+            |   |   |   | d |   |
 
         And the ways
             | nodes | highway |
@@ -493,14 +481,12 @@ Feature: Simple Turns
 
     Scenario: Right Turn Assignment (4)
         Given the node map
-            """
-                e
-            a   b   c
-
-
-
-                d
-            """
+            |   |   | e |   |   |
+            | a |   | b |   | c |
+            |   |   |   |   |   |
+            |   |   |   |   |   |
+            |   |   |   |   |   |
+            |   |   | d |   |   |
 
         And the ways
             | nodes | highway |
@@ -514,13 +500,11 @@ Feature: Simple Turns
 
     Scenario: Right Turn Assignment (5)
         Given the node map
-            """
-                e
-            a   b   c
-
-
-              d
-            """
+            |   |   | e |   |   |
+            | a |   | b |   | c |
+            |   |   |   |   |   |
+            |   |   |   |   |   |
+            |   | d |   |   |   |
 
         And the ways
             | nodes | highway |
@@ -534,12 +518,10 @@ Feature: Simple Turns
 
     Scenario: Right Turn Assignment (6)
         Given the node map
-            """
-                e
-            a   b   c
-
-            d
-            """
+            |   |   | e |   |   |
+            | a |   | b |   | c |
+            |   |   |   |   |   |
+            | d |   |   |   |   |
 
 
         And the ways
@@ -554,11 +536,9 @@ Feature: Simple Turns
 
     Scenario: Right Turn Assignment (7)
         Given the node map
-            """
-                e
-            a   b   c
-            d
-            """
+            |   |   | e |   |   |
+            | a |   | b |   | c |
+            | d |   |   |   |   |
 
 
         And the ways
@@ -573,12 +553,10 @@ Feature: Simple Turns
 
    Scenario: Right Turn Assignment Two Turns
         Given the node map
-            """
-                f
-            a   b   c
-
-            d e
-            """
+            |   |   | f |   |   |
+            | a |   | b |   | c |
+            |   |   |   |   |   |
+            | d | e |   |   |   |
 
 
         And the ways
@@ -595,12 +573,10 @@ Feature: Simple Turns
 
    Scenario: Right Turn Assignment Two Turns (2)
         Given the node map
-            """
-                f   c
-            a   b
-                    e
-                  d
-            """
+            |   |   | f |   | c |
+            | a |   | b |   |   |
+            |   |   |   |   | e |
+            |   |   |   | d |   |
 
 
         And the ways
@@ -617,12 +593,10 @@ Feature: Simple Turns
 
    Scenario: Right Turn Assignment Two Turns (3)
         Given the node map
-            """
-                f
-            a   b   c
-                    e
-                  d
-            """
+            |   |   | f |   |   |
+            | a |   | b |   | c |
+            |   |   |   |   | e |
+            |   |   |   | d |   |
 
 
         And the ways
@@ -639,12 +613,10 @@ Feature: Simple Turns
 
    Scenario: Right Turn Assignment Two Turns (4)
         Given the node map
-            """
-                f
-            a   b   c
-
-                d   e
-            """
+            |   |   | f |   |   |
+            | a |   | b |   | c |
+            |   |   |   |   |   |
+            |   |   | d |   | e |
 
 
         And the ways
@@ -661,12 +633,10 @@ Feature: Simple Turns
 
    Scenario: Right Turn Assignment Three Turns
         Given the node map
-            """
-                g
-            a   b   c
-              d   f
-                e
-            """
+            |   |   | g |   |   |
+            | a |   | b |   | c |
+            |   | d |   | f |   |
+            |   |   | e |   |   |
 
         And the ways
             | nodes | highway |
@@ -684,13 +654,11 @@ Feature: Simple Turns
 
     Scenario: Slight Turn involving Oneways
         Given the node map
-            """
-                a
-
-                b   e
-            d
-                c
-            """
+            |   |   | a |   |   |
+            |   |   |   |   |   |
+            |   |   | b |   | e |
+            | d |   |   |   |   |
+            |   |   | c |   |   |
 
         And the ways
             | nodes | highway | oneway |
@@ -705,14 +673,12 @@ Feature: Simple Turns
 
     Scenario: Slight Turn involving Oneways
         Given the node map
-            """
-                  a
-
-
-                b   e
-            d
-                c
-            """
+            |   |   |   | a |   |
+            |   |   |   |   |   |
+            |   |   |   |   |   |
+            |   |   | b |   | e |
+            | d |   |   |   |   |
+            |   |   | c |   |   |
 
         And the ways
             | nodes | highway | oneway |
@@ -728,13 +694,11 @@ Feature: Simple Turns
 
     Scenario: Slight Turn involving Oneways - Name Change
         Given the node map
-            """
-                a
-
-                b   e
-            d
-                c
-            """
+            |   |   | a |   |   |
+            |   |   |   |   |   |
+            |   |   | b |   | e |
+            | d |   |   |   |   |
+            |   |   | c |   |   |
 
         And the ways
             | nodes | highway | oneway |
@@ -750,12 +714,10 @@ Feature: Simple Turns
 
      Scenario: Right Turn Assignment Three Conflicting Turns with invalid - 1
         Given the node map
-            """
-                g
-            a   b   c
-
-              d e f
-            """
+            |   |   | g |   |   |
+            | a |   | b |   | c |
+            |   |   |   |   |   |
+            |   | d | e | f |   |
 
         And the ways
             | nodes | highway | oneway |
@@ -772,34 +734,30 @@ Feature: Simple Turns
 
      Scenario: Right Turn Assignment Three Conflicting Turns with invalid - 2
         Given the node map
-            """
-                g
-            a   b   c
-
-              d e f
-            """
+            |   |   | g |   |   |
+            | a |   | b |   | c |
+            |   |   |   |   |   |
+            |   | d | e | f |   |
 
         And the ways
             | nodes | highway | oneway |
-            | abc   | primary | yes    |
-            | bd    | primary | yes    |
+            | abc   | primary | no     |
+            | db    | primary | no     |
             | eb    | primary | yes    |
-            | bf    | primary | yes    |
-            | bg    | primary | yes    |
+            | fb    | primary | no     |
+            | bg    | primary | no     |
 
         When I route I should get
             | waypoints | route     | turns                          |
-            | a,d       | abc,bd,bd | depart,turn sharp right,arrive |
-            | a,f       | abc,bf,bf | depart,turn right,arrive       |
+            | a,d       | abc,db,db | depart,turn sharp right,arrive |
+            | a,f       | abc,fb,fb | depart,turn right,arrive       |
 
     Scenario: Right Turn Assignment Three Conflicting Turns with invalid - 3
         Given the node map
-            """
-                g
-            a   b   c
-
-              d e f
-            """
+            |   |   | g |   |   |
+            | a |   | b |   | c |
+            |   |   |   |   |   |
+            |   | d | e | f |   |
 
         And the ways
             | nodes | highway | oneway |
@@ -816,12 +774,10 @@ Feature: Simple Turns
 
     Scenario: Conflicting Turns with well distinguished turn
         Given the node map
-            """
-            a     b     c
-
-            f           d
-                        e
-            """
+            | a |   |   | b |   |   | c |
+            |   |   |   |   |   |   |   |
+            | f |   |   |   |   |   | d |
+            |   |   |   |   |   |   | e |
 
         And the ways
             | nodes | highway |
@@ -838,12 +794,10 @@ Feature: Simple Turns
 
     Scenario: Conflicting Turns with well distinguished turn (back)
         Given the node map
-            """
-            a     b     c
-
-            d           f
-              e
-            """
+            | a |   |   | b |   |   | c |
+            |   |   |   |   |   |   |   |
+            | d |   |   |   |   |   | f |
+            |   | e |   |   |   |   |   |
 
         And the ways
             | nodes | highway |
@@ -860,13 +814,12 @@ Feature: Simple Turns
 
     Scenario: Turn Lane on Splitting up Road
         Given the node map
-            """
-            g - - - f -
-                         ' .
-                    . h - - e - - c - - d
-            a - - b _______/
-                  i
-            """
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+            | g |   |   |   | f |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   | h |   |   | e |   |   | c |   |   | d |
+            | a |   |   | b |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   | i |   |   |   |   |   |   |   |   |   |   |   |
 
         And the ways
             | nodes | highway        | oneway | name  |
@@ -889,14 +842,12 @@ Feature: Simple Turns
 
      Scenario: Go onto turning major road
         Given the node map
-            """
-                  c
-
-
-            a     b
-
-                  d
-            """
+            |   |   |   | c |
+            |   |   |   |   |
+            |   |   |   |   |
+            | a |   |   | b |
+            |   |   |   |   |
+            |   |   |   | d |
 
         And the ways
             | nodes | highway     | name |
@@ -911,14 +862,12 @@ Feature: Simple Turns
 
     Scenario: Channing Street
         Given the node map
-            """
-                g f
-
-            d   c b a
-
-
-                h e
-            """
+            |   |   | g | f |   |
+            |   |   |   |   |   |
+            | d |   | c | b | a |
+            |   |   |   |   |   |
+            |   |   |   |   |   |
+            |   |   | h | e |   |
 
         And the nodes
             | node | highway         |
@@ -941,13 +890,11 @@ Feature: Simple Turns
     # https://www.mapillary.com/app/?focus=map&lat=38.91815595&lng=-77.03880249&z=17&pKey=sCxepTOCTZD3OoBXuqGEOw
     # http://www.openstreetmap.org/way/6062557#map=19/38.91805/-77.03892
         Given the node map
-            """
-            y     x
-                c
-              d     b a
-
-            e
-            """
+            | y |   |   | x |   |   |
+            |   |   | c |   |   |   |
+            |   | d |   |   | b | a |
+            |   |   |   |   |   |   |
+            | e |   |   |   |   |   |
 
         And the ways
             | nodes | name                           | highway     | oneway |
@@ -962,17 +909,15 @@ Feature: Simple Turns
     # http://www.openstreetmap.org/node/182805179
     Scenario: Make Sharp Left at Traffic Signal
         Given the node map
-            """
-                  g
-
-                  f     y
-            i
-            j k a   b   x
-                  e   c
-                    d
-
-                  h
-            """
+            |   |   |   | g |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   | f |   |   | y |
+            | i |   |   |   |   |   |   |
+            | j | k | a |   | b |   | x |
+            |   |   |   | e |   | c |   |
+            |   |   |   |   | d |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   | h |   |   |   |
 
         And the nodes
             | node | highway         |
@@ -996,11 +941,9 @@ Feature: Simple Turns
     # https://www.openstreetmap.org/#map=20/52.51609/13.41080
     Scenario: Unnecessary Slight Left onto Stralauer Strasse
         Given the node map
-            """
-              e
-
-            a   b   c   d
-            """
+            |   | e |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            | a |   | b |   | c |   | d |
 
         And the ways
             | nodes | name          | highway   | oneway |
@@ -1016,11 +959,9 @@ Feature: Simple Turns
 
     Scenario: Unnecessary Slight Left onto Stralauer Strasse
         Given the node map
-            """
-              e
-
-            a   b   c   d
-            """
+            |   | e |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            | a |   | b |   | c |   | d |
 
         And the ways
             | nodes | name          | highway   | oneway |
@@ -1034,229 +975,92 @@ Feature: Simple Turns
             | a,d       | depart,new name straight,arrive    | Molkenmarkt,Stralauer Str,Stralauer Str |
             | e,d       | depart,new name slight left,arrive | Molkenmarkt,Stralauer Str,Stralauer Str |
 
-     # http://www.openstreetmap.org/#map=18/39.28158/-76.62291
-     @3002
-     Scenario: Obvious Index wigh very narrow turn to the right
+    # https://www.mapillary.com/app/?lat=52.466483333333336&lng=13.431908333333332&z=17&focus=photo&pKey=LWXnKqoGqUNLnG0lofiO0Q
+    # http://www.openstreetmap.org/#map=19/52.46750/13.43171
+    Scenario: Collapse Turn Instruction, Issue #2725
         Given the node map
-            """
-            a - b -.-.- - - c
-                       ' ' 'd
-            """
+            |   | f |   |
+            |   | e |   |
+            |   |   |   |
+            |   |   |   |
+            | g |   | d |
+            |   |   |   |
+            |   |   |   |
+            | h |   | c |
+            |   |   |   |
+            |   |   |   |
+            |   | b |   |
+            |   | a |   |
+            |   |   |   |
+            |   |   |   |
+            | r | x | s |
+            |   | y |   |
 
         And the ways
-            | nodes | highway      | name |
-            | abc   | primary      | road |
-            | bd    | primary_link |      |
+            | nodes | name           | highway   | oneway |
+            | ab    | Hermannstr     | secondary |        |
+            | bc    | Hermannstr     | secondary | yes    |
+            | cd    | Hermannbruecke | secondary | yes    |
+            | de    | Hermannstr     | secondary | yes    |
+            | ef    | Hermannstr     | secondary |        |
+            | eg    | Hermannstr     | secondary | yes    |
+            | gh    | Hermannbruecke | secondary | yes    |
+            | hb    | Hermannstr     | secondary | yes    |
+            | xa    | Hermannstr     | secondary |        |
+            | yx    | Hermannstr     | secondary |        |
+            | rxs   | Silbersteinstr | tertiary  |        |
+
+        And the nodes
+            | node | highway         |
+            | x    | traffic_signals |
 
         When I route I should get
-            | waypoints | turns                           | route     |
-            | a,c       | depart,arrive                   | road,road |
-            | a,d       | depart,turn slight right,arrive | road,,    |
+            | waypoints | turns         | route                 |
+            | a,f       | depart,arrive | Hermannstr,Hermannstr |
+            | f,a       | depart,arrive | Hermannstr,Hermannstr |
+            | y,f       | depart,arrive | Hermannstr,Hermannstr |
+            | f,y       | depart,arrive | Hermannstr,Hermannstr |
 
-     # http://www.openstreetmap.org/#map=18/39.28158/-76.62291
-     @3002
-     Scenario: Obvious Index wigh very narrow turn to the right
+    Scenario: Collapse Turn Instruction, Issue #2725 - not trivially mergable at e
+    # https://www.mapillary.com/app/?lat=52.466483333333336&lng=13.431908333333332&z=17&focus=photo&pKey=LWXnKqoGqUNLnG0lofiO0Q
+    # http://www.openstreetmap.org/#map=19/52.46750/13.43171
         Given the node map
-            """
-            a - b - . -.- - c
-                    e - -'-'d-f
-            """
+            |   | f |   |
+            |   | e |   |
+            | g |   | d |
+            |   |   |   |
+            |   |   |   |
+            | h |   | c |
+            |   |   |   |
+            |   |   |   |
+            |   | b |   |
+            |   | a |   |
+            |   |   |   |
+            |   |   |   |
+            | r | x | s |
+            |   | y |   |
 
         And the ways
-            | nodes | highway      | name |
-            | abc   | primary      | road |
-            | bd    | primary_link |      |
-            | edf   | primary_link |      |
+            | nodes | name           | highway   | oneway |
+            | ab    | Hermannstr     | secondary |        |
+            | bc    | Hermannstr     | secondary | yes    |
+            | cd    | Hermannbruecke | secondary | yes    |
+            | de    | Hermannstr     | secondary | yes    |
+            | ef    | Hermannstr     | secondary |        |
+            | eg    | Hermannstr     | secondary | yes    |
+            | gh    | Hermannbruecke | secondary | yes    |
+            | hb    | Hermannstr     | secondary | yes    |
+            | xa    | Hermannstr     | secondary |        |
+            | yx    | Hermannstr     | secondary |        |
+            | rxs   | Silbersteinstr | tertiary  |        |
+
+        And the nodes
+            | node | highway         |
+            | x    | traffic_signals |
 
         When I route I should get
-            | waypoints | turns                           | route     |
-            | a,c       | depart,arrive                   | road,road |
-            | a,f       | depart,turn slight right,arrive | road,,    |
-
-    # http://www.openstreetmap.org/#map=18/39.28158/-76.62291
-    @3002
-    Scenario: Obvious Index wigh very narrow turn to the left
-        Given the node map
-            """
-                       . . .d
-            a - b -'-'- - - c
-            """
-
-        And the ways
-            | nodes | highway      | name |
-            | abc   | primary      | road |
-            | bd    | primary_link |      |
-
-        When I route I should get
-            | waypoints | turns                          | route     |
-            | a,c       | depart,arrive                  | road,road |
-            | a,d       | depart,turn slight left,arrive | road,,    |
-
-     # http://www.openstreetmap.org/#map=18/39.28158/-76.62291
-     @3002
-     Scenario: Obvious Index wigh very narrow turn to the left
-        Given the node map
-            """
-                    e - -.- d-f
-            a - b - ' - - - c
-            """
-
-        And the ways
-            | nodes | highway      | name |
-            | abc   | primary      | road |
-            | bd    | primary_link |      |
-            | edf   | primary_link |      |
-
-        When I route I should get
-            | waypoints | turns                          | route     |
-            | a,f       | depart,turn slight left,arrive | road,,    |
-            | a,c       | depart,arrive                  | road,road |
-
-    Scenario: Non-Obvious Turn Next to service road
-        Given the node map
-            """
-                                c
-                               .
-                               .
-                               .
-                               .
-                               .
-                             .
-                             .
-                             .
-                             .
-                             .
-            a - - - - - - - b - - - d
-                            |
-                            |
-                            |
-                            |
-                            |
-                            |
-                            |
-                            e
-            """
-
-        And the ways
-            | nodes  | highway | name    |
-            | ab     | primary | in      |
-            | bc     | primary | through |
-            | be     | primary | through |
-            | bd     | service |         |
-
-       When I route I should get
-            | waypoints | route              | turns                   |
-            | a,c       | in,through,through | depart,turn left,arrive |
-
-    # http://www.openstreetmap.org/#map=19/52.51556/13.41832
-    Scenario: No Slight Right over Jannowitzbruecke
-        Given the node map
-        """
-                  l   m
-                  |   |
-            f._   |   |
-                ' g---h.
-                  |   |  '.
-                  |   |     i
-            a_    |   |
-               ''.b---c
-                  |   |'d._
-                  |   |    'e
-                  j   k
-        """
-
-        And the ways
-            | nodes | name          | highway   | oneway |
-            | ab    | Stralauer Str | tertiary  | yes    |
-            | bcde  | Holzmarktstr  | secondary | yes    |
-            | gf    | Stralauer Str | tertiary  | yes    |
-            | ihg   | Holzmarktstr  | secondary | yes    |
-            | lgbj  | Alexanderstr  | primary   | yes    |
-            | kchm  | Alexanderstr  | primary   | yes    |
-
-        When I route I should get
-            | waypoints | turns                            | route                                   |
-            | a,e       | depart,new name straight,arrive  | Stralauer Str,Holzmarktstr,Holzmarktstr |
-
-    Scenario: No Slight Right over Jannowitzbruecke -- less extreme
-        Given the node map
-         """
-                  l   m
-                  |   |
-            f_    |   |
-               ' 'g   h_
-                  |   |  '\_
-                  |   |     i
-            a_    |   |
-               '_ b   c_
-                  |   |  \_
-                  |   |     e
-                  j   k
-         """
-
-        And the ways
-            | nodes | name          | highway   | oneway |
-            | ab    | Stralauer Str | tertiary  | yes    |
-            | bce   | Holzmarktstr  | secondary | yes    |
-            | gf    | Stralauer Str | tertiary  | yes    |
-            | ihg   | Holzmarktstr  | secondary | yes    |
-            | lgbj  | Alexanderstr  | primary   | yes    |
-            | kchm  | Alexanderstr  | primary   | yes    |
-
-        When I route I should get
-            | waypoints | turns                           | route                                   |
-            | a,e       | depart,new name straight,arrive | Stralauer Str,Holzmarktstr,Holzmarktstr |
-
-    Scenario: No Slight Right over Jannowitzbruecke
-        Given the node map
-         """
-                  l   m
-                  |   |
-                  |   |
-              _ _ g   h_
-            f'    |   |  '_
-                  |   |     i
-                  |   |
-               _ _b   c__
-            a'    |   |    'd
-                  |   |
-                  j   k
-         """
-
-        And the ways
-            | nodes | name          | highway   | oneway |
-            | ab    | Stralauer Str | tertiary  | yes    |
-            | bcd   | Holzmarktstr  | secondary | yes    |
-            | gf    | Stralauer Str | tertiary  | yes    |
-            | ihg   | Holzmarktstr  | secondary | yes    |
-            | lgbj  | Alexanderstr  | primary   | yes    |
-            | kchm  | Alexanderstr  | primary   | yes    |
-
-        When I route I should get
-            | waypoints | turns         | route                      |
-            | a,d       | depart,arrive | Stralauer Str,Holzmarktstr |
-
-    #http://www.openstreetmap.org/#map=19/49.48761/8.47618
-    @todo @3365
-    Scenario: Turning Road - Segregated
-        Given the node map
-            """
-                    f   d
-                    |   |
-            a - - - b - c
-                    |   |
-                    |   |
-                    g   e
-            """
-        And the ways
-            | nodes | name   | ref  | oneway |
-            | ab    | Goethe | B 38 | yes    |
-            | bc    |        | B 38 | yes    |
-            | ec    | Fried  |      | yes    |
-            | cd    | Fried  | B 38 | yes    |
-            | fbg   | Fried  |      | yes    |
-
-        When I route I should get
-            | waypoints | route              | turns                       |
-            | a,d       | Goethe,Fried,Fried | depart,continue left,arrive |
-            | a,g       | Goethe,Fried,Fried | depart,turn right,arrive    |
+            | waypoints | turns         | route                 |
+            | a,f       | depart,arrive | Hermannstr,Hermannstr |
+            | f,a       | depart,arrive | Hermannstr,Hermannstr |
+            | y,f       | depart,arrive | Hermannstr,Hermannstr |
+            | f,y       | depart,arrive | Hermannstr,Hermannstr |

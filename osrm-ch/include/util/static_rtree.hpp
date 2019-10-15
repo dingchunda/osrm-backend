@@ -1,7 +1,6 @@
 #ifndef STATIC_RTREE_HPP
 #define STATIC_RTREE_HPP
 
-#include "storage/io.hpp"
 #include "util/bearing.hpp"
 #include "util/coordinate_calculation.hpp"
 #include "util/deallocating_vector.hpp"
@@ -32,6 +31,10 @@
 #include <string>
 #include <vector>
 
+
+#include "../../src/protobuf/rtree.pb.h"
+#include "../../src/protobuf/edge-based-graph.pb.h"
+
 // An extended alignment is implementation-defined, so use compiler attributes
 // until alignas(LEAF_PAGE_SIZE) is compiler-independent.
 #if defined(_MSC_VER)
@@ -42,12 +45,33 @@
 #define ALIGNED(x)
 #endif
 
+static int _debug = 0;
+
+template <class T, class S, class C>
+S& Container(std::priority_queue<T, S, C>& q) {
+    struct HackedQueue : private std::priority_queue<T, S, C> {
+        static S& Container(std::priority_queue<T, S, C>& q) {
+            return q.*&HackedQueue::c;
+        }
+    };
+    return HackedQueue::Container(q);
+}
+
 namespace osrm
 {
 namespace util
 {
 
-// Static RTree for serving nearest neighbour queries
+    void printRectangle(const osrm::util::RectangleInt2D &rectangle) {
+        std::cout << "    - mbr: "
+                  << "top: " << int32_t(rectangle.max_lat) << ", "
+                  << "bottom: " << int32_t(rectangle.min_lat) << ", "
+                  << "left: " << int32_t(rectangle.min_lon) << ", "
+                  << "right: " << int32_t(rectangle.max_lon) << std::endl;
+    }
+
+
+    // Static RTree for serving nearest neighbour queries
 // All coordinates are pojected first to Web Mercator before the bounding boxes
 // are computed, this means the internal distance metric doesn not represent meters!
 template <class EdgeDataT,
@@ -171,6 +195,8 @@ class StaticRTree
                          const std::vector<CoordinateT> &coordinate_list)
         : m_coordinate_list(coordinate_list)
     {
+        util::SimpleLogger().Write(logWARNING) << "leaf node size: " << LEAF_NODE_SIZE;
+
         const uint64_t element_count = input_data_vector.size();
         std::vector<WrappedInputElement> input_wrapper_vector(element_count);
 
@@ -198,12 +224,14 @@ class StaticRTree
                         COORDINATE_PRECISION *
                         web_mercator::latToY(toFloating(current_centroid.lat)))};
 
-                    current_wrapper.m_hilbert_value = GetHilbertCode(current_centroid);
+                    current_wrapper.m_hilbert_value = hilbertCode(current_centroid);
                 }
             });
 
         // open leaf file
         boost::filesystem::ofstream leaf_node_file(leaf_node_filename, std::ios::binary);
+
+        pbrtree::Leaves pb_leaves;
 
         // sort the hilbert-value representatives
         tbb::parallel_sort(input_wrapper_vector.begin(), input_wrapper_vector.end());
@@ -211,6 +239,8 @@ class StaticRTree
 
         // pack M elements into leaf node, write to leaf file and add child index to the parent node
         uint64_t wrapped_element_index = 0;
+        uint leaf_count = 0;
+
         for (std::uint32_t node_index = 0; wrapped_element_index < element_count; ++node_index)
         {
             TreeNode current_node;
@@ -219,6 +249,11 @@ class StaticRTree
                  ++leaf_index)
             {
                 LeafNode current_leaf;
+
+                leaf_count++;
+
+                pbrtree::LeafNode *pb_leaf = pb_leaves.add_items();
+
                 Rectangle &rectangle = current_leaf.minimum_bounding_rectangle;
                 for (std::uint32_t object_index = 0;
                      object_index < LEAF_NODE_SIZE && wrapped_element_index < element_count;
@@ -230,6 +265,22 @@ class StaticRTree
 
                     current_leaf.object_count += 1;
                     current_leaf.objects[object_index] = object;
+
+                    pb_leaf->set_itemcount(current_leaf.object_count);
+                    pbebg::EdgeBasedNode *pb_ebn = pb_leaf->add_items();
+                    extractor::EdgeBasedNode _n = (extractor::EdgeBasedNode)(object);
+                    pb_ebn->set_u(_n.u);
+                    pb_ebn->set_v(_n.v);
+                    pb_ebn->set_forward_enabled(_n.forward_segment_id.enabled);
+                    pb_ebn->set_reverse_enabled(_n.reverse_segment_id.enabled);
+                    pb_ebn->set_forward_segment_id(_n.forward_segment_id.id);
+                    pb_ebn->set_reverse_segment_id(_n.reverse_segment_id.id);
+                    pb_ebn->set_forward_packed_geometry_id(_n.forward_packed_geometry_id);
+                    pb_ebn->set_reverse_packed_geometry_id(_n.reverse_packed_geometry_id);
+                    pb_ebn->set_fwd_segment_position(_n.fwd_segment_position);
+                    pb_ebn->set_name_id(_n.name_id);
+                    pb_ebn->set_component_id(_n.component.id);
+                    pb_ebn->set_is_tiny(_n.component.is_tiny);
 
                     Coordinate projected_u{
                         web_mercator::fromWGS84(Coordinate{m_coordinate_list[object.u]})};
@@ -254,12 +305,19 @@ class StaticRTree
                     BOOST_ASSERT(rectangle.IsValid());
                 }
 
+                pbrtree::Rectangle *pb_rect = pb_leaf->mutable_minimum_bounding_rectangle();
+                pb_rect->set_max_lat(int32_t(current_leaf.minimum_bounding_rectangle.max_lat));
+                pb_rect->set_max_lon(int32_t(current_leaf.minimum_bounding_rectangle.max_lon));
+                pb_rect->set_min_lat(int32_t(current_leaf.minimum_bounding_rectangle.min_lat));
+                pb_rect->set_min_lon(int32_t(current_leaf.minimum_bounding_rectangle.min_lon));
+
                 // append the leaf node to the current tree node
                 current_node.child_count += 1;
                 current_node.children[leaf_index] =
                     TreeIndex{node_index * BRANCHING_FACTOR + leaf_index, true};
                 current_node.minimum_bounding_rectangle.MergeBoundingBoxes(
                     current_leaf.minimum_bounding_rectangle);
+
 
                 // write leaf_node to leaf node file
                 leaf_node_file.write((char *)&current_leaf, sizeof(current_leaf));
@@ -269,6 +327,14 @@ class StaticRTree
         }
         leaf_node_file.flush();
         leaf_node_file.close();
+
+        util::SimpleLogger().Write(logWARNING) << "rtree input vector count: " << input_wrapper_vector.size() << "\n"
+                                               << "      leaf node count: "  << leaf_count << "\n"
+                                               << "      tree node count: "  << tree_nodes_in_level.size();
+
+
+        std::fstream pb_leaves_out("1.rtree.leaves.pb", std::ios::out | std::ios::binary);
+        pb_leaves.SerializeToOstream(&pb_leaves_out);
 
         std::uint32_t processing_level = 0;
         while (1 < tree_nodes_in_level.size())
@@ -308,6 +374,14 @@ class StaticRTree
         // last remaining entry is the root node, store it
         m_search_tree.emplace_back(tree_nodes_in_level[0]);
 
+        util::SimpleLogger().Write(logWARNING) << "rtree height: " << processing_level;
+        const TreeNode &_root = tree_nodes_in_level[0];
+        printRectangle(_root.minimum_bounding_rectangle);
+        for (const TreeIndex _idx : _root.children) {
+            const TreeNode &_child = m_search_tree[_idx.index];
+            printRectangle(_child.minimum_bounding_rectangle);
+        }
+
         // reverse and renumber tree to have root at index 0
         std::reverse(m_search_tree.begin(), m_search_tree.end());
 
@@ -333,9 +407,9 @@ class StaticRTree
         // open tree file
         boost::filesystem::ofstream tree_node_file(tree_node_filename, std::ios::binary);
 
-        std::uint64_t size_of_tree = m_search_tree.size();
+        std::uint32_t size_of_tree = m_search_tree.size();
         BOOST_ASSERT_MSG(0 < size_of_tree, "tree empty");
-        tree_node_file.write((char *)&size_of_tree, sizeof(size_of_tree));
+        tree_node_file.write((char *)&size_of_tree, sizeof(std::uint32_t));
         tree_node_file.write((char *)&m_search_tree[0], sizeof(TreeNode) * size_of_tree);
 
         MapLeafNodesFile(leaf_node_filename);
@@ -346,13 +420,25 @@ class StaticRTree
                          const CoordinateListT &coordinate_list)
         : m_coordinate_list(coordinate_list)
     {
-        storage::io::FileReader tree_node_file(node_file,
-                                               storage::io::FileReader::HasNoFingerprint);
+        // open tree node file and load into RAM.
+        if (!boost::filesystem::exists(node_file))
+        {
+            throw exception("ram index file does not exist");
+        }
+        if (boost::filesystem::file_size(node_file) == 0)
+        {
+            throw exception("ram index file is empty");
+        }
+        boost::filesystem::ifstream tree_node_file(node_file, std::ios::binary);
 
-        const auto tree_size = tree_node_file.ReadElementCount64();
+        std::uint32_t tree_size = 0;
+        tree_node_file.read((char *)&tree_size, sizeof(std::uint32_t));
 
         m_search_tree.resize(tree_size);
-        tree_node_file.ReadInto(&m_search_tree[0], tree_size);
+        if (tree_size > 0)
+        {
+            tree_node_file.read((char *)&m_search_tree[0], sizeof(TreeNode) * tree_size);
+        }
 
         MapLeafNodesFile(leaf_file);
     }
@@ -373,15 +459,12 @@ class StaticRTree
         {
             m_leaves_region.open(leaf_file);
             std::size_t num_leaves = m_leaves_region.size() / sizeof(LeafNode);
-            auto data_ptr = m_leaves_region.data();
-            BOOST_ASSERT(reinterpret_cast<uintptr_t>(data_ptr) % alignof(LeafNode) == 0);
-            m_leaves.reset(reinterpret_cast<const LeafNode *>(data_ptr), num_leaves);
+            m_leaves.reset(reinterpret_cast<const LeafNode *>(m_leaves_region.data()), num_leaves);
         }
         catch (const std::exception &exc)
         {
             throw exception(boost::str(boost::format("Leaf file %1% mapping failed: %2%") %
-                                       leaf_file % exc.what()) +
-                            SOURCE_REF);
+                                       leaf_file % exc.what()));
         }
     }
 
@@ -476,8 +559,18 @@ class StaticRTree
         auto projected_coordinate = web_mercator::fromWGS84(input_coordinate);
         Coordinate fixed_projected_coordinate{projected_coordinate};
 
+        std::cout << "[input] lat: "
+                  << input_coordinate.lat
+                  << ", lng: " << input_coordinate.lon << std::endl;
+
+        std::cout << "[projected] Y: "
+                  << fixed_projected_coordinate.lat
+                  << ", X: " << fixed_projected_coordinate.lon << std::endl;
+
         // initialize queue with root element
         std::priority_queue<QueryCandidate> traversal_queue;
+        std::vector<QueryCandidate> &_hack = Container(traversal_queue);
+
         traversal_queue.push(QueryCandidate{0, TreeIndex{}});
 
         while (!traversal_queue.empty())
@@ -485,9 +578,22 @@ class StaticRTree
             QueryCandidate current_query_node = traversal_queue.top();
             traversal_queue.pop();
 
+//            std::cout << "[rtree] squared min distance: " << current_query_node.squared_min_dist << std::endl;
+
             const TreeIndex &current_tree_index = current_query_node.tree_index;
             if (!current_query_node.is_segment())
             { // current object is a tree node
+
+
+//                const auto &rectangle =
+//                        current_tree_index.is_leaf ? m_leaves[current_tree_index.index].minimum_bounding_rectangle
+//                                         : m_search_tree[current_tree_index.index].minimum_bounding_rectangle;
+//                printRectangle(rectangle);
+//            std::cout << "    - projected nearest: "
+//                      << int32_t(current_query_node.fixed_projected_coordinate.lat) << " "
+//                      << int32_t(current_query_node.fixed_projected_coordinate.lon) << std::endl;
+//            std::cout << "    - distance: " << current_query_node.squared_min_dist << std::endl;
+
                 if (current_tree_index.is_leaf)
                 {
                     ExploreLeafNode(current_tree_index,
@@ -503,10 +609,64 @@ class StaticRTree
             }
             else
             { // current candidate is an actual road segment
+                printf(" ---- heap size: %d\n", traversal_queue.size());
+
+//                printf("============================================================\n");
+//                for (int i = 0; i < _hack.size(); i++) {
+//                    QueryCandidate &_c = _hack.at(i);
+//                    if (_c.is_segment()) {
+//                        auto _edge = m_leaves[_c.tree_index.index].objects[_c.segment_index];
+//                        extractor::EdgeBasedNode _e = extractor::EdgeBasedNode(_edge);
+//                        printf("%4d : %16d + %u - %u (%u %u)\n", i, _c.squared_min_dist, _e.u, _e.v, _e.forward_segment_id.id, _e.reverse_segment_id.id);
+//                    } else {
+//                        printf("%4d : %16d -\n", i, _c.squared_min_dist);
+//                    }
+//                }
+//                printf("============================================================\n");
+
+
                 auto edge_data =
                     m_leaves[current_tree_index.index].objects[current_query_node.segment_index];
                 const auto &current_candidate =
                     CandidateSegment{current_query_node.fixed_projected_coordinate, edge_data};
+
+                extractor::EdgeBasedNode _e = extractor::EdgeBasedNode(edge_data);
+                Coordinate _cu = m_coordinate_list[_e.u];
+                Coordinate _cv = m_coordinate_list[_e.v];
+                FloatCoordinate _proj_u = web_mercator::fromWGS84(_cu);
+                FloatCoordinate _proj_v = web_mercator::fromWGS84(_cv);
+                Coordinate _fixed_proj_u = web_mercator::fromWGS84(_cu);
+                Coordinate _fixed_proj_v = web_mercator::fromWGS84(_cv);
+                FloatCoordinate _wgs84 = util::web_mercator::toWGS84(current_query_node.fixed_projected_coordinate);
+
+                double _ratio_float, _ratio_fixed;
+                FloatCoordinate _proj_nearest_float;
+                Coordinate _proj_nearest_fixed;
+                std::tie(_ratio_float, _proj_nearest_float) = util::coordinate_calculation::projectPointOnSegment(_proj_u,_proj_v,projected_coordinate);
+                std::tie(_ratio_fixed, _proj_nearest_fixed) = util::coordinate_calculation::projectPointOnSegment(_fixed_proj_u,_fixed_proj_v,fixed_projected_coordinate);
+
+                std::string _arrow;
+                if (_e.forward_segment_id.enabled && _e.reverse_segment_id.enabled) {
+                    _arrow = "<->";
+                } else if (_e.forward_segment_id.enabled) {
+                    _arrow = "<--";
+                } else if (_e.reverse_segment_id.enabled) {
+                    _arrow = "-->";
+                } else {
+                    _arrow = "???";
+                }
+
+                printf("[candidate]\n");
+                printf("  - distance: %llu\n", current_query_node.squared_min_dist);
+                printf("  - edge: %u %s %u (%u %u)\n", _e.u ,_arrow.c_str(), _e.v, _e.forward_segment_id.id, _e.reverse_segment_id.id);
+                printf("  - latlng: (lat: %i, lng: %i) %s (lat: %i, lng: %i)\n", int32_t(_cu.lat), _cu.lon, _arrow.c_str(), _cv.lat , _cv.lon);
+                printf("  - mercator(float): U(Y: %.10f, X: %.10f)  V(Y: %.10f, X: %.10f)\n", double(_proj_u.lat), double(_proj_u.lon), double(_proj_v.lat), double(_proj_v.lon));
+                printf("  - mercator(fixed): U(Y: %i, X: %i)  V(Y: %i, X: %i)\n", _fixed_proj_u.lat, _fixed_proj_u.lon, _fixed_proj_v.lat, _fixed_proj_v.lon);
+                printf("  - project nearest(float): (Y: %.10f, X: %.10f)\n", double(_proj_nearest_float.lat), double(_proj_nearest_float.lon));
+                printf("  - project nearest(fixed): (Y: %i, X: %i)\n", _proj_nearest_fixed.lat, _proj_nearest_fixed.lon);
+                printf("  - ratio(float): %.10f\n", _ratio_float);
+                printf("  - ratio(fixed): %.10f\n", _ratio_fixed);
+
 
                 // to allow returns of no-results if too restrictive filtering, this needs to be
                 // done here even though performance would indicate that we want to stop after
@@ -539,11 +699,16 @@ class StaticRTree
                          const FloatCoordinate &projected_input_coordinate,
                          QueueT &traversal_queue) const
     {
+
         const LeafNode &current_leaf_node = m_leaves[leaf_id.index];
+
+        printf(" ====== current_leaf_node.object_count: %d\n", current_leaf_node.object_count);
 
         // current object represents a block on disk
         for (const auto i : irange(0u, current_leaf_node.object_count))
         {
+            _debug++;
+
             const auto &current_edge = current_leaf_node.objects[i];
             const auto projected_u = web_mercator::fromWGS84(m_coordinate_list[current_edge.u]);
             const auto projected_v = web_mercator::fromWGS84(m_coordinate_list[current_edge.v]);
@@ -555,6 +720,17 @@ class StaticRTree
 
             const auto squared_distance = coordinate_calculation::squaredEuclideanDistance(
                 projected_input_coordinate_fixed, projected_nearest);
+
+//            extractor::EdgeBasedNode _data = extractor::EdgeBasedNode(current_edge);
+//            if (squared_distance == 3787537) {
+//                printf(" ====== 3787537 (%d): %d - %d (%d - %d)\n", _debug, _data.u, _data.v, _data.forward_segment_id.id, _data.reverse_segment_id.id);
+//            }
+
+//            printRectangle(current_leaf_node.minimum_bounding_rectangle);
+//            std::cout << "    - projected nearest: " << double(projected_nearest.lat) << " "
+//                      << double(projected_nearest.lon) << std::endl;
+//            std::cout << "    - distance: " << squared_distance << std::endl;
+
             // distance must be non-negative
             BOOST_ASSERT(0. <= squared_distance);
             traversal_queue.push(
@@ -567,15 +743,22 @@ class StaticRTree
                          const Coordinate &fixed_projected_input_coordinate,
                          QueueT &traversal_queue) const
     {
+
         const TreeNode &parent = m_search_tree[parent_id.index];
+
+        printf(" ====== ExploreTreeNode: %d\n", parent.child_count);
+
         for (std::uint32_t i = 0; i < parent.child_count; ++i)
         {
+            _debug++;
+
             const TreeIndex child_id = parent.children[i];
             const auto &child_rectangle =
                 child_id.is_leaf ? m_leaves[child_id.index].minimum_bounding_rectangle
                                  : m_search_tree[child_id.index].minimum_bounding_rectangle;
             const auto squared_lower_bound_to_element =
                 child_rectangle.GetMinSquaredDist(fixed_projected_input_coordinate);
+
             traversal_queue.push(QueryCandidate{squared_lower_bound_to_element, child_id});
         }
     }

@@ -1,5 +1,5 @@
 
-#include <mapbox/variant.hpp>
+#include "variant.hpp"
 
 #define NAME_EXT " i-d"
 using variant_type = mapbox::util::variant<int, double>;

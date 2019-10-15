@@ -28,8 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef TRAVEL_MODE_HPP
 #define TRAVEL_MODE_HPP
 
-#include <cstdint>
-
 namespace osrm
 {
 namespace extractor
@@ -37,7 +35,7 @@ namespace extractor
 
 // This is a char instead of a typed enum, so that we can
 // pack it into e.g. a "TravelMode mode : 4" packed bitfield
-using TravelMode = std::uint8_t;
+using TravelMode = unsigned char;
 }
 }
 

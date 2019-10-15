@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -35,6 +35,7 @@ DEALINGS IN THE SOFTWARE.
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstdio>
 #include <iterator>
 #include <string>
@@ -43,7 +44,7 @@ namespace osmium {
 
     namespace util {
 
-        constexpr const int max_double_length = 20; // should fit any double
+        constexpr int max_double_length = 20; // should fit any double
 
         /**
          * Write double to iterator, removing superfluous '0' characters at
@@ -67,10 +68,10 @@ namespace osmium {
 #endif
             assert(len > 0 && len < max_double_length);
 
-            while (buffer[len - 1] == '0') {
+            while (buffer[len-1] == '0') {
                 --len;
             }
-            if (buffer[len - 1] == '.') {
+            if (buffer[len-1] == '.') {
                 --len;
             }
 

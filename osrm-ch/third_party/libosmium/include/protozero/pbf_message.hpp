@@ -13,7 +13,7 @@ documentation.
 /**
  * @file pbf_message.hpp
  *
- * @brief Contains the pbf_message template class.
+ * @brief Contains the pbf_message class.
  */
 
 #include <type_traits>
@@ -75,19 +75,19 @@ public:
         pbf_reader(std::forward<Args>(args)...) {
     }
 
-    bool next() {
+    inline bool next() {
         return pbf_reader::next();
     }
 
-    bool next(T next_tag) {
-        return pbf_reader::next(pbf_tag_type(next_tag));
+    inline bool next(T tag) {
+        return pbf_reader::next(pbf_tag_type(tag));
     }
 
-    T tag() const noexcept {
+    inline T tag() const noexcept {
         return T(pbf_reader::tag());
     }
 
-}; // class pbf_message
+};
 
 } // end namespace protozero
 

@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -33,11 +33,11 @@ DEALINGS IN THE SOFTWARE.
 
 */
 
-#include <ctime>
+#include <time.h>
+
 #include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <string>
 
 namespace osmium {
 
@@ -75,9 +75,9 @@ namespace osmium {
              */
             void start_line() {
                 if (m_newline) {
-                    const time_t elapsed = runtime();
+                    time_t elapsed = runtime();
 
-                    const char old_fill = std::cerr.fill();
+                    char old_fill = std::cerr.fill();
                     std::cerr << '[' << std::setw(2) << (elapsed / 60) << ':' << std::setw(2) << std::setfill('0') << (elapsed % 60) << "] ";
                     std::cerr.fill(old_fill);
 

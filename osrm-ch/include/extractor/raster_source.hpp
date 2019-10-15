@@ -10,7 +10,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_int.hpp>
-#include <storage/io.hpp>
 
 #include <iterator>
 #include <unordered_map>
@@ -44,14 +43,20 @@ class RasterGrid
         ydim = _ydim;
         _data.reserve(ydim * xdim);
 
-        storage::io::FileReader file_reader(filepath, storage::io::FileReader::HasNoFingerprint);
+        boost::filesystem::ifstream stream(filepath, std::ios::binary);
+        if (!stream)
+        {
+            throw util::exception("Unable to open raster file.");
+        }
 
+        stream.seekg(0, std::ios_base::end);
         std::string buffer;
-        buffer.resize(file_reader.Size());
+        buffer.resize(static_cast<std::size_t>(stream.tellg()));
+
+        stream.seekg(0, std::ios_base::beg);
 
         BOOST_ASSERT(buffer.size() > 1);
-
-        file_reader.ReadInto(&buffer[0], buffer.size());
+        stream.read(&buffer[0], static_cast<std::streamsize>(buffer.size()));
 
         boost::algorithm::trim(buffer);
 
@@ -66,14 +71,13 @@ class RasterGrid
         }
         catch (std::exception const &ex)
         {
-            throw util::exception("Failed to read from raster source " + filepath.string() + ": " +
-                                  ex.what() + SOURCE_REF);
+            throw util::exception(
+                std::string("Failed to read from raster source with exception: ") + ex.what());
         }
 
         if (!r || itr != end)
         {
-            throw util::exception("Failed to parse raster source: " + filepath.string() +
-                                  SOURCE_REF);
+            throw util::exception("Failed to parse raster source correctly.");
         }
     }
 

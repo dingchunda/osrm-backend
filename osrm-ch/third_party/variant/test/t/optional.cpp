@@ -1,7 +1,7 @@
 
 #include "catch.hpp"
 
-#include <mapbox/optional.hpp>
+#include "optional.hpp"
 
 struct dummy
 {

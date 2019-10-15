@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -33,7 +33,6 @@ DEALINGS IN THE SOFTWARE.
 
 */
 
-#include <cstddef>
 #include <initializer_list>
 #include <map>
 #include <string>
@@ -108,7 +107,7 @@ namespace osmium {
              * be set to "true".
              */
             void set(std::string data) {
-                const size_t pos = data.find_first_of('=');
+                size_t pos = data.find_first_of('=');
                 if (pos == std::string::npos) {
                     m_options[data] = "true";
                 } else {
@@ -123,7 +122,7 @@ namespace osmium {
              * empty string) is returned.
              */
             std::string get(const std::string& key, const std::string& default_value="") const noexcept {
-                const auto it = m_options.find(key);
+                auto it = m_options.find(key);
                 if (it == m_options.end()) {
                     return default_value;
                 }
@@ -135,7 +134,7 @@ namespace osmium {
              * Will return false if the value is unset.
              */
             bool is_true(const std::string& key) const noexcept {
-                const std::string value = get(key);
+                std::string value = get(key);
                 return (value == "true" || value == "yes");
             }
 
@@ -144,7 +143,7 @@ namespace osmium {
              * Will return true if the value is unset.
              */
             bool is_not_false(const std::string& key) const noexcept {
-                const std::string value = get(key);
+                std::string value = get(key);
                 return !(value == "false" || value == "no");
             }
 

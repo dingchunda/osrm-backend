@@ -7,11 +7,9 @@ Feature: Turn Penalties
     Scenario: Bike - turns should incur a delay that depend on the angle
 
         Given the node map
-            """
-            c d e
-            b j f
-            a s g
-            """
+            | c | d | e |
+            | b | j | f |
+            | a | s | g |
 
         And the ways
             | nodes |

@@ -113,10 +113,6 @@ class Node {
     addTag (k, v) {
         this.tags[k] = v;
     }
-
-    setID (id ) {
-        this.id = id;
-    }
 }
 
 class Way {

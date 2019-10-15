@@ -10,34 +10,28 @@
 
 #include <iomanip>
 #include <iostream>
-#include <sstream>
-#include <string>
 #include <vector>
 
 namespace osrm
 {
 namespace util
 {
-
 namespace guidance
 {
 inline void print(const engine::guidance::RouteStep &step)
 {
     std::cout << static_cast<int>(step.maneuver.instruction.type) << " "
               << static_cast<int>(step.maneuver.instruction.direction_modifier) << "  "
-              << static_cast<int>(step.maneuver.waypoint_type) << " " << step.maneuver.location
-              << " "
+              << static_cast<int>(step.maneuver.waypoint_type) << " "
+              << step.maneuver.location << " "
               << " Duration: " << step.duration << " Distance: " << step.distance
               << " Geometry: " << step.geometry_begin << " " << step.geometry_end
-              << " Exit: " << step.maneuver.exit << " Mode: " << (int)step.mode
               << "\n\tIntersections: " << step.intersections.size() << " [";
 
     for (const auto &intersection : step.intersections)
     {
         std::cout << "(Lanes: " << static_cast<int>(intersection.lanes.lanes_in_turn) << " "
-                  << static_cast<int>(intersection.lanes.first_lane_from_the_right) << " ["
-                  << intersection.in << "," << intersection.out << "]"
-                  << " bearings:";
+                  << static_cast<int>(intersection.lanes.first_lane_from_the_right) << " bearings:";
         for (auto bearing : intersection.bearings)
             std::cout << " " << bearing;
         std::cout << ", entry: ";
@@ -45,8 +39,7 @@ inline void print(const engine::guidance::RouteStep &step)
             std::cout << " " << (entry ? "true" : "false");
         std::cout << ")";
     }
-    std::cout << "] name[" << step.name_id << "]: " << step.name << " Ref: " << step.ref
-              << " Pronunciation: " << step.pronunciation;
+    std::cout << "] name[" << step.name_id << "]: " << step.name;
 }
 
 inline void print(const std::vector<engine::guidance::RouteStep> &steps)
@@ -76,7 +69,8 @@ inline void print(const NodeBasedDynamicGraph &node_based_graph,
     for (const auto &road : intersection)
     {
         std::cout << "\t" << toString(road) << "\n";
-        std::cout << "\t\t" << node_based_graph.GetEdgeData(road.eid).road_classification.ToString()
+        std::cout << "\t\t"
+                  << node_based_graph.GetEdgeData(road.turn.eid).road_classification.ToString()
                   << "\n";
     }
     std::cout << std::flush;

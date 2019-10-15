@@ -4,6 +4,7 @@
 #include "extractor/guidance/turn_lane_types.hpp"
 #include "util/attributes.hpp"
 #include "util/typedefs.hpp"
+#include <string>
 #include <vector>
 
 namespace osrm

@@ -1,17 +1,12 @@
+#include "extractor/guidance/constants.hpp"
 #include "extractor/guidance/intersection_generator.hpp"
-
-#include "extractor/geojson_debug_policies.hpp"
-#include "util/geojson_debug_logger.hpp"
-
-#include "util/bearing.hpp"
-#include "util/coordinate_calculation.hpp"
-#include "util/log.hpp"
+#include "extractor/guidance/toolkit.hpp"
 
 #include <algorithm>
-#include <cmath>
-#include <functional> // mem_fn
+#include <iomanip>
+#include <iterator>
 #include <limits>
-#include <numeric>
+#include <unordered_set>
 #include <utility>
 
 #include <boost/range/algorithm/count_if.hpp>
@@ -22,12 +17,6 @@ namespace extractor
 {
 namespace guidance
 {
-namespace
-{
-const constexpr bool USE_LOW_PRECISION_MODE = true;
-// the inverse of use low precision mode
-const constexpr bool USE_HIGH_PRECISION_MODE = !USE_LOW_PRECISION_MODE;
-}
 
 IntersectionGenerator::IntersectionGenerator(
     const util::NodeBasedDynamicGraph &node_based_graph,
@@ -37,121 +26,23 @@ IntersectionGenerator::IntersectionGenerator(
     const CompressedEdgeContainer &compressed_edge_container)
     : node_based_graph(node_based_graph), restriction_map(restriction_map),
       barrier_nodes(barrier_nodes), node_info_list(node_info_list),
-      coordinate_extractor(node_based_graph, compressed_edge_container, node_info_list)
+      compressed_edge_container(compressed_edge_container)
 {
 }
 
-IntersectionView IntersectionGenerator::operator()(const NodeID from_node,
-                                                   const EdgeID via_eid) const
+Intersection IntersectionGenerator::operator()(const NodeID from_node, const EdgeID via_eid) const
 {
-    return GetConnectedRoads(from_node, via_eid, USE_HIGH_PRECISION_MODE);
-}
-
-IntersectionShape
-IntersectionGenerator::ComputeIntersectionShape(const NodeID node_at_center_of_intersection,
-                                                const boost::optional<NodeID> sorting_base,
-                                                const bool use_low_precision_angles) const
-{
-    IntersectionShape intersection;
-    // reserve enough items (+ the possibly missing u-turn edge)
-    const auto intersection_degree = node_based_graph.GetOutDegree(node_at_center_of_intersection);
-    intersection.reserve(intersection_degree);
-    const util::Coordinate turn_coordinate = node_info_list[node_at_center_of_intersection];
-
-    // number of lanes at the intersection changes how far we look down the road
-    const auto edge_range = node_based_graph.GetAdjacentEdgeRange(node_at_center_of_intersection);
-    const auto max_lanes_intersection = std::accumulate(
-        edge_range.begin(),
-        edge_range.end(),
-        std::uint8_t{0},
-        [this](const auto current_max, const auto current_eid) {
-            return std::max(
-                current_max,
-                node_based_graph.GetEdgeData(current_eid).road_classification.GetNumberOfLanes());
-        });
-
-    for (const EdgeID edge_connected_to_intersection :
-         node_based_graph.GetAdjacentEdgeRange(node_at_center_of_intersection))
-    {
-        BOOST_ASSERT(edge_connected_to_intersection != SPECIAL_EDGEID);
-        const NodeID to_node = node_based_graph.GetTarget(edge_connected_to_intersection);
-        double bearing = 0.;
-
-        auto coordinates = coordinate_extractor.GetCoordinatesAlongRoad(
-            node_at_center_of_intersection, edge_connected_to_intersection, !INVERT, to_node);
-
-        const auto segment_length = util::coordinate_calculation::getLength(
-            coordinates.begin(),
-            coordinates.end(),
-            util::coordinate_calculation::haversineDistance);
-
-        const auto extract_coordinate = [&](const NodeID from_node,
-                                            const EdgeID via_eid,
-                                            const bool traversed_in_reverse,
-                                            const NodeID to_node) {
-            return (use_low_precision_angles || intersection_degree <= 2)
-                       ? coordinate_extractor.GetCoordinateCloseToTurn(
-                             from_node, via_eid, traversed_in_reverse, to_node)
-                       : coordinate_extractor.ExtractRepresentativeCoordinate(
-                             from_node,
-                             via_eid,
-                             traversed_in_reverse,
-                             to_node,
-                             max_lanes_intersection,
-                             std::move(coordinates));
-        };
-
-        // we have to look down the road a bit to get the correct turn
-        const auto coordinate_along_edge_leaving = extract_coordinate(
-            node_at_center_of_intersection, edge_connected_to_intersection, !INVERT, to_node);
-
-        bearing =
-            util::coordinate_calculation::bearing(turn_coordinate, coordinate_along_edge_leaving);
-
-        // OSM data sometimes contains duplicated nodes with identical coordinates, or
-        // because of coordinate precision rounding, end up at the same coordinate.
-        // It's impossible to calculate a bearing between these, so we log a warning
-        // that the data should be checked.
-        // The bearing calculation should return 0 in these cases, which may not be correct,
-        // but is at least not random.
-        if (turn_coordinate == coordinate_along_edge_leaving)
-        {
-            util::Log(logDEBUG) << "Zero length segment at " << coordinate_along_edge_leaving
-                                << " could cause invalid intersection exit bearing.";
-            BOOST_ASSERT(std::abs(bearing) <= 0.1);
-        }
-
-        intersection.push_back({edge_connected_to_intersection, bearing, segment_length});
-    }
-
-    if (!intersection.empty())
-    {
-        const auto base_bearing = [&]() {
-            if (sorting_base)
-            {
-                const auto itr =
-                    std::find_if(intersection.begin(),
-                                 intersection.end(),
-                                 [&](const IntersectionShapeData &data) {
-                                     return node_based_graph.GetTarget(data.eid) == *sorting_base;
-                                 });
-                if (itr != intersection.end())
-                    return util::bearing::reverse(itr->bearing);
-            }
-            return util::bearing::reverse(intersection.begin()->bearing);
-        }();
-        std::sort(intersection.begin(),
-                  intersection.end(),
-                  makeCompareShapeDataAngleToBearing(base_bearing));
-    }
-    return intersection;
+    auto intersection = GetConnectedRoads(from_node, via_eid);
+    const auto node_at_intersection = node_based_graph.GetTarget(via_eid);
+    return AdjustForJoiningRoads(
+        node_at_intersection, MergeSegregatedRoads(node_at_intersection, std::move(intersection)));
 }
 
 //                                               a
 //                                               |
 //                                               |
 //                                               v
-// For an intersection from_node --via_eid--> turn_node ----> c
+// For an intersection from_node --via_edi--> turn_node ----> c
 //                                               ^
 //                                               |
 //                                               |
@@ -160,244 +51,560 @@ IntersectionGenerator::ComputeIntersectionShape(const NodeID node_at_center_of_i
 // That means we not only get (from_node, turn_node, c) in the above example
 // but also (from_node, turn_node, a), (from_node, turn_node, b). These turns are
 // marked as invalid and only needed for intersection classification.
-IntersectionView IntersectionGenerator::GetConnectedRoads(const NodeID from_node,
-                                                          const EdgeID via_eid,
-                                                          const bool use_low_precision_angles) const
+Intersection IntersectionGenerator::GetConnectedRoads(const NodeID from_node,
+                                                      const EdgeID via_eid) const
 {
-    // make sure the via-eid is valid
-    BOOST_ASSERT([this](const NodeID from_node, const EdgeID via_eid) {
-        const auto range = node_based_graph.GetAdjacentEdgeRange(from_node);
-        return range.front() <= via_eid && via_eid <= range.back();
-    }(from_node, via_eid));
-
-    auto intersection = ComputeIntersectionShape(
-        node_based_graph.GetTarget(via_eid), boost::none, use_low_precision_angles);
-    return TransformIntersectionShapeIntoView(from_node, via_eid, std::move(intersection));
-}
-
-IntersectionGenerationParameters
-IntersectionGenerator::SkipDegreeTwoNodes(const NodeID starting_node, const EdgeID via_edge) const
-{
-    NodeID query_node = starting_node;
-    EdgeID query_edge = via_edge;
-
-    const auto get_next_edge = [this](const NodeID from, const EdgeID via) {
-        const NodeID new_node = node_based_graph.GetTarget(via);
-        BOOST_ASSERT(node_based_graph.GetOutDegree(new_node) == 2);
-        const EdgeID begin_edges_new_node = node_based_graph.BeginEdges(new_node);
-        return (node_based_graph.GetTarget(begin_edges_new_node) == from) ? begin_edges_new_node + 1
-                                                                          : begin_edges_new_node;
-    };
-
-    std::unordered_set<NodeID> visited_nodes;
-    // skip trivial nodes without generating the intersection in between, stop at the very first
-    // intersection of degree > 2
-    while (0 == visited_nodes.count(query_node) &&
-           2 == node_based_graph.GetOutDegree(node_based_graph.GetTarget(query_edge)))
-    {
-        visited_nodes.insert(query_node);
-        const auto next_node = node_based_graph.GetTarget(query_edge);
-        const auto next_edge = get_next_edge(query_node, query_edge);
-
-        query_node = next_node;
-        query_edge = next_edge;
-
-        if (!node_based_graph.GetEdgeData(query_edge)
-                 .IsCompatibleTo(node_based_graph.GetEdgeData(next_edge)) ||
-            node_based_graph.GetTarget(next_edge) == starting_node)
-            break;
-    }
-
-    return {query_node, query_edge};
-}
-
-IntersectionView IntersectionGenerator::TransformIntersectionShapeIntoView(
-    const NodeID previous_node,
-    const EdgeID entering_via_edge,
-    const IntersectionShape &intersection_shape) const
-{
-    // requires a copy of the intersection
-    return TransformIntersectionShapeIntoView(previous_node,
-                                              entering_via_edge,
-                                              intersection_shape, // creates a copy
-                                              intersection_shape, // reference to local
-                                              {}); // empty vector of performed merges
-}
-
-IntersectionView IntersectionGenerator::TransformIntersectionShapeIntoView(
-    const NodeID previous_node,
-    const EdgeID entering_via_edge,
-    const IntersectionShape &normalized_intersection,
-    const IntersectionShape &intersection,
-    const std::vector<IntersectionNormalizationOperation> &performed_merges) const
-{
-    const auto node_at_intersection = node_based_graph.GetTarget(entering_via_edge);
-
-    // check if there is a single valid turn entering the current intersection
-    const auto only_valid_turn = GetOnlyAllowedTurnIfExistent(previous_node, node_at_intersection);
-
-    // barriers change our behaviour regarding u-turns
-    const bool is_barrier_node = barrier_nodes.find(node_at_intersection) != barrier_nodes.end();
-
-    const auto connect_to_previous_node = [this, previous_node](const IntersectionShapeData road) {
-        return node_based_graph.GetTarget(road.eid) == previous_node;
-    };
-
-    // check which of the edges is the u-turn edge
-    const auto uturn_edge_itr =
-        std::find_if(intersection.begin(), intersection.end(), connect_to_previous_node);
-
-    // there needs to be a connection, otherwise stuff went seriously wrong. Note that this is not
-    // necessarily the same id as `entering_via_edge`.
-    // In cases where parallel edges are present, we only remember the minimal edge. Both share
-    // exactly the same coordinates, so the u-turn is still the best choice here.
-    BOOST_ASSERT(uturn_edge_itr != intersection.end());
-
-    const auto is_restricted = [&](const NodeID destination) {
-        // check if we have a dedicated destination
-        if (only_valid_turn && *only_valid_turn != destination)
-            return true;
-
-        // not explicitly forbidden
-        return restriction_map.CheckIfTurnIsRestricted(
-            previous_node, node_at_intersection, destination);
-    };
-
-    const auto is_allowed_turn = [&](const IntersectionShapeData &road) {
-        const auto &road_data = node_based_graph.GetEdgeData(road.eid);
-        const NodeID road_destination_node = node_based_graph.GetTarget(road.eid);
-        // reverse edges are never valid turns because the resulting turn would look like this:
-        // from_node --via_edge--> node_at_intersection <--onto_edge-- to_node
-        // however we need this for capture intersection shape for incoming one-ways
-        return !road_data.reversed &&
-               // we are not turning over a barrier
-               (!is_barrier_node || road_destination_node == previous_node) &&
-               // don't allow restricted turns
-               !is_restricted(road_destination_node);
-
-    };
-
-    // due to merging of roads, the u-turn might actually not be part of the intersection anymore
-    const auto uturn_bearing = [&]() {
-        const auto merge_entry = std::find_if(
-            performed_merges.begin(), performed_merges.end(), [&uturn_edge_itr](const auto entry) {
-                return entry.merged_eid == uturn_edge_itr->eid;
-            });
-        if (merge_entry != performed_merges.end())
+    Intersection intersection;
+    const NodeID turn_node = node_based_graph.GetTarget(via_eid);
+    const NodeID only_restriction_to_node = [&]() {
+        // If only restrictions refer to invalid ways somewhere far away, we rather ignore the
+        // restriction than to not route over the intersection at all.
+        const auto only_restriction_to_node =
+            restriction_map.CheckForEmanatingIsOnlyTurn(from_node, turn_node);
+        if (only_restriction_to_node != SPECIAL_NODEID)
         {
-            const auto merged_into_id = merge_entry->into_eid;
-            const auto merged_u_turn = std::find_if(
-                normalized_intersection.begin(),
-                normalized_intersection.end(),
-                [&](const IntersectionShapeData &road) { return road.eid == merged_into_id; });
-            BOOST_ASSERT(merged_u_turn != normalized_intersection.end());
-            return util::bearing::reverse(merged_u_turn->bearing);
+            // check if we can find an edge in the edge-rage
+            for (const auto onto_edge : node_based_graph.GetAdjacentEdgeRange(turn_node))
+                if (only_restriction_to_node == node_based_graph.GetTarget(onto_edge))
+                    return only_restriction_to_node;
+        }
+        // Ignore broken only restrictions.
+        return SPECIAL_NODEID;
+    }();
+    const bool is_barrier_node = barrier_nodes.find(turn_node) != barrier_nodes.end();
+
+    bool has_uturn_edge = false;
+    bool uturn_could_be_valid = false;
+    for (const EdgeID onto_edge : node_based_graph.GetAdjacentEdgeRange(turn_node))
+    {
+        BOOST_ASSERT(onto_edge != SPECIAL_EDGEID);
+        const NodeID to_node = node_based_graph.GetTarget(onto_edge);
+
+        bool turn_is_valid =
+            // reverse edges are never valid turns because the resulting turn would look like this:
+            // from_node --via_edge--> turn_node <--onto_edge-- to_node
+            // however we need this for capture intersection shape for incoming one-ways
+            !node_based_graph.GetEdgeData(onto_edge).reversed &&
+            // we are not turning over a barrier
+            (!is_barrier_node || from_node == to_node) &&
+            // We are at an only_-restriction but not at the right turn.
+            (only_restriction_to_node == SPECIAL_NODEID || to_node == only_restriction_to_node) &&
+            // the turn is not restricted
+            !restriction_map.CheckIfTurnIsRestricted(from_node, turn_node, to_node);
+
+        auto angle = 0.;
+        if (from_node == to_node)
+        {
+            uturn_could_be_valid = turn_is_valid;
+            if (turn_is_valid && !is_barrier_node)
+            {
+                // we only add u-turns for dead-end streets.
+                if (node_based_graph.GetOutDegree(turn_node) > 1)
+                {
+                    auto number_of_emmiting_bidirectional_edges = 0;
+                    for (auto edge : node_based_graph.GetAdjacentEdgeRange(turn_node))
+                    {
+                        auto target = node_based_graph.GetTarget(edge);
+                        auto reverse_edge = node_based_graph.FindEdge(target, turn_node);
+                        BOOST_ASSERT(reverse_edge != SPECIAL_EDGEID);
+                        if (!node_based_graph.GetEdgeData(reverse_edge).reversed)
+                        {
+                            ++number_of_emmiting_bidirectional_edges;
+                        }
+                    }
+                    // is a dead-end, only possible road is to go back
+                    turn_is_valid = number_of_emmiting_bidirectional_edges <= 1;
+                }
+            }
+            has_uturn_edge = true;
+            BOOST_ASSERT(angle >= 0. && angle < std::numeric_limits<double>::epsilon());
         }
         else
         {
-            const auto uturn_edge_at_normalized_intersection_itr =
-                std::find_if(normalized_intersection.begin(),
-                             normalized_intersection.end(),
-                             connect_to_previous_node);
-            BOOST_ASSERT(uturn_edge_at_normalized_intersection_itr !=
-                         normalized_intersection.end());
-            return util::bearing::reverse(uturn_edge_at_normalized_intersection_itr->bearing);
+            // unpack first node of second segment if packed
+            const auto first_coordinate = getRepresentativeCoordinate(
+                from_node, turn_node, via_eid, INVERT, compressed_edge_container, node_info_list);
+            const auto third_coordinate = getRepresentativeCoordinate(
+                turn_node, to_node, onto_edge, !INVERT, compressed_edge_container, node_info_list);
+            angle = util::coordinate_calculation::computeAngle(
+                first_coordinate, node_info_list[turn_node], third_coordinate);
+            if (std::abs(angle) < std::numeric_limits<double>::epsilon())
+                has_uturn_edge = true;
         }
+
+        intersection.push_back(
+            ConnectedRoad(TurnOperation{onto_edge,
+                                        angle,
+                                        {TurnType::Invalid, DirectionModifier::UTurn},
+                                        INVALID_LANE_DATAID},
+                          turn_is_valid));
+    }
+
+    // We hit the case of a street leading into nothing-ness. Since the code here assumes that this
+    // will never happen we add an artificial invalid uturn in this case.
+    if (!has_uturn_edge)
+    {
+        intersection.push_back(
+            {TurnOperation{
+                 via_eid, 0., {TurnType::Invalid, DirectionModifier::UTurn}, INVALID_LANE_DATAID},
+             false});
+    }
+
+    const auto ByAngle = [](const ConnectedRoad &first, const ConnectedRoad second) {
+        return first.turn.angle < second.turn.angle;
+    };
+    std::sort(std::begin(intersection), std::end(intersection), ByAngle);
+
+    BOOST_ASSERT(intersection[0].turn.angle >= 0. &&
+                 intersection[0].turn.angle < std::numeric_limits<double>::epsilon());
+
+    const auto valid_count =
+        boost::count_if(intersection, [](const ConnectedRoad &road) { return road.entry_allowed; });
+    if (0 == valid_count && uturn_could_be_valid)
+    {
+        // after intersections sorting by angles, find the u-turn with (from_node == to_node)
+        // that was inserted together with setting uturn_could_be_valid flag
+        std::size_t self_u_turn = 0;
+        while (self_u_turn < intersection.size() &&
+               intersection[self_u_turn].turn.angle < std::numeric_limits<double>::epsilon() &&
+               from_node != node_based_graph.GetTarget(intersection[self_u_turn].turn.eid))
+        {
+            ++self_u_turn;
+        }
+
+        BOOST_ASSERT(from_node == node_based_graph.GetTarget(intersection[self_u_turn].turn.eid));
+        intersection[self_u_turn].entry_allowed = true;
+    }
+
+    return intersection;
+}
+
+// Checks for mergability of two ways that represent the same intersection. For further information
+// see interface documentation in header.
+bool IntersectionGenerator::CanMerge(const NodeID node_at_intersection,
+                                     const Intersection &intersection,
+                                     std::size_t first_index,
+                                     std::size_t second_index) const
+{
+    const auto &first_data = node_based_graph.GetEdgeData(intersection[first_index].turn.eid);
+    const auto &second_data = node_based_graph.GetEdgeData(intersection[second_index].turn.eid);
+
+    // only merge named ids
+    if (first_data.name_id == EMPTY_NAMEID)
+        return false;
+
+    // need to be same name
+    if (first_data.name_id != second_data.name_id)
+        return false;
+
+    // compatibility is required
+    if (first_data.travel_mode != second_data.travel_mode)
+        return false;
+    if (first_data.road_classification != second_data.road_classification)
+        return false;
+
+    // may not be on a roundabout
+    if (first_data.roundabout || second_data.roundabout)
+        return false;
+
+    // exactly one of them has to be reversed
+    if (first_data.reversed == second_data.reversed)
+        return false;
+
+    // one of them needs to be invalid
+    if (intersection[first_index].entry_allowed && intersection[second_index].entry_allowed)
+        return false;
+
+    // mergeable if the angle is not too big
+    const auto angle_between = angularDeviation(intersection[first_index].turn.angle,
+                                                intersection[second_index].turn.angle);
+
+    const auto coordinate_at_in_edge =
+        getRepresentativeCoordinate(node_at_intersection,
+                                    node_based_graph.GetTarget(intersection[0].turn.eid),
+                                    intersection[0].turn.eid,
+                                    false,
+                                    compressed_edge_container,
+                                    node_info_list);
+    const auto coordinate_at_intersection = node_info_list[node_at_intersection];
+
+    const auto isValidYArm = [this,
+                              intersection,
+                              coordinate_at_in_edge,
+                              coordinate_at_intersection,
+                              node_at_intersection](const std::size_t index,
+                                                    const std::size_t other_index) {
+        const auto GetActualTarget = [&](const std::size_t index) {
+            EdgeID last_in_edge_id;
+            GetActualNextIntersection(
+                node_at_intersection, intersection[index].turn.eid, nullptr, &last_in_edge_id);
+            return node_based_graph.GetTarget(last_in_edge_id);
+        };
+
+        const auto target_id = GetActualTarget(index);
+        const auto other_target_id = GetActualTarget(other_index);
+        if (target_id == node_at_intersection || other_target_id == node_at_intersection)
+            return false;
+
+        const auto coordinate_at_target = node_info_list[target_id];
+        const auto coordinate_at_other_target = node_info_list[other_target_id];
+
+        const auto turn_angle = util::coordinate_calculation::computeAngle(
+            coordinate_at_in_edge, coordinate_at_intersection, coordinate_at_target);
+        const auto other_turn_angle = util::coordinate_calculation::computeAngle(
+            coordinate_at_in_edge, coordinate_at_intersection, coordinate_at_other_target);
+        const double distance_to_target = util::coordinate_calculation::haversineDistance(
+            coordinate_at_intersection, coordinate_at_target);
+
+        const constexpr double MAX_COLLAPSE_DISTANCE = 30;
+        if (distance_to_target < MAX_COLLAPSE_DISTANCE)
+            return false;
+
+        const bool becomes_narrower =
+            angularDeviation(turn_angle, other_turn_angle) < NARROW_TURN_ANGLE &&
+            angularDeviation(turn_angle, other_turn_angle) <
+                angularDeviation(intersection[index].turn.angle,
+                                 intersection[other_index].turn.angle);
+
+        return becomes_narrower;
+    };
+
+    const bool is_y_arm_first = isValidYArm(first_index, second_index);
+    const bool is_y_arm_second = isValidYArm(second_index, first_index);
+
+    // Only merge valid y-arms
+    if (!is_y_arm_first || !is_y_arm_second)
+        return false;
+
+    if (angle_between < 60)
+        return true;
+
+    // Finally, we also allow merging if all streets offer the same name, it is only three roads and
+    // the angle is not fully extreme:
+    if (intersection.size() != 3)
+        return false;
+
+    // since we have an intersection of size three now, there is only one index we are not looking
+    // at right now. The final index in the intersection is calculated next:
+    const std::size_t third_index = [first_index, second_index]() {
+        if (first_index == 0)
+            return second_index == 2 ? 1 : 2;
+        else if (first_index == 1)
+            return second_index == 2 ? 0 : 2;
+        else
+            return second_index == 1 ? 0 : 1;
     }();
 
-    IntersectionView intersection_view;
-    intersection_view.reserve(normalized_intersection.size());
-    std::transform(normalized_intersection.begin(),
-                   normalized_intersection.end(),
-                   std::back_inserter(intersection_view),
-                   [&](const IntersectionShapeData &road) {
-                       return IntersectionViewData(
-                           road,
-                           is_allowed_turn(road),
-                           util::bearing::angleBetween(uturn_bearing, road.bearing));
-                   });
+    // needs to be same road coming in
+    if (node_based_graph.GetEdgeData(intersection[third_index].turn.eid).name_id !=
+        first_data.name_id)
+        return false;
 
-    const auto uturn_edge_at_intersection_view_itr =
-        std::find_if(intersection_view.begin(), intersection_view.end(), connect_to_previous_node);
-    // number of found valid exit roads
-    const auto valid_count =
-        std::count_if(intersection_view.begin(),
-                      intersection_view.end(),
-                      [](const IntersectionViewData &road) { return road.entry_allowed; });
-    // in general, we don't wan't to allow u-turns. If we don't look at a barrier, we have to check
-    // for dead end streets. These are the only ones that we allow uturns for, next to barriers
-    // (which are also kind of a dead end, but we don't have to check these again :))
-    if (uturn_edge_at_intersection_view_itr != intersection_view.end() &&
-        ((uturn_edge_at_intersection_view_itr->entry_allowed && !is_barrier_node &&
-          valid_count != 1) ||
-         valid_count == 0))
-    {
-        const auto allow_uturn_at_dead_end = [&]() {
-            const auto &uturn_data = node_based_graph.GetEdgeData(uturn_edge_itr->eid);
+    // we only allow collapsing of a Y like fork. So the angle to the third index has to be
+    // roughly equal:
+    const auto y_angle_difference =
+        angularDeviation(angularDeviation(intersection[third_index].turn.angle,
+                                          intersection[first_index].turn.angle),
+                         angularDeviation(intersection[third_index].turn.angle,
+                                          intersection[second_index].turn.angle));
 
-            // we can't turn back onto oneway streets
-            if (uturn_data.reversed)
-                return false;
-
-            // don't allow explicitly restricted turns
-            if (is_restricted(previous_node))
-                return false;
-
-            // we define dead ends as roads that can only be entered via the possible u-turn
-            const auto is_bidirectional = [&](const EdgeID entering_via_edge) {
-                const auto to_node = node_based_graph.GetTarget(entering_via_edge);
-                const auto reverse_edge = node_based_graph.FindEdge(to_node, node_at_intersection);
-                BOOST_ASSERT(reverse_edge != SPECIAL_EDGEID);
-                return !node_based_graph.GetEdgeData(reverse_edge).reversed;
-            };
-
-            const auto bidirectional_edges = [&]() {
-                std::uint32_t count = 0;
-                for (const auto eid : node_based_graph.GetAdjacentEdgeRange(node_at_intersection))
-                    if (is_bidirectional(eid))
-                        ++count;
-                return count;
-            }();
-
-            // Checking for dead-end streets is kind of difficult. There is obvious dead ends
-            // (single road connected)
-            return bidirectional_edges <= 1;
-        }();
-        uturn_edge_at_intersection_view_itr->entry_allowed = allow_uturn_at_dead_end;
-    }
-    std::sort(std::begin(intersection_view),
-              std::end(intersection_view),
-              std::mem_fn(&IntersectionViewData::CompareByAngle));
-
-    BOOST_ASSERT(intersection_view[0].angle >= 0. &&
-                 intersection_view[0].angle < std::numeric_limits<double>::epsilon());
-
-    return intersection_view;
+    // Allow larger angles if its three roads only of the same name
+    // This is a heuristic and might need to be revised.
+    const bool assume_y_intersection =
+        angle_between < 100 && y_angle_difference < FUZZY_ANGLE_DIFFERENCE;
+    return assume_y_intersection;
 }
 
-boost::optional<NodeID>
-IntersectionGenerator::GetOnlyAllowedTurnIfExistent(const NodeID coming_from_node,
-                                                    const NodeID node_at_intersection) const
+/*
+ * Segregated Roads often merge onto a single intersection.
+ * While technically representing different roads, they are
+ * often looked at as a single road.
+ * Due to the merging, turn Angles seem off, wenn we compute them from the
+ * initial positions.
+ *
+ *         b<b<b<b(1)<b<b<b
+ * aaaaa-b
+ *         b>b>b>b(2)>b>b>b
+ *
+ * Would be seen as a slight turn going fro a to (2). A Sharp turn going from
+ * (1) to (2).
+ *
+ * In cases like these, we megre this segregated roads into a single road to
+ * end up with a case like:
+ *
+ * aaaaa-bbbbbb
+ *
+ * for the turn representation.
+ * Anything containing the first u-turn in a merge affects all other angles
+ * and is handled separately from all others.
+ */
+Intersection IntersectionGenerator::MergeSegregatedRoads(const NodeID intersection_node,
+                                                         Intersection intersection) const
 {
-    // If only restrictions refer to invalid ways somewhere far away, we rather ignore the
-    // restriction than to not route over the intersection at all.
-    const auto only_restriction_to_node =
-        restriction_map.CheckForEmanatingIsOnlyTurn(coming_from_node, node_at_intersection);
-    if (only_restriction_to_node != SPECIAL_NODEID)
+    const auto getRight = [&](std::size_t index) {
+        return (index + intersection.size() - 1) % intersection.size();
+    };
+
+    const auto merge = [](const ConnectedRoad &first,
+                          const ConnectedRoad &second) -> ConnectedRoad {
+        if (!first.entry_allowed)
+        {
+            ConnectedRoad result = second;
+            result.turn.angle = (first.turn.angle + second.turn.angle) / 2;
+            if (first.turn.angle - second.turn.angle > 180)
+                result.turn.angle += 180;
+            if (result.turn.angle > 360)
+                result.turn.angle -= 360;
+
+            return result;
+        }
+        else
+        {
+            BOOST_ASSERT(!second.entry_allowed);
+            ConnectedRoad result = first;
+            result.turn.angle = (first.turn.angle + second.turn.angle) / 2;
+
+            if (first.turn.angle - second.turn.angle > 180)
+                result.turn.angle += 180;
+            if (result.turn.angle > 360)
+                result.turn.angle -= 360;
+
+            return result;
+        }
+    };
+    if (intersection.size() <= 1)
+        return intersection;
+
+    const bool is_connected_to_roundabout = [this, &intersection]() {
+        for (const auto &road : intersection)
+        {
+            if (node_based_graph.GetEdgeData(road.turn.eid).roundabout)
+                return true;
+        }
+        return false;
+    }();
+
+    // check for merges including the basic u-turn
+    // these result in an adjustment of all other angles. This is due to how these angles are
+    // perceived. Considering the following example:
+    //
+    //   c   b
+    //     Y
+    //     a
+    //
+    // coming from a to b (given a road that splits at the fork into two one-ways), the turn is not
+    // considered as a turn but rather as going straight.
+    // Now if we look at the situation merging:
+    //
+    //  a     b
+    //    \ /
+    // e - + - d
+    //     |
+    //     c
+    //
+    // With a,b representing the same road, the intersection itself represents a classif for way
+    // intersection so we handle it like
+    //
+    //   (a),b
+    //      |
+    // e -  + - d
+    //      |
+    //      c
+    //
+    // To be able to consider this adjusted representation down the line, we merge some roads.
+    // If the merge occurs at the u-turn edge, we need to adjust all angles, though, since they are
+    // with respect to the now changed perceived location of a. If we move (a) to the left, we add
+    // the difference to all angles. Otherwise we subtract it.
+    bool merged_first = false;
+    // these result in an adjustment of all other angles
+    if (CanMerge(intersection_node, intersection, 0, intersection.size() - 1))
     {
-        // if the mentioned node does not exist anymore, we don't return it. This checks for broken
-        // turn restrictions
-        for (const auto onto_edge : node_based_graph.GetAdjacentEdgeRange(node_at_intersection))
-            if (only_restriction_to_node == node_based_graph.GetTarget(onto_edge))
-                return only_restriction_to_node;
+        merged_first = true;
+        // moving `a` to the left
+        const double correction_factor =
+            (360 - intersection[intersection.size() - 1].turn.angle) / 2;
+        for (std::size_t i = 1; i + 1 < intersection.size(); ++i)
+            intersection[i].turn.angle += correction_factor;
+
+        // FIXME if we have a left-sided country, we need to switch this off and enable it below
+        intersection[0] = merge(intersection.front(), intersection.back());
+        intersection[0].turn.angle = 0;
+
+        intersection.pop_back();
     }
-    // Ignore broken only restrictions.
-    return boost::none;
+    else if (CanMerge(intersection_node, intersection, 0, 1))
+    {
+        merged_first = true;
+        // moving `a` to the right
+        const double correction_factor = (intersection[1].turn.angle) / 2;
+        for (std::size_t i = 2; i < intersection.size(); ++i)
+            intersection[i].turn.angle -= correction_factor;
+        intersection[0] = merge(intersection[0], intersection[1]);
+        intersection[0].turn.angle = 0;
+        intersection.erase(intersection.begin() + 1);
+    }
+
+    if (merged_first && is_connected_to_roundabout)
+    {
+        /*
+         * We are merging a u-turn against the direction of a roundabout
+         *
+         *     -----------> roundabout
+         *        /    \
+         *     out      in
+         *
+         * These cases have to be disabled, even if they are not forbidden specifically by a
+         * relation
+         */
+        intersection[0].entry_allowed = false;
+    }
+
+    // a merge including the first u-turn requres an adjustment of the turn angles
+    // therefore these are handled prior to this step
+    for (std::size_t index = 2; index < intersection.size(); ++index)
+    {
+        if (CanMerge(intersection_node, intersection, index, getRight(index)))
+        {
+            intersection[getRight(index)] =
+                merge(intersection[getRight(index)], intersection[index]);
+            intersection.erase(intersection.begin() + index);
+            --index;
+        }
+    }
+
+    const auto ByAngle = [](const ConnectedRoad &first, const ConnectedRoad second) {
+        return first.turn.angle < second.turn.angle;
+    };
+    std::sort(std::begin(intersection), std::end(intersection), ByAngle);
+    return intersection;
 }
 
-const CoordinateExtractor &IntersectionGenerator::GetCoordinateExtractor() const
+// OSM can have some very steep angles for joining roads. Considering the following intersection:
+//        x
+//        |
+//        v __________c
+//       /
+// a ---d
+//       \ __________b
+//
+// with c->d as a oneway
+// and d->b as a oneway, the turn von x->d is actually a turn from x->a. So when looking at the
+// intersection coming from x, we want to interpret the situation as
+//           x
+//           |
+// a __ d __ v__________c
+//      |
+//      |_______________b
+//
+// Where we see the turn to `d` as a right turn, rather than going straight.
+// We do this by adjusting the local turn angle at `x` to turn onto `d` to be reflective of this
+// situation, where `v` would be the node at the intersection.
+Intersection IntersectionGenerator::AdjustForJoiningRoads(const NodeID node_at_intersection,
+                                                          Intersection intersection) const
 {
-    return coordinate_extractor;
+    // nothing to do for dead ends
+    if (intersection.size() <= 1)
+        return intersection;
+
+    const util::Coordinate coordinate_at_intersection = node_info_list[node_at_intersection];
+    // never adjust u-turns
+    for (std::size_t index = 1; index < intersection.size(); ++index)
+    {
+        auto &road = intersection[index];
+        // to find out about the above situation, we need to look at the next intersection (at d in
+        // the example). If the initial road can be merged to the left/right, we are about to adjust
+        // the angle.
+        const auto next_intersection_along_road =
+            GetConnectedRoads(node_at_intersection, road.turn.eid);
+        if (next_intersection_along_road.size() <= 1)
+            continue;
+
+        const auto node_at_next_intersection = node_based_graph.GetTarget(road.turn.eid);
+        const util::Coordinate coordinate_at_next_intersection =
+            node_info_list[node_at_next_intersection];
+        if (util::coordinate_calculation::haversineDistance(coordinate_at_intersection,
+                                                            coordinate_at_next_intersection) > 30)
+            continue;
+
+        const auto adjustAngle = [](double angle, double offset) {
+            angle += offset;
+            if (angle > 360)
+                return angle - 360.;
+            else if (angle < 0)
+                return angle + 360.;
+            return angle;
+        };
+
+        // check if the u-turn edge at the next intersection could be merged to the left/right. If
+        // this is the case and the road is not far away (see previous distance check), if
+        // influences the perceived angle.
+        if (CanMerge(node_at_next_intersection, next_intersection_along_road, 0, 1))
+        {
+            const auto offset = 0.5 * angularDeviation(next_intersection_along_road[0].turn.angle,
+                                                       next_intersection_along_road[1].turn.angle);
+            // at the target intersection, we merge to the right, so we need to shift the current
+            // angle to the left
+            road.turn.angle = adjustAngle(road.turn.angle, offset);
+        }
+        else if (CanMerge(node_at_next_intersection,
+                          next_intersection_along_road,
+                          0,
+                          next_intersection_along_road.size() - 1))
+        {
+            const auto offset =
+                0.5 * angularDeviation(
+                          next_intersection_along_road[0].turn.angle,
+                          next_intersection_along_road[next_intersection_along_road.size() - 1]
+                              .turn.angle);
+            // at the target intersection, we merge to the left, so we need to shift the current
+            // angle to the right
+            road.turn.angle = adjustAngle(road.turn.angle, -offset);
+        }
+    }
+    return intersection;
+}
+
+Intersection
+IntersectionGenerator::GetActualNextIntersection(const NodeID starting_node,
+                                                 const EdgeID via_edge,
+                                                 NodeID *resulting_from_node = nullptr,
+                                                 EdgeID *resulting_via_edge = nullptr) const
+{
+    // This function skips over traffic lights/graph compression issues and similar to find the next
+    // actual intersection
+    Intersection result = GetConnectedRoads(starting_node, via_edge);
+
+    // Skip over stuff that has not been compressed due to barriers/parallel edges
+    NodeID node_at_intersection = starting_node;
+    EdgeID incoming_edge = via_edge;
+
+    // to prevent endless loops
+    const auto termination_node = node_based_graph.GetTarget(via_edge);
+
+    // using a maximum lookahead, we make sure not to end up in some form of loop
+    std::unordered_set<NodeID> visited_nodes;
+    while (visited_nodes.count(node_at_intersection) == 0 &&
+           (result.size() == 2 &&
+            node_based_graph.GetEdgeData(via_edge).IsCompatibleTo(
+                node_based_graph.GetEdgeData(result[1].turn.eid))))
+    {
+        visited_nodes.insert(node_at_intersection);
+        node_at_intersection = node_based_graph.GetTarget(incoming_edge);
+        incoming_edge = result[1].turn.eid;
+        result = GetConnectedRoads(node_at_intersection, incoming_edge);
+
+        // When looping back to the original node, we obviously are in a loop. Stop there.
+        if (termination_node == node_based_graph.GetTarget(incoming_edge))
+            break;
+    }
+
+    // return output if requested
+    if (resulting_from_node)
+        *resulting_from_node = node_at_intersection;
+    if (resulting_via_edge)
+        *resulting_via_edge = incoming_edge;
+
+    return result;
 }
 
 } // namespace guidance

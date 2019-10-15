@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -34,26 +34,27 @@ DEALINGS IN THE SOFTWARE.
 */
 
 #include <algorithm>
+#include <cinttypes>
+#include <cstddef>
+#include <cstdio>
+#include <future>
 #include <iterator>
 #include <memory>
 #include <string>
+#include <thread>
 #include <utility>
 
-#include <osmium/handler.hpp>
 #include <osmium/io/detail/output_format.hpp>
-#include <osmium/io/detail/queue_util.hpp>
-#include <osmium/io/detail/string_util.hpp>
 #include <osmium/io/file.hpp>
 #include <osmium/io/file_format.hpp>
 #include <osmium/io/header.hpp>
 #include <osmium/memory/buffer.hpp>
-#include <osmium/memory/item_iterator.hpp>
+#include <osmium/memory/collection.hpp>
 #include <osmium/osm/box.hpp>
 #include <osmium/osm/changeset.hpp>
 #include <osmium/osm/item_type.hpp>
 #include <osmium/osm/location.hpp>
 #include <osmium/osm/node.hpp>
-#include <osmium/osm/node_ref.hpp>
 #include <osmium/osm/object.hpp>
 #include <osmium/osm/relation.hpp>
 #include <osmium/osm/tag.hpp>
@@ -85,25 +86,7 @@ namespace osmium {
                  */
                 bool use_change_ops;
 
-                /// Should node locations be added to ways?
-                bool locations_on_ways;
             };
-
-            namespace detail {
-
-                inline void append_lat_lon_attributes(std::string& out, const char* lat, const char* lon, const osmium::Location& location) {
-                    out += ' ';
-                    out += lat;
-                    out += "=\"";
-                    osmium::detail::append_location_coordinate_to_string(std::back_inserter(out), location.y());
-                    out += "\" ";
-                    out += lon;
-                    out += "=\"";
-                    osmium::detail::append_location_coordinate_to_string(std::back_inserter(out), location.x());
-                    out += "\"";
-                }
-
-            } // namespace detail
 
             class XMLOutputBlock : public OutputBlock {
 
@@ -133,21 +116,12 @@ namespace osmium {
                     write_spaces(prefix_spaces());
                 }
 
-                template <typename T>
-                void write_attribute(const char* name, T value) {
-                    *m_out += ' ';
-                    *m_out += name;
-                    *m_out += "=\"";
-                    output_int(value);
-                    *m_out += '"';
-                }
-
                 void write_meta(const osmium::OSMObject& object) {
-                    write_attribute("id", object.id());
+                    output_formatted(" id=\"%" PRId64 "\"", object.id());
 
                     if (m_options.add_metadata) {
                         if (object.version()) {
-                            write_attribute("version", object.version());
+                            output_formatted(" version=\"%d\"", object.version());
                         }
 
                         if (object.timestamp()) {
@@ -157,14 +131,13 @@ namespace osmium {
                         }
 
                         if (!object.user_is_anonymous()) {
-                            write_attribute("uid", object.uid());
-                            *m_out += " user=\"";
+                            output_formatted(" uid=\"%d\" user=\"", object.uid());
                             append_xml_encoded_string(*m_out, object.user());
                             *m_out += "\"";
                         }
 
                         if (object.changeset()) {
-                            write_attribute("changeset", object.changeset());
+                            output_formatted(" changeset=\"%d\"", object.changeset());
                         }
 
                         if (m_options.add_visible_flag) {
@@ -189,11 +162,8 @@ namespace osmium {
                 }
 
                 void write_discussion(const osmium::ChangesetDiscussion& comments) {
-                    *m_out += "  <discussion>\n";
                     for (const auto& comment : comments) {
-                        *m_out += "   <comment";
-                        write_attribute("uid", comment.uid());
-                        *m_out += " user=\"";
+                        output_formatted("   <comment uid=\"%d\" user=\"", comment.uid());
                         append_xml_encoded_string(*m_out, comment.user());
                         *m_out += "\" date=\"";
                         *m_out += comment.date().to_iso();
@@ -281,7 +251,11 @@ namespace osmium {
                     write_meta(node);
 
                     if (node.location()) {
-                        detail::append_lat_lon_attributes(*m_out, "lat", "lon", node.location());
+                        *m_out += " lat=\"";
+                        osmium::util::double2string(std::back_inserter(*m_out), node.location().lat_without_check(), 7);
+                        *m_out += "\" lon=\"";
+                        osmium::util::double2string(std::back_inserter(*m_out), node.location().lon_without_check(), 7);
+                        *m_out += "\"";
                     }
 
                     if (node.tags().empty()) {
@@ -313,23 +287,9 @@ namespace osmium {
 
                     *m_out += ">\n";
 
-                    if (m_options.locations_on_ways) {
-                        for (const auto& node_ref : way.nodes()) {
-                            write_prefix();
-                            *m_out += "  <nd";
-                            write_attribute("ref", node_ref.ref());
-                            if (node_ref.location()) {
-                                detail::append_lat_lon_attributes(*m_out, "lat", "lon", node_ref.location());
-                            }
-                            *m_out += "/>\n";
-                        }
-                    } else {
-                        for (const auto& node_ref : way.nodes()) {
-                            write_prefix();
-                            *m_out += "  <nd";
-                            write_attribute("ref", node_ref.ref());
-                            *m_out += "/>\n";
-                        }
+                    for (const auto& node_ref : way.nodes()) {
+                        write_prefix();
+                        output_formatted("  <nd ref=\"%" PRId64 "\"/>\n", node_ref.ref());
                     }
 
                     write_tags(way.tags(), prefix_spaces());
@@ -358,9 +318,7 @@ namespace osmium {
                         write_prefix();
                         *m_out += "  <member type=\"";
                         *m_out += item_type_to_name(member.type());
-                        *m_out += '"';
-                        write_attribute("ref", member.ref());
-                        *m_out += " role=\"";
+                        output_formatted("\" ref=\"%" PRId64 "\" role=\"", member.ref());
                         append_xml_encoded_string(*m_out, member.role());
                         *m_out += "\"/>\n";
                     }
@@ -374,7 +332,7 @@ namespace osmium {
                 void changeset(const osmium::Changeset& changeset) {
                     *m_out += " <changeset";
 
-                    write_attribute("id", changeset.id());
+                    output_formatted(" id=\"%" PRId32 "\"", changeset.id());
 
                     if (changeset.created_at()) {
                         *m_out += " created_at=\"";
@@ -393,21 +351,22 @@ namespace osmium {
                     if (!changeset.user_is_anonymous()) {
                         *m_out += " user=\"";
                         append_xml_encoded_string(*m_out, changeset.user());
-                        *m_out += '"';
-                        write_attribute("uid", changeset.uid());
+                        output_formatted("\" uid=\"%d\"", changeset.uid());
                     }
 
                     if (changeset.bounds()) {
-                        detail::append_lat_lon_attributes(*m_out, "min_lat", "min_lon", changeset.bounds().bottom_left());
-                        detail::append_lat_lon_attributes(*m_out, "max_lat", "max_lon", changeset.bounds().top_right());
+                        output_formatted(" min_lat=\"%.7f\"", changeset.bounds().bottom_left().lat_without_check());
+                        output_formatted(" min_lon=\"%.7f\"", changeset.bounds().bottom_left().lon_without_check());
+                        output_formatted(" max_lat=\"%.7f\"", changeset.bounds().top_right().lat_without_check());
+                        output_formatted(" max_lon=\"%.7f\"", changeset.bounds().top_right().lon_without_check());
                     }
 
-                    write_attribute("num_changes", changeset.num_changes());
-                    write_attribute("comments_count", changeset.num_comments());
+                    output_formatted(" num_changes=\"%" PRId32 "\"", changeset.num_changes());
+                    output_formatted(" comments_count=\"%" PRId32 "\"", changeset.num_comments());
 
                     // If there are no tags and no comments, we can close the
                     // tag right here and are done.
-                    if (changeset.tags().empty() && changeset.discussion().empty()) {
+                    if (changeset.tags().empty() && changeset.num_comments() == 0) {
                         *m_out += "/>\n";
                         return;
                     }
@@ -416,7 +375,8 @@ namespace osmium {
 
                     write_tags(changeset.tags(), 0);
 
-                    if (!changeset.discussion().empty()) {
+                    if (changeset.num_comments() > 0) {
+                        *m_out += "  <discussion>\n";
                         write_discussion(changeset.discussion());
                     }
 
@@ -434,10 +394,9 @@ namespace osmium {
                 XMLOutputFormat(const osmium::io::File& file, future_string_queue_type& output_queue) :
                     OutputFormat(output_queue),
                     m_options() {
-                    m_options.add_metadata      = file.is_not_false("add_metadata");
-                    m_options.use_change_ops    = file.is_true("xml_change_format");
-                    m_options.add_visible_flag  = (file.has_multiple_object_versions() || file.is_true("force_visible_flag")) && !m_options.use_change_ops;
-                    m_options.locations_on_ways = file.is_true("locations_on_ways");
+                    m_options.add_metadata     = file.is_not_false("add_metadata");
+                    m_options.use_change_ops   = file.is_true("xml_change_format");
+                    m_options.add_visible_flag = (file.has_multiple_object_versions() || file.is_true("force_visible_flag")) && !m_options.use_change_ops;
                 }
 
                 XMLOutputFormat(const XMLOutputFormat&) = delete;
@@ -466,9 +425,10 @@ namespace osmium {
 
                     for (const auto& box : header.boxes()) {
                         out += "  <bounds";
-                        detail::append_lat_lon_attributes(out, "minlat", "minlon", box.bottom_left());
-                        detail::append_lat_lon_attributes(out, "maxlat", "maxlon", box.top_right());
-                        out += "/>\n";
+                        append_printf_formatted_string(out, " minlon=\"%.7f\"", box.bottom_left().lon());
+                        append_printf_formatted_string(out, " minlat=\"%.7f\"", box.bottom_left().lat());
+                        append_printf_formatted_string(out, " maxlon=\"%.7f\"", box.top_right().lon());
+                        append_printf_formatted_string(out, " maxlat=\"%.7f\"/>\n", box.top_right().lat());
                     }
 
                     send_to_output_queue(std::move(out));

@@ -75,6 +75,8 @@ template <typename EdgeDataT, bool UseSharedMemory = false> class StaticGraph
         node_array.resize(number_of_nodes + 1);
         EdgeIterator edge = 0;
         EdgeIterator position = 0;
+
+
         for (const auto node : irange(0u, number_of_nodes + 1))
         {
             EdgeIterator last_edge = edge;
@@ -87,6 +89,9 @@ template <typename EdgeDataT, bool UseSharedMemory = false> class StaticGraph
         }
         edge_array.resize(position); //(edge)
         edge = 0;
+
+        unsigned loop_count = 0;
+
         for (const auto node : irange(0u, number_of_nodes))
         {
             EdgeIterator e = node_array[node + 1].first_edge;
@@ -95,8 +100,17 @@ template <typename EdgeDataT, bool UseSharedMemory = false> class StaticGraph
                 edge_array[i].target = graph[edge].target;
                 edge_array[i].data = graph[edge].data;
                 edge++;
+
+                if (graph[edge].target == graph[edge].source) {
+                    loop_count++;
+                }
             }
         }
+
+        std::cout << "loop count: " << loop_count << std::endl;
+
+        util::SimpleLogger().Write(logWARNING)
+                << "loop count: " << loop_count;
     }
 
     StaticGraph(typename ShM<NodeArrayEntry, UseSharedMemory>::vector &nodes,
@@ -148,32 +162,19 @@ template <typename EdgeDataT, bool UseSharedMemory = false> class StaticGraph
         return SPECIAL_EDGEID;
     }
 
-    /**
-     * Finds the edge with the smallest `.weight` going from `from` to `to`
-     * @param from the source node ID
-     * @param to the target node ID
-     * @param filter a functor that returns a `bool` that determines whether an edge should be
-     * tested or not.
-     *   Takes `EdgeData` as a parameter.
-     * @return the ID of the smallest edge if any were found that satisfied *filter*, or
-     * `SPECIAL_EDGEID` if no
-     *   matching edge is found.
-     */
-    template <typename FilterFunction>
-    EdgeIterator
-    FindSmallestEdge(const NodeIterator from, const NodeIterator to, FilterFunction &&filter) const
+    // searches for a specific edge
+    EdgeIterator FindSmallestEdge(const NodeIterator from, const NodeIterator to) const
     {
         EdgeIterator smallest_edge = SPECIAL_EDGEID;
         EdgeWeight smallest_weight = INVALID_EDGE_WEIGHT;
         for (auto edge : GetAdjacentEdgeRange(from))
         {
             const NodeID target = GetTarget(edge);
-            const auto &data = GetEdgeData(edge);
-            if (target == to && data.weight < smallest_weight &&
-                std::forward<FilterFunction>(filter)(data))
+            const EdgeWeight weight = GetEdgeData(edge).distance;
+            if (target == to && weight < smallest_weight)
             {
                 smallest_edge = edge;
-                smallest_weight = data.weight;
+                smallest_weight = weight;
             }
         }
         return smallest_edge;

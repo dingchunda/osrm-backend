@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-set -o errexit
-set -o pipefail
-set -o nounset
-
 # Runs the Clang Modernizer in parallel on the code base.
 # Requires a compilation database in the build directory.
 

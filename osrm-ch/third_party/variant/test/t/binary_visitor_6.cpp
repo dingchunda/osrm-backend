@@ -1,5 +1,5 @@
 
-#include <mapbox/variant.hpp>
+#include "variant.hpp"
 
 #define NAME_EXT " b-i-i-d-c-u"
 using variant_type = mapbox::util::variant<bool, int, int, double, char, short int>;

@@ -2,7 +2,6 @@
 #define OSRM_EXTRACTOR_GUIDANCE_ROUNDABOUT_HANDLER_HPP_
 
 #include "extractor/compressed_edge_container.hpp"
-#include "extractor/guidance/coordinate_extractor.hpp"
 #include "extractor/guidance/intersection.hpp"
 #include "extractor/guidance/intersection_generator.hpp"
 #include "extractor/guidance/intersection_handler.hpp"
@@ -14,7 +13,8 @@
 #include "util/node_based_graph.hpp"
 #include "util/typedefs.hpp"
 
-#include <unordered_set>
+#include <set>
+#include <utility>
 #include <vector>
 
 namespace osrm
@@ -82,13 +82,10 @@ class RoundaboutHandler : public IntersectionHandler
                                    const bool can_exit_roundabout,
                                    Intersection intersection) const;
 
-    bool
-    qualifiesAsRoundaboutIntersection(const std::unordered_set<NodeID> &roundabout_nodes) const;
+    bool qualifiesAsRoundaboutIntersection(const std::set<NodeID> &roundabout_nodes) const;
 
     const CompressedEdgeContainer &compressed_edge_container;
     const ProfileProperties &profile_properties;
-
-    const CoordinateExtractor coordinate_extractor;
 };
 
 } // namespace guidance

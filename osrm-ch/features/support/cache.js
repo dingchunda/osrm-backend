@@ -103,7 +103,6 @@ module.exports = function() {
         this.rasterCacheFile = this.getRasterCacheFile(this.featureProcessedCacheDirectory, scenarioID);
         this.speedsCacheFile = this.getSpeedsCacheFile(this.featureProcessedCacheDirectory, scenarioID);
         this.penaltiesCacheFile = this.getPenaltiesCacheFile(this.featureProcessedCacheDirectory, scenarioID);
-        this.profileCacheFile = this.getProfileCacheFile(this.featureProcessedCacheDirectory, scenarioID);
     };
 
     // returns a hash of all OSRM code side dependencies
@@ -141,9 +140,7 @@ module.exports = function() {
 
     // converts the scenario titles in file prefixes
     this.getScenarioID = (scenario) => {
-        let name = scenario.getName().toLowerCase().replace(/[\/\-'=,\(\):\*#]/g, '')
-            .replace(/\s/g, '_').replace(/__/g, '_').replace(/\.\./g, '.')
-            .substring(0, 64);
+        let name = scenario.getName().toLowerCase().replace(/[\/\-'=,\(\)]/g, '').replace(/\s/g, '_').replace(/__/g, '_').replace(/\.\./g, '.');
         return util.format('%d_%s', scenario.getLine(), name);
     };
 
@@ -160,11 +157,6 @@ module.exports = function() {
     // test/cache/{feature_path}/{feature_hash}/{scenario}_penalties.csv
     this.getPenaltiesCacheFile = (featureCacheDirectory, scenarioID) => {
         return path.join(featureCacheDirectory, scenarioID) + '_penalties.csv';
-    };
-
-    // test/cache/{feature_path}/{feature_hash}/{scenario}_profile.lua
-    this.getProfileCacheFile = (featureCacheDirectory, scenarioID) => {
-        return path.join(featureCacheDirectory, scenarioID) + '_profile.lua';
     };
 
     // test/cache/{feature_path}/{feature_hash}/{scenario}.osm

@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -35,7 +35,6 @@ DEALINGS IN THE SOFTWARE.
 
 #include <cassert>
 #include <cerrno>
-#include <cstddef>
 #include <stdexcept>
 #include <system_error>
 
@@ -94,15 +93,14 @@ namespace osmium {
          */
         class MemoryMapping {
 
-        public:
-
+public:
             enum class mapping_mode {
                 readonly      = 0,
                 write_private = 1,
                 write_shared  = 2
             };
 
-        private:
+private:
 
             /// The size of the mapping
             size_t m_size;
@@ -128,18 +126,22 @@ namespace osmium {
             void make_invalid() noexcept;
 
 #ifdef _WIN32
-            using flag_type = DWORD;
+            typedef DWORD flag_type;
 #else
-            using flag_type = int;
+            typedef int flag_type;
 #endif
 
             flag_type get_protection() const noexcept;
 
             flag_type get_flags() const noexcept;
 
-            static size_t check_size(size_t size) {
+            // A zero-sized mapping is not allowed by the operating system.
+            // So if the user asks for a mapping of size 0, we map a full
+            // page instead. This way we don't have a special case in the rest
+            // of the code.
+            static size_t initial_size(size_t size) {
                 if (size == 0) {
-                    throw std::runtime_error("Zero-sized mapping is not allowed.");
+                    return osmium::util::get_pagesize();
                 }
                 return size;
             }
@@ -216,7 +218,7 @@ namespace osmium {
             ~MemoryMapping() noexcept {
                 try {
                     unmap();
-                } catch (const std::system_error&) {
+                } catch (std::system_error&) {
                     // Ignore any exceptions because destructor must not throw.
                 }
             }
@@ -304,7 +306,7 @@ namespace osmium {
 
         public:
 
-            explicit AnonymousMemoryMapping(size_t size) :
+            AnonymousMemoryMapping(size_t size) :
                 MemoryMapping(size, mapping_mode::write_private) {
             }
 
@@ -340,7 +342,7 @@ namespace osmium {
              * @param size Number of objects of type T to be mapped
              * @throws std::system_error if the mapping fails
              */
-            explicit TypedMemoryMapping(size_t size) :
+            TypedMemoryMapping(size_t size) :
                 m_mapping(sizeof(T) * size, MemoryMapping::mapping_mode::write_private) {
             }
 
@@ -489,7 +491,7 @@ namespace osmium {
 
         public:
 
-            explicit AnonymousTypedMemoryMapping(size_t size) :
+            AnonymousTypedMemoryMapping(size_t size) :
                 TypedMemoryMapping<T>(size) {
             }
 
@@ -548,7 +550,7 @@ inline int osmium::util::MemoryMapping::get_flags() const noexcept {
 }
 
 inline osmium::util::MemoryMapping::MemoryMapping(size_t size, mapping_mode mode, int fd, off_t offset) :
-    m_size(check_size(size)),
+    m_size(initial_size(size)),
     m_offset(offset),
     m_fd(resize_fd(fd)),
     m_mapping_mode(mode),
@@ -687,7 +689,7 @@ inline void osmium::util::MemoryMapping::make_invalid() noexcept {
 }
 
 inline osmium::util::MemoryMapping::MemoryMapping(size_t size, MemoryMapping::mapping_mode mode, int fd, off_t offset) :
-    m_size(check_size(size)),
+    m_size(initial_size(size)),
     m_offset(offset),
     m_fd(resize_fd(fd)),
     m_mapping_mode(mode),

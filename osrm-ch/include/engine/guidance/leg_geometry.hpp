@@ -37,9 +37,8 @@ struct LegGeometry
     // Per-coordinate metadata
     struct Annotation
     {
-        double distance; // distance in meters
-        double duration; // duration in seconds
-        double weight;   // weight value
+        double distance;
+        double duration;
         DatasourceID datasource;
     };
     std::vector<Annotation> annotations;

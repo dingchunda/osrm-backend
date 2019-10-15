@@ -6,9 +6,7 @@ Feature: Handle bad data in a graceful manner
 
     Scenario: Empty dataset
         Given the node map
-            """
-
-            """
+            |  |
 
         Given the ways
             | nodes |
@@ -18,9 +16,7 @@ Feature: Handle bad data in a graceful manner
 
     Scenario: Only dead-end oneways
         Given the node map
-            """
-            a b c d e
-            """
+            | a | b | c | d | e |
 
         Given the ways
             | nodes | oneway |
@@ -33,10 +29,8 @@ Feature: Handle bad data in a graceful manner
     @todo
     Scenario: Start/end point at the same location
         Given the node map
-            """
-            a b
-            1 2
-            """
+            | a | b |
+            | 1 | 2 |
 
         Given the ways
             | nodes |

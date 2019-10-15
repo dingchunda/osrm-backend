@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -33,7 +33,6 @@ DEALINGS IN THE SOFTWARE.
 
 */
 
-#include <limits>
 #include <type_traits>
 
 #include <osmium/handler.hpp>
@@ -51,7 +50,7 @@ namespace osmium {
 
     namespace handler {
 
-        using dummy_type = osmium::index::map::Dummy<osmium::unsigned_object_id_type, osmium::Location>;
+        typedef osmium::index::map::Dummy<osmium::unsigned_object_id_type, osmium::Location> dummy_type;
 
         /**
          * Handler to retrieve locations from nodes and add them to ways.
@@ -70,8 +69,8 @@ namespace osmium {
 
         public:
 
-            using index_pos_type = TStoragePosIDs;
-            using index_neg_type = TStorageNegIDs;
+            typedef TStoragePosIDs index_pos_type;
+            typedef TStorageNegIDs index_neg_type;
 
         private:
 
@@ -81,11 +80,9 @@ namespace osmium {
             /// Object that handles the actual storage of the node locations (with negative IDs).
             TStorageNegIDs& m_storage_neg;
 
-            osmium::unsigned_object_id_type m_last_id{0};
+            bool m_ignore_errors {false};
 
-            bool m_ignore_errors{false};
-
-            bool m_must_sort{false};
+            bool m_must_sort {false};
 
             // It is okay to have this static dummy instance, even when using several threads,
             // because it is read-only.
@@ -118,11 +115,7 @@ namespace osmium {
              * Store the location of the node in the storage.
              */
             void node(const osmium::Node& node) {
-                if (node.positive_id() < m_last_id) {
-                    m_must_sort = true;
-                }
-                m_last_id = node.positive_id();
-
+                m_must_sort = true;
                 const osmium::object_id_type id = node.id();
                 if (id >= 0) {
                     m_storage_pos.set(static_cast<osmium::unsigned_object_id_type>( id), node.location());
@@ -151,7 +144,6 @@ namespace osmium {
                     m_storage_pos.sort();
                     m_storage_neg.sort();
                     m_must_sort = false;
-                    m_last_id = std::numeric_limits<osmium::unsigned_object_id_type>::max();
                 }
                 bool error = false;
                 for (auto& node_ref : way.nodes()) {
@@ -160,12 +152,12 @@ namespace osmium {
                         if (!node_ref.location()) {
                             error = true;
                         }
-                    } catch (const osmium::not_found&) {
+                    } catch (osmium::not_found&) {
                         error = true;
                     }
                 }
                 if (error && !m_ignore_errors) {
-                    throw osmium::not_found{"location for one or more nodes not found in node location index"};
+                    throw osmium::not_found("location for one or more nodes not found in node location index");
                 }
             }
 

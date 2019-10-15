@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -41,14 +41,12 @@ DEALINGS IN THE SOFTWARE.
 namespace osmium {
 
     namespace builder {
-        template <typename TDerived, typename T>
-        class OSMObjectBuilder;
+        template <typename T> class ObjectBuilder;
     } // namespace builder
 
     class Node : public OSMObject {
 
-        template <typename TDerived, typename T>
-        friend class osmium::builder::OSMObjectBuilder;
+        friend class osmium::builder::ObjectBuilder<osmium::Node>;
 
         osmium::Location m_location;
 
@@ -60,15 +58,11 @@ namespace osmium {
 
         static constexpr osmium::item_type itemtype = osmium::item_type::node;
 
-        constexpr static bool is_compatible_to(osmium::item_type t) noexcept {
-            return t == itemtype;
-        }
-
         osmium::Location location() const noexcept {
             return m_location;
         }
 
-        Node& set_location(const osmium::Location& location) noexcept {
+        Node& set_location(const osmium::Location& location) {
             m_location = location;
             return *this;
         }

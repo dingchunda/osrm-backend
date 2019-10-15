@@ -1,91 +1,88 @@
 #include "util/name_table.hpp"
-#include "storage/io.hpp"
-#include "util/log.hpp"
+#include "util/exception.hpp"
+#include "util/simple_logger.hpp"
+
+#include <algorithm>
+#include <fstream>
+#include <limits>
+
+#include <boost/filesystem/fstream.hpp>
 
 namespace osrm
 {
 namespace util
 {
 
-NameTable::NameTable(const std::string &file_name)
+NameTable::NameTable(const std::string &filename)
 {
-    using FileReader = storage::io::FileReader;
+    boost::filesystem::ifstream name_stream(filename, std::ios::binary);
 
-    FileReader name_stream_file_reader(file_name, FileReader::HasNoFingerprint);
-    const auto file_size = name_stream_file_reader.GetSize();
+    if (!name_stream)
+        throw exception("Failed to open " + filename + " for reading.");
 
-    m_buffer = BufferType(static_cast<ValueType *>(::operator new(file_size)),
-                          [](void *ptr) { ::operator delete(ptr); });
-    name_stream_file_reader.ReadInto<char>(m_buffer.get(), file_size);
-    m_name_table.reset(m_buffer.get(), m_buffer.get() + file_size);
+    name_stream >> m_name_table;
 
-    if (m_name_table.empty())
+    if (!name_stream)
+        throw exception("Unable to deserialize RangeTable for NameTable");
+
+    unsigned number_of_chars = 0;
+    name_stream.read(reinterpret_cast<char *>(&number_of_chars), sizeof(number_of_chars));
+    if (!name_stream)
+        throw exception("Encountered invalid file, failed to read number of contained chars");
+
+    m_names_char_list.resize(number_of_chars + 1); //+1 gives sentinel element
+    m_names_char_list.back() = 0;
+    if (number_of_chars > 0)
     {
-        util::Log() << "list of street names is empty in construction of name table from: \""
-                    << file_name << "\"";
+        name_stream.read(reinterpret_cast<char *>(&m_names_char_list[0]),
+                         number_of_chars * sizeof(m_names_char_list[0]));
     }
+    else
+    {
+        util::SimpleLogger().Write(logINFO)
+            << "list of street names is empty in construction of name table from: \"" << filename
+            << "\"";
+    }
+    if (!name_stream)
+        throw exception("Failed to read " + std::to_string(number_of_chars) + " characters from " +
+                        filename);
 }
 
-void NameTable::reset(ValueType *begin, ValueType *end)
+std::string NameTable::GetNameForID(const unsigned name_id) const
 {
-    m_buffer.reset();
-    m_name_table.reset(begin, end);
+    if (std::numeric_limits<unsigned>::max() == name_id)
+    {
+        return "";
+    }
+    auto range = m_name_table.GetRange(name_id);
+
+    std::string result;
+    result.reserve(range.size());
+    if (range.begin() != range.end())
+    {
+        result.resize(range.back() - range.front() + 1);
+        std::copy(m_names_char_list.begin() + range.front(),
+                  m_names_char_list.begin() + range.back() + 1,
+                  result.begin());
+    }
+    return result;
 }
 
-StringView NameTable::GetNameForID(const NameID id) const
+std::string NameTable::GetRefForID(const unsigned name_id) const
 {
-    if (id == INVALID_NAMEID)
-        return {};
-
-    return m_name_table.at(id);
-}
-
-StringView NameTable::GetDestinationsForID(const NameID id) const
-{
-    if (id == INVALID_NAMEID)
-        return {};
-
-    return m_name_table.at(id + 1);
-}
-
-StringView NameTable::GetRefForID(const NameID id) const
-{
-    if (id == INVALID_NAMEID)
-        return {};
-
-    // Way string data is stored in blocks based on `id` as follows:
+    // Way string data is stored in blocks based on `name_id` as follows:
     //
     // | name | destination | pronunciation | ref |
     //                                      ^     ^
     //                                      [range)
-    //                                       ^ id + 3
+    //                                       ^ name_id + 3
     //
-    // `id + offset` gives us the range of chars.
+    // `name_id + offset` gives us the range of chars.
     //
     // Offset 0 is name, 1 is destination, 2 is pronunciation, 3 is ref.
     // See datafacades and extractor callbacks for details.
     const constexpr auto OFFSET_REF = 3u;
-    return m_name_table.at(id + OFFSET_REF);
-}
-
-StringView NameTable::GetPronunciationForID(const NameID id) const
-{
-    if (id == INVALID_NAMEID)
-        return {};
-
-    // Way string data is stored in blocks based on `id` as follows:
-    //
-    // | name | destination | pronunciation | ref |
-    //                      ^               ^
-    //                      [range)
-    //                       ^ id + 2
-    //
-    // `id + offset` gives us the range of chars.
-    //
-    // Offset 0 is name, 1 is destination, 2 is pronunciation, 3 is ref.
-    // See datafacades and extractor callbacks for details.
-    const constexpr auto OFFSET_PRONUNCIATION = 2u;
-    return m_name_table.at(id + OFFSET_PRONUNCIATION);
+    return GetNameForID(name_id + OFFSET_REF);
 }
 
 } // namespace util

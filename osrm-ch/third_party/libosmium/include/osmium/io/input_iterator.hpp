@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -41,6 +41,7 @@ DEALINGS IN THE SOFTWARE.
 
 #include <osmium/memory/buffer.hpp>
 #include <osmium/memory/item.hpp>
+#include <osmium/util/compatibility.hpp>
 
 namespace osmium {
 
@@ -56,7 +57,7 @@ namespace osmium {
 
             static_assert(std::is_base_of<osmium::memory::Item, TItem>::value, "TItem must derive from osmium::buffer::Item");
 
-            using item_iterator = typename osmium::memory::Buffer::t_iterator<TItem>;
+            typedef typename osmium::memory::Buffer::t_iterator<TItem> item_iterator;
 
             TSource* m_source;
             std::shared_ptr<osmium::memory::Buffer> m_buffer;
@@ -68,20 +69,20 @@ namespace osmium {
                     if (!m_buffer || !*m_buffer) { // end of input
                         m_source = nullptr;
                         m_buffer.reset();
-                        m_iter = item_iterator{};
+                        m_iter = item_iterator();
                         return;
                     }
-                    m_iter = m_buffer->select<TItem>().begin();
-                } while (m_iter == m_buffer->select<TItem>().end());
+                    m_iter = m_buffer->begin<TItem>();
+                } while (m_iter == m_buffer->end<TItem>());
             }
 
         public:
 
-            using iterator_category = std::input_iterator_tag;
-            using value_type        = TItem;
-            using difference_type   = ptrdiff_t;
-            using pointer           = value_type*;
-            using reference         = value_type&;
+            typedef std::input_iterator_tag iterator_category;
+            typedef TItem                   value_type;
+            typedef ptrdiff_t               difference_type;
+            typedef TItem*                  pointer;
+            typedef TItem&                  reference;
 
             explicit InputIterator(TSource& source) :
                 m_source(&source) {
@@ -98,7 +99,7 @@ namespace osmium {
                 assert(m_buffer);
                 assert(m_iter);
                 ++m_iter;
-                if (m_iter == m_buffer->select<TItem>().end()) {
+                if (m_iter == m_buffer->end<TItem>()) {
                     update_buffer();
                 }
                 return *this;

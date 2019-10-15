@@ -2,6 +2,7 @@
 #define OSRM_EXTRACTOR_GUIDANCE_TURN_LANE_HANDLER_HPP_
 
 #include "extractor/guidance/intersection.hpp"
+#include "extractor/guidance/toolkit.hpp"
 #include "extractor/guidance/turn_analysis.hpp"
 #include "extractor/guidance/turn_lane_data.hpp"
 #include "extractor/guidance/turn_lane_types.hpp"
@@ -72,8 +73,9 @@ class TurnLaneHandler
                     std::vector<std::uint32_t> &turn_lane_offsets,
                     std::vector<TurnLaneType::Mask> &turn_lane_masks,
                     LaneDescriptionMap &lane_description_map,
+                    const std::vector<QueryNode> &node_info_list,
                     const TurnAnalysis &turn_analysis,
-                    util::guidance::LaneDataIdMap &id_map);
+                    LaneDataIdMap &id_map);
 
     ~TurnLaneHandler();
 
@@ -89,8 +91,9 @@ class TurnLaneHandler
     std::vector<std::uint32_t> &turn_lane_offsets;
     std::vector<TurnLaneType::Mask> &turn_lane_masks;
     LaneDescriptionMap &lane_description_map;
+    const std::vector<QueryNode> &node_info_list;
     const TurnAnalysis &turn_analysis;
-    util::guidance::LaneDataIdMap &id_map;
+    LaneDataIdMap &id_map;
 
     // Find out which scenario we have to handle
     TurnLaneScenario deduceScenario(const NodeID at,

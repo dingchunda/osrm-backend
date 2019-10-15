@@ -2,8 +2,7 @@
 #define SHARED_MEMORY_HPP
 
 #include "util/exception.hpp"
-#include "util/exception_utils.hpp"
-#include "util/log.hpp"
+#include "util/simple_logger.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -19,11 +18,11 @@
 #include <sys/shm.h>
 #endif
 
+// #include <cstring>
 #include <cstdint>
 
 #include <algorithm>
 #include <exception>
-#include <thread>
 
 namespace osrm
 {
@@ -43,6 +42,39 @@ struct OSRMLockFile
 #ifndef _WIN32
 class SharedMemory
 {
+
+    // Remove shared memory on destruction
+    class shm_remove
+    {
+      private:
+        int m_shmid;
+        bool m_initialized;
+
+      public:
+        void SetID(int shmid)
+        {
+            m_shmid = shmid;
+            m_initialized = true;
+        }
+
+        shm_remove() : m_shmid(INT_MIN), m_initialized(false) {}
+
+        shm_remove(const shm_remove &) = delete;
+        shm_remove &operator=(const shm_remove &) = delete;
+
+        ~shm_remove()
+        {
+            if (m_initialized)
+            {
+                util::SimpleLogger().Write(logDEBUG) << "automatic memory deallocation";
+                if (!boost::interprocess::xsi_shared_memory::remove(m_shmid))
+                {
+                    util::SimpleLogger().Write(logDEBUG) << "could not deallocate id " << m_shmid;
+                }
+            }
+        }
+    };
+
   public:
     void *Ptr() const { return region.get_address(); }
 
@@ -52,35 +84,42 @@ class SharedMemory
     template <typename IdentifierT>
     SharedMemory(const boost::filesystem::path &lock_file,
                  const IdentifierT id,
-                 const uint64_t size = 0)
+                 const uint64_t size = 0,
+                 bool read_write = false,
+                 bool remove_prev = true)
         : key(lock_file.string().c_str(), id)
     {
-        // open only
         if (0 == size)
-        {
+        { // read_only
             shm = boost::interprocess::xsi_shared_memory(boost::interprocess::open_only, key);
 
-            util::Log(logDEBUG) << "opening " << shm.get_shmid() << " from id " << id;
-
-            region = boost::interprocess::mapped_region(shm, boost::interprocess::read_only);
+            region = boost::interprocess::mapped_region(
+                shm,
+                (read_write ? boost::interprocess::read_write : boost::interprocess::read_only));
         }
-        // open or create
         else
-        {
+        { // writeable pointer
+            // remove previously allocated mem
+            if (remove_prev)
+            {
+                Remove(key);
+            }
             shm = boost::interprocess::xsi_shared_memory(
                 boost::interprocess::open_or_create, key, size);
-            util::Log(logDEBUG) << "opening/creating " << shm.get_shmid() << " from id " << id
-                                << " with size " << size;
 #ifdef __linux__
             if (-1 == shmctl(shm.get_shmid(), SHM_LOCK, nullptr))
             {
                 if (ENOMEM == errno)
                 {
-                    util::Log(logWARNING) << "could not lock shared memory to RAM";
+                    util::SimpleLogger().Write(logWARNING) << "could not lock shared memory to RAM";
                 }
             }
 #endif
             region = boost::interprocess::mapped_region(shm, boost::interprocess::read_write);
+
+            remover.SetID(shm.get_shmid());
+            util::SimpleLogger().Write(logDEBUG) << "writeable memory allocated " << size
+                                                 << " bytes";
         }
     }
 
@@ -107,57 +146,6 @@ class SharedMemory
         return Remove(key);
     }
 
-#ifdef __linux__
-    void WaitForDetach()
-    {
-        auto shmid = shm.get_shmid();
-        ::shmid_ds xsi_ds;
-        const auto errorToMessage = [](int error) -> std::string {
-            switch (error)
-            {
-            case EPERM:
-                return "EPERM";
-                break;
-            case EACCES:
-                return "ACCESS";
-                break;
-            case EINVAL:
-                return "EINVAL";
-                break;
-            case EFAULT:
-                return "EFAULT";
-                break;
-            default:
-                return "Unknown Error " + std::to_string(error);
-                break;
-            }
-        };
-
-        do
-        {
-            // On OSX this returns EINVAL for whatever reason, hence we need to disable it
-            int ret = ::shmctl(shmid, IPC_STAT, &xsi_ds);
-            if (ret < 0)
-            {
-                auto error_code = errno;
-                throw util::exception("shmctl encountered an error: " + errorToMessage(error_code) +
-                                      SOURCE_REF);
-            }
-            BOOST_ASSERT(ret >= 0);
-
-            std::this_thread::sleep_for(std::chrono::microseconds(100));
-        } while (xsi_ds.shm_nattch > 1);
-    }
-#else
-    void WaitForDetach()
-    {
-        util::Log(logWARNING)
-            << "Shared memory support for non-Linux systems does not wait for clients to "
-               "dettach. Going to sleep for 50ms.";
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
-#endif
-
   private:
     static bool RegionExists(const boost::interprocess::xsi_key &key)
     {
@@ -166,28 +154,36 @@ class SharedMemory
         {
             boost::interprocess::xsi_shared_memory shm(boost::interprocess::open_only, key);
         }
+        catch (...)
+        {
+            result = false;
+        }
+        return result;
+    }
+
+    static bool Remove(const boost::interprocess::xsi_key &key)
+    {
+        bool ret = false;
+        try
+        {
+            util::SimpleLogger().Write(logDEBUG) << "deallocating prev memory";
+            boost::interprocess::xsi_shared_memory xsi(boost::interprocess::open_only, key);
+            ret = boost::interprocess::xsi_shared_memory::remove(xsi.get_shmid());
+        }
         catch (const boost::interprocess::interprocess_exception &e)
         {
             if (e.get_error_code() != boost::interprocess::not_found_error)
             {
                 throw;
             }
-            result = false;
         }
-
-        return result;
-    }
-
-    static bool Remove(const boost::interprocess::xsi_key &key)
-    {
-        boost::interprocess::xsi_shared_memory xsi(boost::interprocess::open_only, key);
-        util::Log(logDEBUG) << "deallocating prev memory " << xsi.get_shmid();
-        return boost::interprocess::xsi_shared_memory::remove(xsi.get_shmid());
+        return ret;
     }
 
     boost::interprocess::xsi_key key;
     boost::interprocess::xsi_shared_memory shm;
     boost::interprocess::mapped_region region;
+    shm_remove remover;
 };
 #else
 // Windows - specific code
@@ -195,27 +191,72 @@ class SharedMemory
 {
     SharedMemory(const SharedMemory &) = delete;
     SharedMemory &operator=(const SharedMemory &) = delete;
+    // Remove shared memory on destruction
+    class shm_remove
+    {
+      private:
+        char *m_shmid;
+        bool m_initialized;
+
+      public:
+        void SetID(char *shmid)
+        {
+            m_shmid = shmid;
+            m_initialized = true;
+        }
+
+        shm_remove() : m_shmid("undefined"), m_initialized(false) {}
+
+        shm_remove(const shm_remove &) = delete;
+        shm_remove &operator=(const shm_remove &) = delete;
+
+        ~shm_remove()
+        {
+            if (m_initialized)
+            {
+                util::SimpleLogger().Write(logDEBUG) << "automatic memory deallocation";
+                if (!boost::interprocess::shared_memory_object::remove(m_shmid))
+                {
+                    util::SimpleLogger().Write(logDEBUG) << "could not deallocate id " << m_shmid;
+                }
+            }
+        }
+    };
 
   public:
     void *Ptr() const { return region.get_address(); }
 
-    SharedMemory(const boost::filesystem::path &lock_file, const int id, const uint64_t size = 0)
+    SharedMemory(const boost::filesystem::path &lock_file,
+                 const int id,
+                 const uint64_t size = 0,
+                 bool read_write = false,
+                 bool remove_prev = true)
     {
         sprintf(key, "%s.%d", "osrm.lock", id);
         if (0 == size)
         { // read_only
             shm = boost::interprocess::shared_memory_object(
-                boost::interprocess::open_only, key, boost::interprocess::read_only);
-            region = boost::interprocess::mapped_region(shm, boost::interprocess::read_only);
+                boost::interprocess::open_only,
+                key,
+                read_write ? boost::interprocess::read_write : boost::interprocess::read_only);
+            region = boost::interprocess::mapped_region(
+                shm, read_write ? boost::interprocess::read_write : boost::interprocess::read_only);
         }
         else
         { // writeable pointer
+            // remove previously allocated mem
+            if (remove_prev)
+            {
+                Remove(key);
+            }
             shm = boost::interprocess::shared_memory_object(
                 boost::interprocess::open_or_create, key, boost::interprocess::read_write);
             shm.truncate(size);
             region = boost::interprocess::mapped_region(shm, boost::interprocess::read_write);
 
-            util::Log(logDEBUG) << "writeable memory allocated " << size << " bytes";
+            remover.SetID(key);
+            util::SimpleLogger().Write(logDEBUG) << "writeable memory allocated " << size
+                                                 << " bytes";
         }
     }
 
@@ -242,14 +283,6 @@ class SharedMemory
         return Remove(k);
     }
 
-    void WaitForDetach()
-    {
-        // FIXME this needs an implementation for Windows
-        util::Log(logWARNING) << "Shared memory support for Windows does not wait for clients to "
-                                 "dettach. Going to sleep for 50ms.";
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
-
   private:
     static void build_key(int id, char *key) { sprintf(key, "%s.%d", "osrm.lock", id); }
 
@@ -270,18 +303,34 @@ class SharedMemory
 
     static bool Remove(char *key)
     {
-        util::Log(logDEBUG) << "deallocating prev memory for key " << key;
-        return boost::interprocess::shared_memory_object::remove(key);
+        bool ret = false;
+        try
+        {
+            util::SimpleLogger().Write(logDEBUG) << "deallocating prev memory";
+            ret = boost::interprocess::shared_memory_object::remove(key);
+        }
+        catch (const boost::interprocess::interprocess_exception &e)
+        {
+            if (e.get_error_code() != boost::interprocess::not_found_error)
+            {
+                throw;
+            }
+        }
+        return ret;
     }
 
     char key[500];
     boost::interprocess::shared_memory_object shm;
     boost::interprocess::mapped_region region;
+    shm_remove remover;
 };
 #endif
 
 template <typename IdentifierT, typename LockFileT = OSRMLockFile>
-std::unique_ptr<SharedMemory> makeSharedMemory(const IdentifierT &id, const uint64_t size = 0)
+SharedMemory *makeSharedMemory(const IdentifierT &id,
+                               const uint64_t size = 0,
+                               bool read_write = false,
+                               bool remove_prev = true)
 {
     try
     {
@@ -290,20 +339,20 @@ std::unique_ptr<SharedMemory> makeSharedMemory(const IdentifierT &id, const uint
         {
             if (0 == size)
             {
-                throw util::exception("lock file does not exist, exiting" + SOURCE_REF);
+                throw util::exception("lock file does not exist, exiting");
             }
             else
             {
                 boost::filesystem::ofstream ofs(lock_file());
             }
         }
-        return std::make_unique<SharedMemory>(lock_file(), id, size);
+        return new SharedMemory(lock_file(), id, size, read_write, remove_prev);
     }
     catch (const boost::interprocess::interprocess_exception &e)
     {
-        util::Log(logERROR) << "Error while attempting to allocate shared memory: " << e.what()
-                            << ", code " << e.get_error_code();
-        throw util::exception(e.what() + SOURCE_REF);
+        util::SimpleLogger().Write(logWARNING) << "caught exception: " << e.what() << ", code "
+                                               << e.get_error_code();
+        throw util::exception(e.what());
     }
 }
 }

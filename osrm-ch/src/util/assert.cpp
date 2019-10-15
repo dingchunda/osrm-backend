@@ -2,18 +2,14 @@
 
 #include <exception>
 #include <iostream>
-#include <thread>
 
 namespace
 {
 // We hard-abort on assertion violations.
-[[noreturn]] void assertion_failed_msg_helper(
+void assertion_failed_msg_helper(
     char const *expr, char const *msg, char const *function, char const *file, long line)
 {
-    const auto tid = std::this_thread::get_id();
-
-    std::cerr << "[assert][" << tid << "] " << file << ":" << line << "\nin: " << function << ": "
-              << expr << "\n"
+    std::cerr << "[assert] " << file << ":" << line << "\nin: " << function << ": " << expr << "\n"
               << msg;
     std::terminate();
 }

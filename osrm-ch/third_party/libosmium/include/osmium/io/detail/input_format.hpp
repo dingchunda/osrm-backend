@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -38,11 +38,11 @@ DEALINGS IN THE SOFTWARE.
 #include <future>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
 #include <osmium/io/detail/queue_util.hpp>
-#include <osmium/io/error.hpp>
 #include <osmium/io/file.hpp>
 #include <osmium/io/file_format.hpp>
 #include <osmium/io/header.hpp>
@@ -55,17 +55,12 @@ namespace osmium {
 
         namespace detail {
 
-            struct reader_options {
-                osmium::osm_entity_bits::type read_which_entities = osm_entity_bits::all;
-                osmium::io::read_meta read_metadata = read_meta::yes;
-            };
-
             class Parser {
 
                 future_buffer_queue_type& m_output_queue;
                 std::promise<osmium::io::Header>& m_header_promise;
                 queue_wrapper<std::string> m_input_queue;
-                reader_options m_options;
+                osmium::osm_entity_bits::type m_read_types;
                 bool m_header_is_done;
 
             protected:
@@ -78,15 +73,11 @@ namespace osmium {
                     return m_input_queue.has_reached_end_of_data();
                 }
 
-                osmium::osm_entity_bits::type read_types() const noexcept {
-                    return m_options.read_which_entities;
+                osmium::osm_entity_bits::type read_types() const {
+                    return m_read_types;
                 }
 
-                osmium::io::read_meta read_metadata() const noexcept {
-                    return m_options.read_metadata;
-                }
-
-                bool header_is_done() const noexcept {
+                bool header_is_done() const {
                     return m_header_is_done;
                 }
 
@@ -120,11 +111,11 @@ namespace osmium {
                 Parser(future_string_queue_type& input_queue,
                        future_buffer_queue_type& output_queue,
                        std::promise<osmium::io::Header>& header_promise,
-                       osmium::io::detail::reader_options options) :
+                       osmium::osm_entity_bits::type read_types) :
                     m_output_queue(output_queue),
                     m_header_promise(header_promise),
                     m_input_queue(input_queue),
-                    m_options(options),
+                    m_read_types(read_types),
                     m_header_is_done(false) {
                 }
 
@@ -163,14 +154,18 @@ namespace osmium {
 
             public:
 
-                using create_parser_type = std::function<std::unique_ptr<Parser>(future_string_queue_type&,
-                                                                                 future_buffer_queue_type&,
-                                                                                 std::promise<osmium::io::Header>& header_promise,
-                                                                                 osmium::io::detail::reader_options options)>;
+                typedef std::function<
+                            std::unique_ptr<Parser>(
+                                future_string_queue_type&,
+                                future_buffer_queue_type&,
+                                std::promise<osmium::io::Header>& header_promise,
+                                osmium::osm_entity_bits::type read_which_entities
+                            )
+                        > create_parser_type;
 
             private:
 
-                using map_type = std::map<osmium::io::file_format, create_parser_type>;
+                typedef std::map<osmium::io::file_format, create_parser_type> map_type;
 
                 map_type m_callbacks;
 

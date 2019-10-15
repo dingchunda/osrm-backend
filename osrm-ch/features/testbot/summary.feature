@@ -8,9 +8,7 @@ Feature: Basic Routing
     @smallest
     Scenario: Checking
         Given the node map
-            """
-            a b 1 c d e
-            """
+            | a | b | 1 | c | d | e |
 
         And the ways
             | nodes |
@@ -30,10 +28,8 @@ Feature: Basic Routing
     @smallest
     Scenario: Check handling empty values
         Given the node map
-            """
-            a b   c   d f
-                      e
-            """
+            | a | b |  | c |   | d | f |
+            |   |   |  |   |   | e |   |
 
         And the ways
             | nodes | name |
@@ -50,9 +46,7 @@ Feature: Basic Routing
     @smallest @todo
     Scenario: Summaries when routing on a simple network
         Given the node map
-            """
-            a b
-            """
+            | a | b |
 
         And the ways
             | nodes |
@@ -66,11 +60,9 @@ Feature: Basic Routing
     @repeated
     Scenario: Check handling empty values
         Given the node map
-            """
-            f     x
-            b c d e 1 g
-            a     y
-            """
+            | f |   |   | x |   |   |
+            | b | c | d | e | 1 | g |
+            | a |   |   | y |   |   |
 
         And the ways
             | nodes | name   | # |

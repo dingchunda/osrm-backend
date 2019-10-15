@@ -2,8 +2,10 @@
 #define OSRM_EXTRACTOR_GUIDANCE_TURN_DISCOVERY_HPP_
 
 #include "extractor/guidance/intersection.hpp"
-#include "extractor/guidance/intersection_generator.hpp"
+#include "extractor/guidance/turn_analysis.hpp"
 #include "util/typedefs.hpp"
+
+#include <string>
 
 namespace osrm
 {
@@ -20,13 +22,13 @@ namespace lanes
 bool findPreviousIntersection(
     const NodeID node,
     const EdgeID via_edge,
-    const Intersection &intersection,
-    const IntersectionGenerator &intersection_generator,
+    const Intersection intersection,
+    const TurnAnalysis &turn_analysis,                   // to generate other intersections
     const util::NodeBasedDynamicGraph &node_based_graph, // query edge data
     // output parameters, will be in an arbitrary state on failure
     NodeID &result_node,
     EdgeID &result_via_edge,
-    IntersectionView &result_intersection);
+    Intersection &result_intersection);
 
 } // namespace lanes
 } // namespace guidance

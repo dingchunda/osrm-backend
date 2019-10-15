@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -34,6 +34,7 @@ DEALINGS IN THE SOFTWARE.
 */
 
 #include <cassert>
+#include <cstddef>
 #include <cstring>
 #include <initializer_list>
 #include <limits>
@@ -43,24 +44,15 @@ DEALINGS IN THE SOFTWARE.
 #include <utility>
 
 #include <osmium/builder/builder.hpp>
+#include <osmium/osm.hpp>
 #include <osmium/osm/item_type.hpp>
 #include <osmium/osm/location.hpp>
-#include <osmium/osm/node.hpp>
 #include <osmium/osm/node_ref.hpp>
 #include <osmium/osm/object.hpp>
 #include <osmium/osm/tag.hpp>
 #include <osmium/osm/types.hpp>
-#include <osmium/memory/item.hpp>
-#include <osmium/osm/area.hpp>
-#include <osmium/osm/changeset.hpp>
-#include <osmium/osm/relation.hpp>
-#include <osmium/osm/timestamp.hpp>
-#include <osmium/osm/way.hpp>
-#include <osmium/util/compatibility.hpp>
 
 namespace osmium {
-
-    class Node;
 
     namespace memory {
         class Buffer;
@@ -68,18 +60,12 @@ namespace osmium {
 
     namespace builder {
 
-        class TagListBuilder : public Builder {
+        class TagListBuilder : public ObjectBuilder<TagList> {
 
         public:
 
             explicit TagListBuilder(osmium::memory::Buffer& buffer, Builder* parent = nullptr) :
-                Builder(buffer, parent, sizeof(TagList)) {
-                new (&item()) TagList();
-            }
-
-            explicit TagListBuilder(Builder& parent) :
-                Builder(parent.buffer(), &parent, sizeof(TagList)) {
-                new (&item()) TagList();
+                ObjectBuilder<TagList>(buffer, parent) {
             }
 
             ~TagListBuilder() {
@@ -177,27 +163,21 @@ namespace osmium {
         }; // class TagListBuilder
 
         template <typename T>
-        class NodeRefListBuilder : public Builder {
+        class NodeRefListBuilder : public ObjectBuilder<T> {
 
         public:
 
             explicit NodeRefListBuilder(osmium::memory::Buffer& buffer, Builder* parent = nullptr) :
-                Builder(buffer, parent, sizeof(T)) {
-                new (&item()) T();
-            }
-
-            explicit NodeRefListBuilder(Builder& parent) :
-                Builder(parent.buffer(), &parent, sizeof(T)) {
-                new (&item()) T();
+                ObjectBuilder<T>(buffer, parent) {
             }
 
             ~NodeRefListBuilder() {
-                add_padding();
+                static_cast<Builder*>(this)->add_padding();
             }
 
             void add_node_ref(const NodeRef& node_ref) {
-                new (reserve_space_for<osmium::NodeRef>()) osmium::NodeRef(node_ref);
-                add_size(sizeof(osmium::NodeRef));
+                new (static_cast<Builder*>(this)->reserve_space_for<osmium::NodeRef>()) osmium::NodeRef(node_ref);
+                static_cast<Builder*>(this)->add_size(sizeof(osmium::NodeRef));
             }
 
             void add_node_ref(const object_id_type ref, const osmium::Location& location = Location{}) {
@@ -206,11 +186,11 @@ namespace osmium {
 
         }; // class NodeRefListBuilder
 
-        using WayNodeListBuilder = NodeRefListBuilder<WayNodeList>;
-        using OuterRingBuilder   = NodeRefListBuilder<OuterRing>;
-        using InnerRingBuilder   = NodeRefListBuilder<InnerRing>;
+        typedef NodeRefListBuilder<WayNodeList> WayNodeListBuilder;
+        typedef NodeRefListBuilder<OuterRing> OuterRingBuilder;
+        typedef NodeRefListBuilder<InnerRing> InnerRingBuilder;
 
-        class RelationMemberListBuilder : public Builder {
+        class RelationMemberListBuilder : public ObjectBuilder<RelationMemberList> {
 
             /**
              * Add role to buffer.
@@ -233,13 +213,7 @@ namespace osmium {
         public:
 
             explicit RelationMemberListBuilder(osmium::memory::Buffer& buffer, Builder* parent = nullptr) :
-                Builder(buffer, parent, sizeof(RelationMemberList)) {
-                new (&item()) RelationMemberList();
-            }
-
-            explicit RelationMemberListBuilder(Builder& parent) :
-                Builder(parent.buffer(), &parent, sizeof(RelationMemberList)) {
-                new (&item()) RelationMemberList();
+                ObjectBuilder<RelationMemberList>(buffer, parent) {
             }
 
             ~RelationMemberListBuilder() {
@@ -265,7 +239,7 @@ namespace osmium {
                 add_size(sizeof(RelationMember));
                 add_role(*member, role, role_length);
                 if (full_member) {
-                    add_item(*full_member);
+                    add_item(full_member);
                 }
             }
 
@@ -301,7 +275,7 @@ namespace osmium {
 
         }; // class RelationMemberListBuilder
 
-        class ChangesetDiscussionBuilder : public Builder {
+        class ChangesetDiscussionBuilder : public ObjectBuilder<ChangesetDiscussion> {
 
             osmium::ChangesetComment* m_comment = nullptr;
 
@@ -329,13 +303,7 @@ namespace osmium {
         public:
 
             explicit ChangesetDiscussionBuilder(osmium::memory::Buffer& buffer, Builder* parent = nullptr) :
-                Builder(buffer, parent, sizeof(ChangesetDiscussion)) {
-                new (&item()) ChangesetDiscussion();
-            }
-
-            explicit ChangesetDiscussionBuilder(Builder& parent) :
-                Builder(parent.buffer(), &parent, sizeof(ChangesetDiscussion)) {
-                new (&item()) ChangesetDiscussion();
+                ObjectBuilder<ChangesetDiscussion>(buffer, parent) {
             }
 
             ~ChangesetDiscussionBuilder() {
@@ -365,100 +333,19 @@ namespace osmium {
 
         }; // class ChangesetDiscussionBuilder
 
-#define OSMIUM_FORWARD(setter) \
-    template <typename... TArgs> \
-    type& setter(TArgs&&... args) { \
-        object().setter(std::forward<TArgs>(args)...); \
-        return static_cast<type&>(*this); \
-    }
-
-        template <typename TDerived, typename T>
-        class OSMObjectBuilder : public Builder {
-
-            using type = TDerived;
-
-            constexpr static const size_t min_size_for_user = osmium::memory::padded_length(sizeof(string_size_type) + 1);
+        template <typename T>
+        class OSMObjectBuilder : public ObjectBuilder<T> {
 
         public:
 
             explicit OSMObjectBuilder(osmium::memory::Buffer& buffer, Builder* parent = nullptr) :
-                Builder(buffer, parent, sizeof(T) + min_size_for_user) {
-                new (&item()) T();
-                add_size(min_size_for_user);
-                std::fill_n(object().data() + sizeof(T), min_size_for_user, 0);
-                object().set_user_size(1);
+                ObjectBuilder<T>(buffer, parent) {
+                static_cast<Builder*>(this)->reserve_space_for<string_size_type>();
+                static_cast<Builder*>(this)->add_size(sizeof(string_size_type));
             }
-
-            /**
-             * Get a reference to the object buing built.
-             *
-             * Note that this reference will be invalidated by every action
-             * on the builder that might make the buffer grow. This includes
-             * calls to set_user() and any time a new sub-builder is created.
-             */
-            T& object() noexcept {
-                return static_cast<T&>(item());
-            }
-
-            /**
-             * Set user name.
-             *
-             * @param user Pointer to user name.
-             * @param length Length of user name (without \0 termination).
-             */
-            TDerived& set_user(const char* user, const string_size_type length) {
-                const auto size_of_object = sizeof(T) + sizeof(string_size_type);
-                assert(object().user_size() == 1 && (size() <= size_of_object + osmium::memory::padded_length(1))
-                       && "set_user() must be called at most once and before any sub-builders");
-                const auto available_space = min_size_for_user - sizeof(string_size_type) - 1;
-                if (length > available_space) {
-                    const auto space_needed = osmium::memory::padded_length(length - available_space);
-                    std::fill_n(reserve_space(space_needed), space_needed, 0);
-                    add_size(static_cast<uint32_t>(space_needed));
-                }
-                std::copy_n(user, length, object().data() + size_of_object);
-                object().set_user_size(length + 1);
-
-                return static_cast<TDerived&>(*this);
-            }
-
-            /**
-             * Set user name.
-             *
-             * @param user Pointer to \0-terminated user name.
-             */
-            TDerived& set_user(const char* user) {
-                return set_user(user, static_cast_with_assert<string_size_type>(std::strlen(user)));
-            }
-
-            /**
-             * Set user name.
-             *
-             * @param user User name.
-             */
-            TDerived& set_user(const std::string& user) {
-                return set_user(user.data(), static_cast_with_assert<string_size_type>(user.size()));
-            }
-
-            /// @deprecated Use set_user(...) instead.
-            template <typename... TArgs>
-            OSMIUM_DEPRECATED void add_user(TArgs&&... args) {
-                set_user(std::forward<TArgs>(args)...);
-            }
-
-            OSMIUM_FORWARD(set_id)
-            OSMIUM_FORWARD(set_visible)
-            OSMIUM_FORWARD(set_deleted)
-            OSMIUM_FORWARD(set_version)
-            OSMIUM_FORWARD(set_changeset)
-            OSMIUM_FORWARD(set_uid)
-            OSMIUM_FORWARD(set_uid_from_signed)
-            OSMIUM_FORWARD(set_timestamp)
-            OSMIUM_FORWARD(set_attribute)
-            OSMIUM_FORWARD(set_removed)
 
             void add_tags(const std::initializer_list<std::pair<const char*, const char*>>& tags) {
-                osmium::builder::TagListBuilder tl_builder{buffer(), this};
+                osmium::builder::TagListBuilder tl_builder(static_cast<Builder*>(this)->buffer(), this);
                 for (const auto& p : tags) {
                     tl_builder.add_tag(p.first, p.second);
                 }
@@ -466,40 +353,19 @@ namespace osmium {
 
         }; // class OSMObjectBuilder
 
-        class NodeBuilder : public OSMObjectBuilder<NodeBuilder, Node> {
+        typedef OSMObjectBuilder<osmium::Node> NodeBuilder;
+        typedef OSMObjectBuilder<osmium::Relation> RelationBuilder;
 
-            using type = NodeBuilder;
-
-        public:
-
-            explicit NodeBuilder(osmium::memory::Buffer& buffer, Builder* parent = nullptr) :
-                OSMObjectBuilder<NodeBuilder, Node>(buffer, parent) {
-            }
-
-            explicit NodeBuilder(Builder& parent) :
-                OSMObjectBuilder<NodeBuilder, Node>(parent.buffer(), &parent) {
-            }
-
-            OSMIUM_FORWARD(set_location)
-
-        }; // class NodeBuilder
-
-        class WayBuilder : public OSMObjectBuilder<WayBuilder, Way> {
-
-            using type = WayBuilder;
+        class WayBuilder : public OSMObjectBuilder<osmium::Way> {
 
         public:
 
             explicit WayBuilder(osmium::memory::Buffer& buffer, Builder* parent = nullptr) :
-                OSMObjectBuilder<WayBuilder, Way>(buffer, parent) {
-            }
-
-            explicit WayBuilder(Builder& parent) :
-                OSMObjectBuilder<WayBuilder, Way>(parent.buffer(), &parent) {
+                OSMObjectBuilder<osmium::Way>(buffer, parent) {
             }
 
             void add_node_refs(const std::initializer_list<osmium::NodeRef>& nodes) {
-                osmium::builder::WayNodeListBuilder builder{buffer(), this};
+                osmium::builder::WayNodeListBuilder builder(buffer(), this);
                 for (const auto& node_ref : nodes) {
                     builder.add_node_ref(node_ref);
                 }
@@ -507,146 +373,32 @@ namespace osmium {
 
         }; // class WayBuilder
 
-        class RelationBuilder : public OSMObjectBuilder<RelationBuilder, Relation> {
-
-            using type = RelationBuilder;
-
-        public:
-
-            explicit RelationBuilder(osmium::memory::Buffer& buffer, Builder* parent = nullptr) :
-                OSMObjectBuilder<RelationBuilder, Relation>(buffer, parent) {
-            }
-
-            explicit RelationBuilder(Builder& parent) :
-                OSMObjectBuilder<RelationBuilder, Relation>(parent.buffer(), &parent) {
-            }
-
-        }; // class RelationBuilder
-
-        class AreaBuilder : public OSMObjectBuilder<AreaBuilder, Area> {
-
-            using type = AreaBuilder;
+        class AreaBuilder : public OSMObjectBuilder<osmium::Area> {
 
         public:
 
             explicit AreaBuilder(osmium::memory::Buffer& buffer, Builder* parent = nullptr) :
-                OSMObjectBuilder<AreaBuilder, Area>(buffer, parent) {
-            }
-
-            explicit AreaBuilder(Builder& parent) :
-                OSMObjectBuilder<AreaBuilder, Area>(parent.buffer(), &parent) {
+                OSMObjectBuilder<osmium::Area>(buffer, parent) {
             }
 
             /**
              * Initialize area attributes from the attributes of the given object.
              */
             void initialize_from_object(const osmium::OSMObject& source) {
-                set_id(osmium::object_id_to_area_id(source.id(), source.type()));
-                set_version(source.version());
-                set_changeset(source.changeset());
-                set_timestamp(source.timestamp());
-                set_visible(source.visible());
-                set_uid(source.uid());
-                set_user(source.user());
+                osmium::Area& area = object();
+                area.set_id(osmium::object_id_to_area_id(source.id(), source.type()));
+                area.set_version(source.version());
+                area.set_changeset(source.changeset());
+                area.set_timestamp(source.timestamp());
+                area.set_visible(source.visible());
+                area.set_uid(source.uid());
+
+                add_user(source.user());
             }
 
         }; // class AreaBuilder
 
-        class ChangesetBuilder : public Builder {
-
-            using type = ChangesetBuilder;
-
-            constexpr static const size_t min_size_for_user = osmium::memory::padded_length(1);
-
-        public:
-
-            explicit ChangesetBuilder(osmium::memory::Buffer& buffer, Builder* parent = nullptr) :
-                Builder(buffer, parent, sizeof(Changeset) + min_size_for_user) {
-                new (&item()) Changeset();
-                add_size(min_size_for_user);
-                std::fill_n(object().data() + sizeof(Changeset), min_size_for_user, 0);
-                object().set_user_size(1);
-            }
-
-            /**
-             * Get a reference to the changeset buing built.
-             *
-             * Note that this reference will be invalidated by every action
-             * on the builder that might make the buffer grow. This includes
-             * calls to set_user() and any time a new sub-builder is created.
-             */
-            Changeset& object() noexcept {
-                return static_cast<Changeset&>(item());
-            }
-
-            OSMIUM_FORWARD(set_id)
-            OSMIUM_FORWARD(set_uid)
-            OSMIUM_FORWARD(set_uid_from_signed)
-            OSMIUM_FORWARD(set_created_at)
-            OSMIUM_FORWARD(set_closed_at)
-            OSMIUM_FORWARD(set_num_changes)
-            OSMIUM_FORWARD(set_num_comments)
-            OSMIUM_FORWARD(set_attribute)
-            OSMIUM_FORWARD(set_removed)
-
-            // @deprecated Use set_bounds() instead.
-            OSMIUM_DEPRECATED osmium::Box& bounds() noexcept {
-                return object().bounds();
-            }
-
-            ChangesetBuilder& set_bounds(const osmium::Box& box) noexcept {
-                object().bounds() = box;
-                return *this;
-            }
-
-            /**
-             * Set user name.
-             *
-             * @param user Pointer to user name.
-             * @param length Length of user name (without \0 termination).
-             */
-            ChangesetBuilder& set_user(const char* user, const string_size_type length) {
-                assert(object().user_size() == 1 && (size() <= sizeof(Changeset) + osmium::memory::padded_length(1))
-                       && "set_user() must be called at most once and before any sub-builders");
-                const auto available_space = min_size_for_user - 1;
-                if (length > available_space) {
-                    const auto space_needed = osmium::memory::padded_length(length - available_space);
-                    std::fill_n(reserve_space(space_needed), space_needed, 0);
-                    add_size(static_cast<uint32_t>(space_needed));
-                }
-                std::copy_n(user, length, object().data() + sizeof(Changeset));
-                object().set_user_size(length + 1);
-
-                return *this;
-            }
-
-            /**
-             * Set user name.
-             *
-             * @param user Pointer to \0-terminated user name.
-             */
-            ChangesetBuilder& set_user(const char* user) {
-                return set_user(user, static_cast_with_assert<string_size_type>(std::strlen(user)));
-            }
-
-            /**
-             * Set user name.
-             *
-             * @param user User name.
-             */
-            ChangesetBuilder& set_user(const std::string& user) {
-                return set_user(user.data(), static_cast_with_assert<string_size_type>(user.size()));
-            }
-
-            /// @deprecated Use set_user(...) instead.
-            template <typename... TArgs>
-            OSMIUM_DEPRECATED void add_user(TArgs&&... args) {
-                set_user(std::forward<TArgs>(args)...);
-            }
-
-        }; // class ChangesetBuilder
-
-#undef OSMIUM_FORWARD
+        typedef ObjectBuilder<osmium::Changeset> ChangesetBuilder;
 
     } // namespace builder
 

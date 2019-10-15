@@ -1,8 +1,6 @@
 #include "contractor/contractor.hpp"
 #include "contractor/contractor_config.hpp"
-#include "extractor/profile_properties.hpp"
-#include "storage/io.hpp"
-#include "util/log.hpp"
+#include "util/simple_logger.hpp"
 #include "util/version.hpp"
 
 #include <boost/filesystem.hpp>
@@ -15,8 +13,6 @@
 #include <exception>
 #include <new>
 #include <ostream>
-
-#include "util/meminfo.hpp"
 
 using namespace osrm;
 
@@ -56,12 +52,7 @@ return_code parseArguments(int argc, char *argv[], contractor::ContractorConfig 
         "level-cache,o",
         boost::program_options::value<bool>(&contractor_config.use_cached_priority)
             ->default_value(false),
-        "Use .level file to retain the contaction level for each node from the last run.")(
-        "edge-weight-updates-over-factor",
-        boost::program_options::value<double>(&contractor_config.log_edge_updates_factor)
-            ->default_value(0.0),
-        "Use with `--segment-speed-file`. Provide an `x` factor, by which Extractor will log edge "
-        "weights updated by more than this factor");
+        "Use .level file to retain the contaction level for each node from the last run.");
 
     // hidden options, will be allowed on command line, but will not be shown to the user
     boost::program_options::options_description hidden_options("Hidden options");
@@ -96,19 +87,19 @@ return_code parseArguments(int argc, char *argv[], contractor::ContractorConfig 
     }
     catch (const boost::program_options::error &e)
     {
-        util::Log(logERROR) << e.what();
+        util::SimpleLogger().Write(logWARNING) << "[error] " << e.what();
         return return_code::fail;
     }
 
     if (option_variables.count("version"))
     {
-        std::cout << OSRM_VERSION << std::endl;
+        util::SimpleLogger().Write() << OSRM_VERSION;
         return return_code::exit;
     }
 
     if (option_variables.count("help"))
     {
-        std::cout << visible_options;
+        util::SimpleLogger().Write() << visible_options;
         return return_code::exit;
     }
 
@@ -116,7 +107,7 @@ return_code parseArguments(int argc, char *argv[], contractor::ContractorConfig 
 
     if (!option_variables.count("input"))
     {
-        std::cout << visible_options;
+        util::SimpleLogger().Write() << visible_options;
         return return_code::fail;
     }
 
@@ -125,7 +116,6 @@ return_code parseArguments(int argc, char *argv[], contractor::ContractorConfig 
 
 int main(int argc, char *argv[]) try
 {
-
     util::LogPolicy::GetInstance().Unmute();
     contractor::ContractorConfig contractor_config;
 
@@ -145,7 +135,7 @@ int main(int argc, char *argv[]) try
 
     if (1 > contractor_config.requested_num_threads)
     {
-        util::Log(logERROR) << "Number of threads must be 1 or larger";
+        util::SimpleLogger().Write(logWARNING) << "Number of threads must be 1 or larger";
         return EXIT_FAILURE;
     }
 
@@ -153,48 +143,30 @@ int main(int argc, char *argv[]) try
 
     if (recommended_num_threads != contractor_config.requested_num_threads)
     {
-        util::Log(logWARNING) << "The recommended number of threads is " << recommended_num_threads
-                              << "! This setting may have performance side-effects.";
+        util::SimpleLogger().Write(logWARNING)
+            << "The recommended number of threads is " << recommended_num_threads
+            << "! This setting may have performance side-effects.";
     }
 
     if (!boost::filesystem::is_regular_file(contractor_config.osrm_input_path))
     {
-        util::Log(logERROR) << "Input file " << contractor_config.osrm_input_path.string()
-                            << " not found!";
+        util::SimpleLogger().Write(logWARNING)
+            << "Input file " << contractor_config.osrm_input_path.string() << " not found!";
         return EXIT_FAILURE;
     }
 
-    if (boost::filesystem::is_regular_file(contractor_config.osrm_input_path))
-    {
-        // Propagate profile properties to contractor configuration structure
-        extractor::ProfileProperties profile_properties;
-        storage::io::FileReader profile_properties_file(contractor_config.profile_properties_path,
-                                                        storage::io::FileReader::HasNoFingerprint);
-        profile_properties_file.ReadInto<extractor::ProfileProperties>(&profile_properties, 1);
-        contractor_config.weight_multiplier = profile_properties.GetWeightMultiplier();
-    }
-
-    util::Log() << "Input file: " << contractor_config.osrm_input_path.filename().string();
-    util::Log() << "Threads: " << contractor_config.requested_num_threads;
+    util::SimpleLogger().Write() << "Input file: "
+                                 << contractor_config.osrm_input_path.filename().string();
+    util::SimpleLogger().Write() << "Threads: " << contractor_config.requested_num_threads;
 
     tbb::task_scheduler_init init(contractor_config.requested_num_threads);
 
-    auto exitcode = contractor::Contractor(contractor_config).Run();
-
-    util::DumpMemoryStats();
-
-    return exitcode;
+    return contractor::Contractor(contractor_config).Run();
 }
 catch (const std::bad_alloc &e)
 {
-    util::Log(logERROR) << "[exception] " << e.what();
-    util::Log(logERROR) << "Please provide more memory or consider using a larger swapfile";
+    util::SimpleLogger().Write(logWARNING) << "[exception] " << e.what();
+    util::SimpleLogger().Write(logWARNING)
+        << "Please provide more memory or consider using a larger swapfile";
     return EXIT_FAILURE;
 }
-#ifdef _WIN32
-catch (const std::exception &e)
-{
-    util::Log(logERROR) << "[exception] " << e.what();
-    return EXIT_FAILURE;
-}
-#endif

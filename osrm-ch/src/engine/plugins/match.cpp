@@ -4,17 +4,15 @@
 #include "engine/api/match_api.hpp"
 #include "engine/api/match_parameters.hpp"
 #include "engine/map_matching/bayes_classifier.hpp"
-#include "engine/map_matching/sub_matching.hpp"
 #include "util/coordinate_calculation.hpp"
 #include "util/integer_range.hpp"
+#include "util/json_logger.hpp"
 #include "util/json_util.hpp"
 #include "util/string_util.hpp"
 
 #include <cstdlib>
 
 #include <algorithm>
-#include <functional>
-#include <iterator>
 #include <memory>
 #include <string>
 #include <vector>
@@ -108,9 +106,8 @@ void filterCandidates(const std::vector<util::Coordinate> &coordinates,
     }
 }
 
-Status MatchPlugin::HandleRequest(const std::shared_ptr<const datafacade::BaseDataFacade> facade,
-                                  const api::MatchParameters &parameters,
-                                  util::json::Object &json_result) const
+Status MatchPlugin::HandleRequest(const api::MatchParameters &parameters,
+                                  util::json::Object &json_result)
 {
     BOOST_ASSERT(parameters.IsValid());
 
@@ -124,17 +121,6 @@ Status MatchPlugin::HandleRequest(const std::shared_ptr<const datafacade::BaseDa
     if (!CheckAllCoordinates(parameters.coordinates))
     {
         return Error("InvalidValue", "Invalid coordinate value.", json_result);
-    }
-
-    // Check for same or increasing timestamps. Impl. note: Incontrast to `sort(first,
-    // last, less_equal)` checking `greater` in reverse meets irreflexive requirements.
-    const auto time_increases_monotonically = std::is_sorted(
-        parameters.timestamps.rbegin(), parameters.timestamps.rend(), std::greater<>{});
-
-    if (!time_increases_monotonically)
-    {
-        return Error(
-            "InvalidValue", "Timestamps need to be monotonically increasing.", json_result);
     }
 
     // assuming radius is the standard deviation of a normal distribution
@@ -165,7 +151,7 @@ Status MatchPlugin::HandleRequest(const std::shared_ptr<const datafacade::BaseDa
                        });
     }
 
-    auto candidates_lists = GetPhantomNodesInRange(*facade, parameters, search_radiuses);
+    auto candidates_lists = GetPhantomNodesInRange(parameters, search_radiuses);
 
     filterCandidates(parameters.coordinates, candidates_lists);
     if (std::all_of(candidates_lists.begin(),
@@ -180,11 +166,8 @@ Status MatchPlugin::HandleRequest(const std::shared_ptr<const datafacade::BaseDa
     }
 
     // call the actual map matching
-    SubMatchingList sub_matchings = map_matching(facade,
-                                                 candidates_lists,
-                                                 parameters.coordinates,
-                                                 parameters.timestamps,
-                                                 parameters.radiuses);
+    SubMatchingList sub_matchings = map_matching(
+        candidates_lists, parameters.coordinates, parameters.timestamps, parameters.radiuses);
 
     if (sub_matchings.size() == 0)
     {
@@ -210,12 +193,11 @@ Status MatchPlugin::HandleRequest(const std::shared_ptr<const datafacade::BaseDa
         // force uturns to be on, since we split the phantom nodes anyway and only have
         // bi-directional
         // phantom nodes for possible uturns
-        shortest_path(
-            facade, sub_routes[index].segment_end_coordinates, {false}, sub_routes[index]);
+        shortest_path(sub_routes[index].segment_end_coordinates, {false}, sub_routes[index]);
         BOOST_ASSERT(sub_routes[index].shortest_path_length != INVALID_EDGE_WEIGHT);
     }
 
-    api::MatchAPI match_api{*facade, parameters};
+    api::MatchAPI match_api{BasePlugin::facade, parameters};
     match_api.MakeResponse(sub_matchings, sub_routes, json_result);
 
     return Status::Ok;

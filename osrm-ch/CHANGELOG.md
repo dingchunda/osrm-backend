@@ -1,87 +1,3 @@
-# 5.6.0
-  - Changes from 5.5
-    - Bugfixes
-      - Fix #3475 removed an invalid `exit` field from the `arrive` maneuver
-      - Fix #3515 adjusted number of `nodes` in `annotation`
-      - Fix #3605 Fixed a bug that could lead to turns at the end of the road to be suppressed
-      - Fix #2844 handle up to 16777215 code units in OSM names
-    - Infrastructure
-      - Support building rpm packages.
-    - Guidance
-      - No longer emitting turns on ferries, if a ferry should use multiple docking locations
-    - Profiles
-      - Removed the `./profile.lua -> ./profiles/car.lua` symlink. Use specific profiles from the `profiles` directory.
-      - `properties` object has a new `weight_name` field, default value is "duration"
-      - `properties` object has a new `weight_precision` field that specifies a decimal precision of edge weights, default value 1
-      - In `way_function` the filed `forward_rate` and `backward_rate` of `ExtractionWay` can now be set.
-        They have the same interpretation for the way weight as `forward_speed` and `backward_speed` for the edge duration.
-        The unit of rate is meters per weight unit, so higher values will be prefered during routing.
-      - `turn_function` now does not return an integer but takes in a `ExtractionTurn` object and can modify the `weight` and `duration` fields
-      - `segment_function` now takes in a `ExtractionSegment` object and can modify `weight` and `duration` fields
-      - `properties.uturn_penalty` is deprecated. Set it in the `turn_function`. The turn type is exposed as `ExtractionTurn::direction_modifier`.
-      - `properties.traffic_light_penalty` is deprecated. Traffic light penalties now need to be set over in the turn function.
-         Each turn with a traffic light is marked with `ExtractionTurn::has_traffic_light = true`.
-      - Renamed the helper file `profiles/lib/directional.lua` to `profiles/lib/tags.lua` since it now provides more general tags parsing utility functions.
-      - The car and foot profiles now depend on the helper file `profiles/lib/handlers.lua`.
-    - Infrastructure
-      - Disabled link-time optimized (LTO) builds by default. Enable by passing `-DENABLE_LTO=ON` to `cmake` if you need the performance and know what you are doing.
-      - Datafile versioning is now based on OSRM semver values, rather than source code checksums.
-        Datafiles are compatible between patch levels, but incompatible between minor version or higher bumps.
-      - libOSRM now creates an own watcher thread then used in shared memory mode to listen for data updates
-    - Tools:
-      - Added osrm-extract-conditionals tool for checking conditional values in OSM data
-    - Trip Plugin
-      - Added a new feature that finds the optimal route given a list of waypoints, a source and a destination. This does not return a roundtrip and instead returns a one way optimal route from the fixed source to the destination points.
-
-# 5.5.1
-  - Changes from 5.5.0
-    - API:
-      - Adds `generate_hints=true` (`true` by default) which lets user disable `Hint` generating in the response. Use if you don't need `Hint`s!
-    - Bugfixes
-      - Fix #3418 and ensure we only return bearings in the range 0-359 in API responses
-      - Fixed a bug that could lead to emitting false instructions for staying on a roundabout
-
-# 5.5.0
-  - Changes from 5.4.0
-    - API:
-      - `osrm-datastore` now accepts the parameter `--max-wait` that specifies how long it waits before aquiring a shared memory lock by force
-      - Shared memory now allows for multiple clients (multiple instances of libosrm on the same segment)
-      - Polyline geometries can now be requested with precision 5 as well as with precision 6
-    - Profiles
-      - the car profile has been refactored into smaller functions
-      - get_value_by_key() is now guaranteed never to return empty strings, nil is returned instead.
-      - debug.lua was added to make it easier to test/develop profile code.
-      - `car.lua` now depends on lib/set.lua and lib/sequence.lua
-      - `restrictions` is now used for namespaced restrictions and restriction exceptions (e.g. `restriction:motorcar=` as well as `except=motorcar`)
-      - replaced lhs/rhs profiles by using test defined profiles
-      - Handle `oneway=alternating` (routed over with penalty) separately from `oneway=reversible` (not routed over due to time dependence)
-      - Handle `destination:forward`, `destination:backward`, `destination:ref:forward`, `destination:ref:backward` tags
-      - Properly handle destinations on `oneway=-1` roads
-    - Guidance
-      - Notifications are now exposed more prominently, announcing turns onto a ferry/pushing your bike more prominently
-      - Improved turn angle calculation, detecting offsets due to lanes / minor variations due to inaccuracies
-      - Corrected the bearings returned for intermediate steps - requires reprocessing
-      - Improved turn locations for collapsed turns
-      - Sliproad classification refinements: the situations we detect as Sliproads now resemble more closely the reality
-    - Trip Plugin
-      - changed internal behaviour to prefer the smallest lexicographic result over the largest one
-    - Bugfixes
-      - fixed a bug where polyline decoding on a defective polyline could end up in out-of-bound access on a vector
-      - fixed compile errors in tile unit-test framework
-      - fixed a bug that could result in inconsistent behaviour when collapsing instructions
-      - fixed a bug that could result in crashes when leaving a ferry directly onto a motorway ramp
-      - fixed a bug in the tile plugin that resulted in discovering invalid edges for connections
-      - improved error messages when missing files during traffic updates (#3114)
-      - For single coordinate geometries the GeoJSON `Point` encoding was broken. We now always emit `LineString`s even in the one-coordinate-case (backwards compatible) (#3425)
-    - Debug Tiles
-      - Added support for turn penalties
-    - Internals
-      - Internal/Shared memory datafacades now share common memory layout and data loading code
-      - File reading now has much better error handling
-    - Misc
-      - Progress indicators now print newlines when stdout is not a TTY
-      - Prettier API documentation now generated via `npm run build-api-docs` output `build/docs`
-
 # 5.4.3
   - Changes from 5.4.2
     - Bugfixes
@@ -93,7 +9,9 @@
     - Bugfixes
       - #3032 Fixed a bug that could result in emitting `invalid` as an instruction type on sliproads with mode changes
       - #3085 Fixed an outdated assertion that could throw without a cause for concern
-      - #3179 Fixed a bug that could trigger an assertion in TurnInstruciton generation
+      - #3037 Fixed omitting the last coordinate for overview=simplified
+      - #3176 Fixed exposing wrong OSM ids in matching
+      - Fixes splitting logic in map matching
 
 # 5.4.1
   - Changes from 5.4.0
@@ -107,11 +25,8 @@
       - added left_hand_driving flag in global profile properties
       - modified turn penalty function for car profile - better fit to real data
       - return `ref` and `name` as separate fields. Do no use ref or destination as fallback for name value
-      - the default profile for car now ignores HOV only roads
     - Guidance
       - Handle Access tags for lanes, only considering valid lanes in lane-guidance (think car | car | bike | car)
-      - Improved the detection of non-noticeable name-changes
-      - Summaries have been improved to consider references as well
     - API:
       - `annotations=true` now returns the data source id for each segment as `datasources`
       - Reduced semantic of merge to refer only to merges from a lane onto a motorway-like road
@@ -127,10 +42,43 @@
       - Fixed a bug where post-processing instructions (e.g. left + left -> uturn) could result in false pronunciations
       - Fixes a bug where a bearing range of zero would cause exhaustive graph traversals
       - Fixes a bug where certain looped geometries could cause an infinite loop during extraction
-      - Fixed a bug where some roads could be falsly identified as sliproads
-      - Fixed a bug where roundabout intersections could result in breaking assertions when immediately exited
     - Infrastructure:
       - Adds a feature to limit results in nearest service with a default of 100 in `osrm-routed`
+
+# 5.4.0-rc.7
+  - Chages from 5.4.0-rc.6
+    - Bugfixes re-introduce space between two entries in summaries
+
+# 5.4.0-rc.6
+  - Changes from 5.4.0-rc.5
+    - Bugfixes
+      - fixed a bug where polyline decoding on a defective polyline could end up in out-of-bound access on a vector
+    - Guidance
+      - Summaries have been improved to consider references as well
+
+# 5.4.0-rc.5
+  - Changes from 5.4.0-rc.4
+    - Guidance
+      - Improved detection of obvious name changes
+    - Profiles
+      - The default profile for car now excludes HOV-only routes in navigation by default
+    - Bugfixes
+      - Fixed a bug that could result in endless loops in combination with sliproads
+
+# 5.4.0-rc.4
+  - Changes from 5.4.0-rc.3
+    - Bugfixes
+      - Fixed a bug where roundabout intersections could result in breaking assertions when immediately exited
+
+# 5.4.0-rc.3
+  - Changes from 5.4.0-rc.2
+    - Bugfixes
+      - BREAKING: Fixed a bug where some roads could be falsly identified as sliproadsi This change requires reprocessing datasets with osrm-extract and osrm-contract
+      - BREAKING: Fixed a bug that resulted in false names/ref/destination/pronunciation This change requires reprocessing datasets with osrm-extract and osrm-contract
+      - `restrictions` is now used for namespaced restrictions and restriction exceptions (e.g. `restriction:motorcar=` as well as `except=motorcar`)
+      - replaced lhs/rhs profiles by using test defined profiles
+    - Trip Plugin
+      - changed internal behaviour to prefer the smallest lexicographic result over the largest one
 
 # 5.3.0
   - Changes from 5.3.0-rc.3
@@ -173,7 +121,7 @@
       - Fix bug that didn't chose minimal weights on overlapping edges
 
 # 5.3.0 RC2
-  - Changes from 5.3.0-rc.1
+  Changes from 5.3.0-rc.1
     - Bugfixes
       - Fixes invalid checks in the lane-extraction part of the car profile
 
@@ -420,3 +368,5 @@
         - `properties.use_turn_restrictions`
         - `properties.u_turn_penalty`
         - `properties.allow_u_turn_at_via`
+
+

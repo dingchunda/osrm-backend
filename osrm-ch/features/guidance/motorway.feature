@@ -7,10 +7,8 @@ Feature: Motorway Guidance
 
     Scenario: Ramp Exit Right
         Given the node map
-            """
-            a-b-c-d-e
-               `--f-g
-            """
+            | a | b | c | d | e |
+            |   |   |   | f | g |
 
         And the ways
             | nodes | highway       | oneway |
@@ -24,11 +22,9 @@ Feature: Motorway Guidance
 
     Scenario: Ramp Exit Right Curved Right
         Given the node map
-            """
-            a-b-c
-               `f`d
-                 `g`e
-            """
+            | a | b | c |   |   |
+            |   |   | f | d |   |
+            |   |   |   | g | e |
 
         And the ways
             | nodes | highway       | oneway |
@@ -42,11 +38,10 @@ Feature: Motorway Guidance
 
     Scenario: Ramp Exit Right Curved Left
         Given the node map
-            """
-                   ,e
-                 ,d,g
-            a-b-c-f
-            """
+            |   |   |   |   | e |
+            |   |   |   | d | g |
+            | a | b | c | f |   |
+
 
         And the ways
             | nodes | highway       | oneway |
@@ -61,10 +56,8 @@ Feature: Motorway Guidance
 
     Scenario: Ramp Exit Left
         Given the node map
-            """
-               /--f-g
-            a-b-c-d-e
-            """
+            |   |   |   | f | g |
+            | a | b | c | d | e |
 
         And the ways
             | nodes | highway       | oneway |
@@ -78,11 +71,9 @@ Feature: Motorway Guidance
 
     Scenario: Ramp Exit Left Curved Left
         Given the node map
-            """
-                 ,g,e
-               ,f,d
-            a-b-c 
-            """
+            |   |   |   | g | e |
+            |   |   | f | d |   |
+            | a | b | c |   |   |
 
         And the ways
             | nodes | highway       | oneway |
@@ -96,11 +87,9 @@ Feature: Motorway Guidance
 
     Scenario: Ramp Exit Left Curved Right
         Given the node map
-            """
-            a-b-c-f
-                 `d`g
-                   `e
-            """
+            | a | b | c | f |   |
+            |   |   |   | d | g |
+            |   |   |   |   | e |
 
         And the ways
             | nodes | highway       | oneway |
@@ -114,10 +103,8 @@ Feature: Motorway Guidance
 
     Scenario: On Ramp Right
         Given the node map
-            """
-            a-b-c-d-e
-            f-g---'
-            """
+            | a | b | c | d | e |
+            | f | g |   |   |   |
 
         And the ways
             | nodes | highway       | oneway |
@@ -131,10 +118,8 @@ Feature: Motorway Guidance
 
     Scenario: On Ramp Left
         Given the node map
-            """
-            f-g---,
-            a-b-c-d-e
-            """
+            | f | g |   |   |   |
+            | a | b | c | d | e |
 
         And the ways
             | nodes | highway       | oneway |
@@ -148,11 +133,9 @@ Feature: Motorway Guidance
 
     Scenario: Highway Fork
         Given the node map
-            """
-                 /--d-e
-            a-b-c
-                 \--f-g
-            """
+            |   |   |   |   | d | e |
+            | a | b | c |   |   |   |
+            |   |   |   |   | f | g |
 
         And the ways
             | nodes  | highway  |
@@ -166,11 +149,9 @@ Feature: Motorway Guidance
 
      Scenario: Fork After Ramp
        Given the node map
-            """
-                 /--d-e
-            a-b-c
-                 \--f-g
-            """
+            |   |   |   |   | d | e |
+            | a | b | c |   |   |   |
+            |   |   |   |   | f | g |
 
         And the ways
             | nodes | highway       | oneway |
@@ -185,10 +166,8 @@ Feature: Motorway Guidance
 
      Scenario: On And Off Ramp Right
        Given the node map
-            """
-            a-b---c---d-e
-            f-g--/ \--h i
-            """
+            | a | b |   | c |   | d | e |
+            | f | g |   |   |   | h | i |
 
         And the ways
             | nodes | highway       | oneway |
@@ -205,10 +184,8 @@ Feature: Motorway Guidance
 
     Scenario: On And Off Ramp Left
        Given the node map
-            """
-            f-g--\/---h-i
-            a-b---c---d-e
-            """
+            | f | g |   |   |   | h | i |
+            | a | b |   | c |   | d | e |
 
         And the ways
             | nodes | highway       | oneway |
@@ -225,11 +202,9 @@ Feature: Motorway Guidance
 
     Scenario: Merging Motorways
         Given the node map
-            """
-            e\
-            a-b-c
-            d/
-            """
+            | e |   |   |
+            | a | b | c |
+            | d |   |   |
 
         And the ways
             | nodes | highway  |
@@ -244,11 +219,9 @@ Feature: Motorway Guidance
 
     Scenario: Handle 90 degree off ramps correctly
         Given the node map
-            """
-            a\
-            x-b---c-y
-                  d
-            """
+            | a |   |   |   |   |
+            | x | b |   | c | y |
+            |   |   |   | d |   |
 
         And the ways
             | nodes | name | highway       | oneway |

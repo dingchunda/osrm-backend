@@ -64,11 +64,10 @@ struct TileParameters final
         // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#X_and_Y
         const auto valid_x = x <= static_cast<unsigned>(std::pow(2., z)) - 1;
         const auto valid_y = y <= static_cast<unsigned>(std::pow(2., z)) - 1;
-        // zoom limits are due to slippy map and server performance limits
-        const auto valid_z = z < 20 && z >= 12;
+        const auto valid_z = z < 20;
 
         return valid_x && valid_y && valid_z;
-    }
+    };
 };
 }
 }

@@ -1,8 +1,6 @@
 #ifndef CONTAINER_HPP
 #define CONTAINER_HPP
 
-#include <utility>
-
 namespace osrm
 {
 namespace util

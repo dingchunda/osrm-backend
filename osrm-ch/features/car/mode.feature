@@ -5,10 +5,8 @@ Feature: Car - Mode flag
 
     Scenario: Car - Mode when using a ferry
         Given the node map
-            """
-            a b
-              c d
-            """
+            | a | b |   |
+            |   | c | d |
 
         And the ways
             | nodes | highway | route | duration |
@@ -27,9 +25,7 @@ Feature: Car - Mode flag
 
     Scenario: Car - Snapping when using a ferry
         Given the node map
-            """
-            a b   c d   e f
-            """
+            | a | b |   | c | d |   | e | f |
 
         And the ways
             | nodes | highway | route | duration |

@@ -16,29 +16,21 @@ struct QueryEdge
     NodeID target;
     struct EdgeData
     {
-        explicit EdgeData()
-            : id(0), shortcut(false), weight(0), duration(0), forward(false), backward(false)
-        {
-        }
+        EdgeData() : id(0), shortcut(false), distance(0), forward(false), backward(false) {}
 
         template <class OtherT> EdgeData(const OtherT &other)
         {
-            weight = other.weight;
-            duration = other.duration;
+            distance = other.distance;
             shortcut = other.shortcut;
             id = other.id;
             forward = other.forward;
             backward = other.backward;
         }
-        // this ID is either the middle node of the shortcut, or the ID of the edge based node (node
-        // based edge) storing the appropriate data. If `shortcut` is set to true, we get the middle
-        // node. Otherwise we see the edge based node to access node data.
         NodeID id : 31;
         bool shortcut : 1;
-        EdgeWeight weight;
-        EdgeWeight duration : 30;
-        std::uint32_t forward : 1;
-        std::uint32_t backward : 1;
+        int distance : 30;
+        bool forward : 1;
+        bool backward : 1;
     } data;
 
     QueryEdge() : source(SPECIAL_NODEID), target(SPECIAL_NODEID) {}
@@ -56,9 +48,9 @@ struct QueryEdge
     bool operator==(const QueryEdge &right) const
     {
         return (source == right.source && target == right.target &&
-                data.weight == right.data.weight && data.duration == right.data.duration &&
-                data.shortcut == right.data.shortcut && data.forward == right.data.forward &&
-                data.backward == right.data.backward && data.id == right.data.id);
+                data.distance == right.data.distance && data.shortcut == right.data.shortcut &&
+                data.forward == right.data.forward && data.backward == right.data.backward &&
+                data.id == right.data.id);
     }
 };
 }

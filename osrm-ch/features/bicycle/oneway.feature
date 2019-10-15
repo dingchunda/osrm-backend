@@ -18,10 +18,8 @@ Feature: Bike - Oneway streets
 
     Scenario: Bike - Around the Block
         Given the node map
-            """
-              a b
-            f d c e
-            """
+            |   | a | b |   |
+            | f | d | c | e |
 
         And the ways
             | nodes | oneway | foot |
@@ -119,9 +117,7 @@ Feature: Bike - Oneway streets
 
     Scenario: Bike - Two consecutive oneways
         Given the node map
-            """
-            a b   c
-            """
+            | a | b |   | c |
 
         And the ways
             | nodes | oneway |

@@ -6,9 +6,7 @@ Feature: Via points
 
     Scenario: Simple via point
         Given the node map
-            """
-            a b c
-            """
+            | a | b | c |
 
         And the ways
             | nodes |
@@ -21,9 +19,7 @@ Feature: Via points
     Scenario: Simple via point with core factor
         Given the contract extra arguments "--core 0.8"
         Given the node map
-            """
-            a b c
-            """
+            | a | b | c |
 
         And the ways
             | nodes |
@@ -37,10 +33,8 @@ Feature: Via points
 
     Scenario: Via point at a dead end
         Given the node map
-            """
-            a b c
-              d
-            """
+            | a | b | c |
+            |   | d |   |
 
         And the ways
             | nodes |
@@ -54,10 +48,8 @@ Feature: Via points
 
     Scenario: Multiple via points
         Given the node map
-            """
-            a       e f g
-              b c d       h
-            """
+            | a |   |   |   | e | f | g |   |
+            |   | b | c | d |   |   |   | h |
 
         And the ways
             | nodes |
@@ -77,11 +69,9 @@ Feature: Via points
 
     Scenario: Duplicate via point
         Given the node map
-            """
-            x
-            a 1 2 3 4 b
-
-            """
+            | x |   |   |   |   |   |
+            | a | 1 | 2 | 3 | 4 | b |
+            |   |   |   |   |   |   |
 
         And the ways
             | nodes |
@@ -95,11 +85,9 @@ Feature: Via points
     Scenario: Via points on ring of oneways
     # xa it to avoid only having a single ring, which cna trigger edge cases
         Given the node map
-            """
-              x           g
-              a 1 b 2 c 3 d
-            i f           e h
-            """
+            |   | x |   |   |   |   |   | g |   |
+            |   | a | 1 | b | 2 | c | 3 | d |   |
+            | i | f |   |   |   |   |   | e | h |
 
         And the ways
             | nodes | oneway |
@@ -125,11 +113,9 @@ Feature: Via points
     Scenario: Via points on ring on the same oneway
     # xa it to avoid only having a single ring, which cna trigger edge cases
         Given the node map
-            """
-              x       e
-              a 1 2 3 b
-            g d       c f
-            """
+            |   | x |   |   |   | e |   |
+            |   | a | 1 | 2 | 3 | b |   |
+            | g | d |   |   |   | c | f |
 
         And the ways
             | nodes | oneway |
@@ -153,11 +139,9 @@ Feature: Via points
     # See issue #1896
     Scenario: Via point at a dead end with oneway
         Given the node map
-            """
-            a b c
-              d
-              e
-            """
+            | a | b | c |
+            |   | d |   |
+            |   | e |   |
 
         And the ways
             | nodes | oneway |
@@ -173,11 +157,9 @@ Feature: Via points
     # See issue #2349
     Scenario: Via point at a dead end with oneway
         Given the node map
-            """
-            a b c
-              d
-              e
-            """
+            | a | b | c |
+            |   | d |   |
+            |   | e |   |
 
         And the ways
             | nodes | oneway |
@@ -194,12 +176,10 @@ Feature: Via points
     @todo
     Scenario: Via point at a dead end with oneway
         Given the node map
-            """
-            a b c
-              d
-              e g
-              f
-            """
+            | a | b | c |
+            |   | d |   |
+            |   | e | g |
+            |   | f |   |
 
         And the ways
             | nodes | oneway |
@@ -219,14 +199,12 @@ Feature: Via points
     Scenario: Via point at a dead end with barrier
         Given the profile "car"
         Given the node map
-            """
-            a b c
-              1
-              d
-
-
-            f e
-            """
+            | a | b | c |
+            |   | 1 |   |
+            |   | d |   |
+            |   |   |   |
+            |   |   |   |
+            | f | e |   |
 
         And the nodes
             | node | barrier |
@@ -245,12 +223,10 @@ Feature: Via points
 
     Scenario: Via points on ring on the same oneway, forces one of the vertices to be top node
         Given the node map
-            """
-            a 1 2 b
-            8     3
-            7     4
-            d 6 5 c
-            """
+            | a | 1 | 2 | b |
+            | 8 |   |   | 3 |
+            | 7 |   |   | 4 |
+            | d | 6 | 5 | c |
 
         And the ways
             | nodes | oneway |
@@ -268,13 +244,11 @@ Feature: Via points
 
     Scenario: Multiple Via points on ring on the same oneway, forces one of the vertices to be top node
         Given the node map
-            """
-            a 1 2 3 b
-                    4
-                    5
-                    6
-            d 9 8 7 c
-            """
+            | a | 1 | 2 | 3 | b |
+            |   |   |   |   | 4 |
+            |   |   |   |   | 5 |
+            |   |   |   |   | 6 |
+            | d | 9 | 8 | 7 | c |
 
         And the ways
             | nodes | oneway |
@@ -295,10 +269,8 @@ Feature: Via points
     @todo
     Scenario: Incorrect ordering of nodes can produce multiple U-turns
         Given the node map
-            """
-              a
-            e b c d f
-            """
+            |   | a |   |   |   |
+            | e | b | c | d | f |
 
         And the ways
             | nodes  | oneway |
@@ -312,9 +284,7 @@ Feature: Via points
     @2798
     Scenario: UTurns Enabled
         Given the node map
-            """
-            a b c d e
-            """
+            | a | b | c | d | e |
 
         And the query options
             | continue_straight | false |
@@ -327,19 +297,3 @@ Feature: Via points
         When I route I should get
             | waypoints | route |
             | a,b,e     |       |
-
-    @todo @3359
-     Scenario: U-Turn In Bearings
-        Given the node map
-            """
-            a 1 b
-            """
-
-        And the ways
-            | nodes |
-            | ab    |
-
-        When I route I should get
-            | waypoints | bearings   | route    | turns                    |
-            | 1,a       | 90,2 270,2 | ab,ab,ab | depart,turn uturn,arrive |
-            | 1,b       | 270,2 90,2 | ab,ab,ab | depart,turn uturn,arrive |

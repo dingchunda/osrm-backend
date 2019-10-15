@@ -70,7 +70,8 @@ class TableAPI final : public BaseAPI
         response.values["code"] = "Ok";
     }
 
-  protected:
+    // FIXME gcc 4.8 doesn't support for lambdas to call protected member functions
+    //  protected:
     virtual util::json::Array MakeWaypoints(const std::vector<PhantomNode> &phantoms) const
     {
         util::json::Array json_waypoints;
@@ -113,7 +114,7 @@ class TableAPI final : public BaseAPI
                            row_end_iterator,
                            json_row.values.begin(),
                            [](const EdgeWeight duration) {
-                               if (duration == MAXIMAL_EDGE_DURATION)
+                               if (duration == INVALID_EDGE_WEIGHT)
                                {
                                    return util::json::Value(util::json::Null());
                                }

@@ -45,7 +45,7 @@ namespace api
  * Holds member attributes:
  *  - steps: return route step for each route leg
  *  - alternatives: tries to find alternative routes
- *  - geometries: route geometry encoded in Polyline, Polyline6 or GeoJSON
+ *  - geometries: route geometry encoded in Polyline or GeoJSON
  *  - overview: adds overview geometry either Full, Simplified (according to highest zoom level) or
  *              False (not at all)
  *  - continue_straight: enable or disable continue_straight (disabled by default)
@@ -58,7 +58,6 @@ struct RouteParameters : public BaseParameters
     enum class GeometriesType
     {
         Polyline,
-        Polyline6,
         GeoJSON
     };
     enum class OverviewType
@@ -66,17 +65,6 @@ struct RouteParameters : public BaseParameters
         Simplified,
         Full,
         False
-    };
-    enum class AnnotationsType
-    {
-        None = 0,
-        Duration = 0x01,
-        Nodes = 0x02,
-        Distance = 0x04,
-        Weight = 0x08,
-        Datasources = 0x10,
-        Speed = 0x20,
-        All = Duration | Nodes | Distance | Weight | Datasources | Speed
     };
 
     RouteParameters() = default;
@@ -89,8 +77,8 @@ struct RouteParameters : public BaseParameters
                     const boost::optional<bool> continue_straight_,
                     Args... args_)
         : BaseParameters{std::forward<Args>(args_)...}, steps{steps_}, alternatives{alternatives_},
-          annotations{false}, annotations_type{AnnotationsType::None}, geometries{geometries_},
-          overview{overview_}, continue_straight{continue_straight_}
+          annotations{false}, geometries{geometries_}, overview{overview_},
+          continue_straight{continue_straight_}
     // Once we perfectly-forward `args` (see #2990) this constructor can delegate to the one below.
     {
     }
@@ -105,24 +93,7 @@ struct RouteParameters : public BaseParameters
                     const boost::optional<bool> continue_straight_,
                     Args... args_)
         : BaseParameters{std::forward<Args>(args_)...}, steps{steps_}, alternatives{alternatives_},
-          annotations{annotations_},
-          annotations_type{annotations_ ? AnnotationsType::All : AnnotationsType::None},
-          geometries{geometries_}, overview{overview_}, continue_straight{continue_straight_}
-    {
-    }
-
-    // enum based implementation of annotations parameter
-    template <typename... Args>
-    RouteParameters(const bool steps_,
-                    const bool alternatives_,
-                    const AnnotationsType annotations_,
-                    const GeometriesType geometries_,
-                    const OverviewType overview_,
-                    const boost::optional<bool> continue_straight_,
-                    Args... args_)
-        : BaseParameters{std::forward<Args>(args_)...}, steps{steps_}, alternatives{alternatives_},
-          annotations{annotations_ == AnnotationsType::None ? false : true},
-          annotations_type{annotations_}, geometries{geometries_}, overview{overview_},
+          annotations{annotations_}, geometries{geometries_}, overview{overview_},
           continue_straight{continue_straight_}
     {
     }
@@ -130,34 +101,12 @@ struct RouteParameters : public BaseParameters
     bool steps = false;
     bool alternatives = false;
     bool annotations = false;
-    AnnotationsType annotations_type = AnnotationsType::None;
     GeometriesType geometries = GeometriesType::Polyline;
     OverviewType overview = OverviewType::Simplified;
     boost::optional<bool> continue_straight;
 
     bool IsValid() const { return coordinates.size() >= 2 && BaseParameters::IsValid(); }
 };
-
-inline bool operator&(RouteParameters::AnnotationsType lhs, RouteParameters::AnnotationsType rhs)
-{
-    return static_cast<bool>(
-        static_cast<std::underlying_type_t<RouteParameters::AnnotationsType>>(lhs) &
-        static_cast<std::underlying_type_t<RouteParameters::AnnotationsType>>(rhs));
-}
-
-inline RouteParameters::AnnotationsType operator|(RouteParameters::AnnotationsType lhs,
-                                                  RouteParameters::AnnotationsType rhs)
-{
-    return (RouteParameters::AnnotationsType)(
-        static_cast<std::underlying_type_t<RouteParameters::AnnotationsType>>(lhs) |
-        static_cast<std::underlying_type_t<RouteParameters::AnnotationsType>>(rhs));
-}
-
-inline RouteParameters::AnnotationsType operator|=(RouteParameters::AnnotationsType lhs,
-                                                   RouteParameters::AnnotationsType rhs)
-{
-    return lhs = lhs | rhs;
-}
 }
 }
 }

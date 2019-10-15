@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -42,9 +42,9 @@ DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <utility>
 
-#include <protozero/exception.hpp>
 #include <protozero/varint.hpp>
 
+#include <osmium/builder/builder.hpp>
 #include <osmium/builder/osm_object_builder.hpp>
 #include <osmium/io/detail/input_format.hpp>
 #include <osmium/io/detail/queue_util.hpp>
@@ -52,25 +52,18 @@ DEALINGS IN THE SOFTWARE.
 #include <osmium/io/file_format.hpp>
 #include <osmium/io/header.hpp>
 #include <osmium/memory/buffer.hpp>
+#include <osmium/osm.hpp>
 #include <osmium/osm/box.hpp>
 #include <osmium/osm/entity_bits.hpp>
 #include <osmium/osm/item_type.hpp>
 #include <osmium/osm/location.hpp>
-#include <osmium/osm/node.hpp>
 #include <osmium/osm/object.hpp>
-#include <osmium/osm/relation.hpp>
-#include <osmium/osm/timestamp.hpp>
 #include <osmium/osm/types.hpp>
-#include <osmium/osm/way.hpp>
 #include <osmium/thread/util.hpp>
 #include <osmium/util/cast.hpp>
 #include <osmium/util/delta.hpp>
 
 namespace osmium {
-
-    namespace builder {
-        class Builder;
-    } // namespace builder
 
     /**
      * Exception thrown when the o5m deocder failed. The exception contains
@@ -80,7 +73,7 @@ namespace osmium {
     struct o5m_error : public io_error {
 
         explicit o5m_error(const char* what) :
-            io_error(std::string{"o5m format error: "} + what) {
+            io_error(std::string("o5m format error: ") + what) {
         }
 
     }; // struct o5m_error
@@ -135,7 +128,7 @@ namespace osmium {
 
                 const char* get(uint64_t index) const {
                     if (m_table.empty() || index == 0 || index > number_of_entries) {
-                        throw o5m_error{"reference to non-existing string in table"};
+                        throw o5m_error("reference to non-existing string in table");
                     }
                     auto entry = (current_entry + number_of_entries - index) % number_of_entries;
                     return &m_table[entry * entry_size];
@@ -191,7 +184,7 @@ namespace osmium {
                     static const unsigned char header_magic[] = { 0xff, 0xe0, 0x04, 'o', '5' };
 
                     if (std::strncmp(reinterpret_cast<const char*>(header_magic), m_data, sizeof(header_magic))) {
-                        throw o5m_error{"wrong header magic"};
+                        throw o5m_error("wrong header magic");
                     }
 
                     m_data += sizeof(header_magic);
@@ -203,7 +196,7 @@ namespace osmium {
                     } else if (*m_data == 'c') {  // o5c change file
                         m_header.set_has_multiple_object_versions(true);
                     } else {
-                        throw o5m_error{"wrong header magic"};
+                        throw o5m_error("wrong header magic");
                     }
 
                     m_data++;
@@ -211,7 +204,7 @@ namespace osmium {
 
                 void check_file_format_version() {
                     if (*m_data != '2') {
-                        throw o5m_error{"wrong header magic"};
+                        throw o5m_error("wrong header magic");
                     }
 
                     m_data++;
@@ -219,7 +212,7 @@ namespace osmium {
 
                 void decode_header() {
                     if (! ensure_bytes_available(7)) { // overall length of header
-                        throw o5m_error{"file too short (incomplete header info)"};
+                        throw o5m_error("file too short (incomplete header info)");
                     }
 
                     check_header_magic();
@@ -260,7 +253,7 @@ namespace osmium {
                     if (**dataptr == 0x00) { // get inline string
                         (*dataptr)++;
                         if (*dataptr == end) {
-                            throw o5m_error{"string format error"};
+                            throw o5m_error("string format error");
                         }
                         return *dataptr;
                     } else { // get from reference table
@@ -277,7 +270,7 @@ namespace osmium {
                     auto uid = protozero::decode_varint(&data, end);
 
                     if (data == end) {
-                        throw o5m_error{"missing user name"};
+                        throw o5m_error("missing user name");
                     }
 
                     const char* user = ++data;
@@ -290,7 +283,7 @@ namespace osmium {
 
                     while (*data++) {
                         if (data == end) {
-                            throw o5m_error{"no null byte in user name"};
+                            throw o5m_error("no null byte in user name");
                         }
                     }
 
@@ -302,24 +295,24 @@ namespace osmium {
                     return std::make_pair(static_cast_with_assert<osmium::user_id_type>(uid), user);
                 }
 
-                void decode_tags(osmium::builder::Builder& parent, const char** dataptr, const char* const end) {
-                    osmium::builder::TagListBuilder builder{parent};
+                void decode_tags(osmium::builder::Builder* builder, const char** dataptr, const char* const end) {
+                    osmium::builder::TagListBuilder tl_builder(m_buffer, builder);
 
-                    while (*dataptr != end) {
+                    while(*dataptr != end) {
                         bool update_pointer = (**dataptr == 0x00);
                         const char* data = decode_string(dataptr, end);
                         const char* start = data;
 
                         while (*data++) {
                             if (data == end) {
-                                throw o5m_error{"no null byte in tag key"};
+                                throw o5m_error("no null byte in tag key");
                             }
                         }
 
                         const char* value = data;
                         while (*data++) {
                             if (data == end) {
-                                throw o5m_error{"no null byte in tag value"};
+                                throw o5m_error("no null byte in tag value");
                             }
                         }
 
@@ -328,7 +321,7 @@ namespace osmium {
                             *dataptr = data;
                         }
 
-                        builder.add_tag(start, value);
+                        tl_builder.add_tag(start, value);
                     }
                 }
 
@@ -357,46 +350,50 @@ namespace osmium {
                 }
 
                 void decode_node(const char* data, const char* const end) {
-                    osmium::builder::NodeBuilder builder{m_buffer};
+                    osmium::builder::NodeBuilder builder(m_buffer);
+                    osmium::Node& node = builder.object();
 
-                    builder.set_id(m_delta_id.update(zvarint(&data, end)));
+                    node.set_id(m_delta_id.update(zvarint(&data, end)));
 
-                    builder.set_user(decode_info(builder.object(), &data, end));
+                    builder.add_user(decode_info(node, &data, end));
 
                     if (data == end) {
                         // no location, object is deleted
-                        builder.set_visible(false);
-                        builder.set_location(osmium::Location{});
+                        builder.object().set_visible(false);
+                        builder.object().set_location(osmium::Location{});
                     } else {
                         auto lon = m_delta_lon.update(zvarint(&data, end));
                         auto lat = m_delta_lat.update(zvarint(&data, end));
-                        builder.set_location(osmium::Location{lon, lat});
+                        builder.object().set_location(osmium::Location{lon, lat});
 
                         if (data != end) {
-                            decode_tags(builder, &data, end);
+                            decode_tags(&builder, &data, end);
                         }
                     }
+
+                    m_buffer.commit();
                 }
 
                 void decode_way(const char* data, const char* const end) {
-                    osmium::builder::WayBuilder builder{m_buffer};
+                    osmium::builder::WayBuilder builder(m_buffer);
+                    osmium::Way& way = builder.object();
 
-                    builder.set_id(m_delta_id.update(zvarint(&data, end)));
+                    way.set_id(m_delta_id.update(zvarint(&data, end)));
 
-                    builder.set_user(decode_info(builder.object(), &data, end));
+                    builder.add_user(decode_info(way, &data, end));
 
                     if (data == end) {
                         // no reference section, object is deleted
-                        builder.set_visible(false);
+                        builder.object().set_visible(false);
                     } else {
                         auto reference_section_length = protozero::decode_varint(&data, end);
                         if (reference_section_length > 0) {
                             const char* const end_refs = data + reference_section_length;
                             if (end_refs > end) {
-                                throw o5m_error{"way nodes ref section too long"};
+                                throw o5m_error("way nodes ref section too long");
                             }
 
-                            osmium::builder::WayNodeListBuilder wn_builder{builder};
+                            osmium::builder::WayNodeListBuilder wn_builder(m_buffer, &builder);
 
                             while (data < end_refs) {
                                 wn_builder.add_node_ref(m_delta_way_node_id.update(zvarint(&data, end)));
@@ -404,14 +401,16 @@ namespace osmium {
                         }
 
                         if (data != end) {
-                            decode_tags(builder, &data, end);
+                            decode_tags(&builder, &data, end);
                         }
                     }
+
+                    m_buffer.commit();
                 }
 
                 osmium::item_type decode_member_type(char c) {
                     if (c < '0' || c > '2') {
-                        throw o5m_error{"unknown member type"};
+                        throw o5m_error("unknown member type");
                     }
                     return osmium::nwr_index_to_item_type(c - '0');
                 }
@@ -423,13 +422,13 @@ namespace osmium {
 
                     auto member_type = decode_member_type(*data++);
                     if (data == end) {
-                        throw o5m_error{"missing role"};
+                        throw o5m_error("missing role");
                     }
                     const char* role = data;
 
                     while (*data++) {
                         if (data == end) {
-                            throw o5m_error{"no null byte in role"};
+                            throw o5m_error("no null byte in role");
                         }
                     }
 
@@ -442,29 +441,30 @@ namespace osmium {
                 }
 
                 void decode_relation(const char* data, const char* const end) {
-                    osmium::builder::RelationBuilder builder{m_buffer};
+                    osmium::builder::RelationBuilder builder(m_buffer);
+                    osmium::Relation& relation = builder.object();
 
-                    builder.set_id(m_delta_id.update(zvarint(&data, end)));
+                    relation.set_id(m_delta_id.update(zvarint(&data, end)));
 
-                    builder.set_user(decode_info(builder.object(), &data, end));
+                    builder.add_user(decode_info(relation, &data, end));
 
                     if (data == end) {
                         // no reference section, object is deleted
-                        builder.set_visible(false);
+                        builder.object().set_visible(false);
                     } else {
                         auto reference_section_length = protozero::decode_varint(&data, end);
                         if (reference_section_length > 0) {
                             const char* const end_refs = data + reference_section_length;
                             if (end_refs > end) {
-                                throw o5m_error{"relation format error"};
+                                throw o5m_error("relation format error");
                             }
 
-                            osmium::builder::RelationMemberListBuilder rml_builder{builder};
+                            osmium::builder::RelationMemberListBuilder rml_builder(m_buffer, &builder);
 
                             while (data < end_refs) {
                                 auto delta_id = zvarint(&data, end);
                                 if (data == end) {
-                                    throw o5m_error{"relation member format error"};
+                                    throw o5m_error("relation member format error");
                                 }
                                 auto type_role = decode_role(&data, end);
                                 auto i = osmium::item_type_to_nwr_index(type_role.first);
@@ -474,9 +474,11 @@ namespace osmium {
                         }
 
                         if (data != end) {
-                            decode_tags(builder, &data, end);
+                            decode_tags(&builder, &data, end);
                         }
                     }
+
+                    m_buffer.commit();
                 }
 
                 void decode_bbox(const char* data, const char* const end) {
@@ -527,12 +529,12 @@ namespace osmium {
                             uint64_t length = 0;
                             try {
                                 length = protozero::decode_varint(&m_data, m_end);
-                            } catch (const protozero::end_of_buffer_exception&) {
-                                throw o5m_error{"premature end of file"};
+                            } catch (protozero::end_of_buffer_exception&) {
+                                throw o5m_error("premature end of file");
                             }
 
                             if (! ensure_bytes_available(length)) {
-                                throw o5m_error{"premature end of file"};
+                                throw o5m_error("premature end of file");
                             }
 
                             switch (ds_type) {
@@ -540,21 +542,18 @@ namespace osmium {
                                     mark_header_as_done();
                                     if (read_types() & osmium::osm_entity_bits::node) {
                                         decode_node(m_data, m_data + length);
-                                        m_buffer.commit();
                                     }
                                     break;
                                 case dataset_type::way:
                                     mark_header_as_done();
                                     if (read_types() & osmium::osm_entity_bits::way) {
                                         decode_way(m_data, m_data + length);
-                                        m_buffer.commit();
                                     }
                                     break;
                                 case dataset_type::relation:
                                     mark_header_as_done();
                                     if (read_types() & osmium::osm_entity_bits::relation) {
                                         decode_relation(m_data, m_data + length);
-                                        m_buffer.commit();
                                     }
                                     break;
                                 case dataset_type::bounding_box:
@@ -592,8 +591,8 @@ namespace osmium {
                 O5mParser(future_string_queue_type& input_queue,
                           future_buffer_queue_type& output_queue,
                           std::promise<osmium::io::Header>& header_promise,
-                          osmium::io::detail::reader_options options) :
-                    Parser(input_queue, output_queue, header_promise, options),
+                          osmium::osm_entity_bits::type read_types) :
+                    Parser(input_queue, output_queue, header_promise, read_types),
                     m_header(),
                     m_buffer(buffer_size),
                     m_input(),
@@ -619,8 +618,8 @@ namespace osmium {
                 [](future_string_queue_type& input_queue,
                     future_buffer_queue_type& output_queue,
                     std::promise<osmium::io::Header>& header_promise,
-                    osmium::io::detail::reader_options options) {
-                    return std::unique_ptr<Parser>(new O5mParser(input_queue, output_queue, header_promise, options));
+                    osmium::osm_entity_bits::type read_which_entities) {
+                    return std::unique_ptr<Parser>(new O5mParser(input_queue, output_queue, header_promise, read_which_entities));
             });
 
             // dummy function to silence the unused variable warning from above

@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -62,34 +62,33 @@ namespace osmium {
 
             public:
 
-                using point_type        = std::unique_ptr<OGRPoint>;
-                using linestring_type   = std::unique_ptr<OGRLineString>;
-                using polygon_type      = std::unique_ptr<OGRPolygon>;
-                using multipolygon_type = std::unique_ptr<OGRMultiPolygon>;
-                using ring_type         = std::unique_ptr<OGRLinearRing>;
+                typedef std::unique_ptr<OGRPoint>        point_type;
+                typedef std::unique_ptr<OGRLineString>   linestring_type;
+                typedef std::unique_ptr<OGRPolygon>      polygon_type;
+                typedef std::unique_ptr<OGRMultiPolygon> multipolygon_type;
+                typedef std::unique_ptr<OGRLinearRing>   ring_type;
 
             private:
 
-                linestring_type   m_linestring{nullptr};
-                multipolygon_type m_multipolygon{nullptr};
-                polygon_type      m_polygon{nullptr};
-                ring_type         m_ring{nullptr};
+                linestring_type   m_linestring;
+                multipolygon_type m_multipolygon;
+                polygon_type      m_polygon;
+                ring_type         m_ring;
 
             public:
 
-                explicit OGRFactoryImpl(int /* srid */) {
-                }
+                OGRFactoryImpl() = default;
 
                 /* Point */
 
                 point_type make_point(const osmium::geom::Coordinates& xy) const {
-                    return point_type{new OGRPoint{xy.x, xy.y}};
+                    return point_type(new OGRPoint(xy.x, xy.y));
                 }
 
                 /* LineString */
 
                 void linestring_start() {
-                    m_linestring.reset(new OGRLineString{});
+                    m_linestring = std::unique_ptr<OGRLineString>(new OGRLineString());
                 }
 
                 void linestring_add_location(const osmium::geom::Coordinates& xy) {
@@ -98,14 +97,13 @@ namespace osmium {
                 }
 
                 linestring_type linestring_finish(size_t /* num_points */) {
-                    assert(!!m_linestring);
                     return std::move(m_linestring);
                 }
 
                 /* Polygon */
 
                 void polygon_start() {
-                    m_ring.reset(new OGRLinearRing{});
+                    m_ring = std::unique_ptr<OGRLinearRing>(new OGRLinearRing());
                 }
 
                 void polygon_add_location(const osmium::geom::Coordinates& xy) {
@@ -114,7 +112,7 @@ namespace osmium {
                 }
 
                 polygon_type polygon_finish(size_t /* num_points */) {
-                    auto polygon = std::unique_ptr<OGRPolygon>{new OGRPolygon{}};
+                    std::unique_ptr<OGRPolygon> polygon = std::unique_ptr<OGRPolygon>(new OGRPolygon());
                     polygon->addRingDirectly(m_ring.release());
                     return polygon;
                 }
@@ -122,11 +120,11 @@ namespace osmium {
                 /* MultiPolygon */
 
                 void multipolygon_start() {
-                    m_multipolygon.reset(new OGRMultiPolygon{});
+                    m_multipolygon.reset(new OGRMultiPolygon());
                 }
 
                 void multipolygon_polygon_start() {
-                    m_polygon.reset(new OGRPolygon{});
+                    m_polygon.reset(new OGRPolygon());
                 }
 
                 void multipolygon_polygon_finish() {
@@ -136,7 +134,7 @@ namespace osmium {
                 }
 
                 void multipolygon_outer_ring_start() {
-                    m_ring.reset(new OGRLinearRing{});
+                    m_ring.reset(new OGRLinearRing());
                 }
 
                 void multipolygon_outer_ring_finish() {
@@ -146,7 +144,7 @@ namespace osmium {
                 }
 
                 void multipolygon_inner_ring_start() {
-                    m_ring.reset(new OGRLinearRing{});
+                    m_ring.reset(new OGRLinearRing());
                 }
 
                 void multipolygon_inner_ring_finish() {

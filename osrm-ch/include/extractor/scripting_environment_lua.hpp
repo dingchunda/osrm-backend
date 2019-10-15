@@ -1,8 +1,11 @@
 #ifndef SCRIPTING_ENVIRONMENT_LUA_HPP
 #define SCRIPTING_ENVIRONMENT_LUA_HPP
 
-#include "extractor/raster_source.hpp"
 #include "extractor/scripting_environment.hpp"
+
+#include "extractor/raster_source.hpp"
+
+#include "util/lua_util.hpp"
 
 #include <tbb/enumerable_thread_specific.h>
 
@@ -10,7 +13,7 @@
 #include <mutex>
 #include <string>
 
-#include <sol2/sol.hpp>
+struct lua_State;
 
 namespace osrm
 {
@@ -19,19 +22,17 @@ namespace extractor
 
 struct LuaScriptingContext final
 {
-    void ProcessNode(const osmium::Node &, ExtractionNode &result);
-    void ProcessWay(const osmium::Way &, ExtractionWay &result);
+    void processNode(const osmium::Node &, ExtractionNode &result);
+    void processWay(const osmium::Way &, ExtractionWay &result);
 
     ProfileProperties properties;
     SourceContainer sources;
-    sol::state state;
+    util::LuaState state;
 
     bool has_turn_penalty_function;
     bool has_node_function;
     bool has_way_function;
     bool has_segment_function;
-
-    int api_version;
 };
 
 /**
@@ -41,25 +42,24 @@ struct LuaScriptingContext final
  * Each thread has its own lua state which is implemented with thread specific
  * storage from TBB.
  */
-class Sol2ScriptingEnvironment final : public ScriptingEnvironment
+class LuaScriptingEnvironment final : public ScriptingEnvironment
 {
   public:
-    static const constexpr int SUPPORTED_MIN_API_VERSION = 0;
-    static const constexpr int SUPPORTED_MAX_API_VERSION = 1;
-
-    explicit Sol2ScriptingEnvironment(const std::string &file_name);
-    ~Sol2ScriptingEnvironment() override = default;
+    explicit LuaScriptingEnvironment(const std::string &file_name);
+    ~LuaScriptingEnvironment() override = default;
 
     const ProfileProperties &GetProfileProperties() override;
 
-    LuaScriptingContext &GetSol2Context();
+    LuaScriptingContext &GetLuaContext();
 
     std::vector<std::string> GetNameSuffixList() override;
-    std::vector<std::string> GetRestrictions() override;
+    std::vector<std::string> GetExceptions() override;
     void SetupSources() override;
-    void ProcessTurn(ExtractionTurn &turn) override;
-    void ProcessSegment(ExtractionSegment &segment) override;
-
+    int32_t GetTurnPenalty(double angle) override;
+    void ProcessSegment(const osrm::util::Coordinate &source,
+                        const osrm::util::Coordinate &target,
+                        double distance,
+                        InternalExtractorEdge::WeightData &weight) override;
     void
     ProcessElements(const std::vector<osmium::memory::Buffer::const_iterator> &osm_elements,
                     const RestrictionParser &restriction_parser,

@@ -5,19 +5,13 @@ Feature: Turn Lane Guidance
         Given the profile "car"
         Given a grid size of 3 meters
 
-
     @sliproads
     Scenario: Separate Turn Lanes
         Given the node map
-            """
-                          e
-                          .
-            a ... b ..... c . g
-                    `     .
-                     `... d
-                          .
-                          f
-            """
+            |   |   |   |   |   |   |   | e |   |
+            | a |   |   | b |   |   |   | c | g |
+            |   |   |   |   |   |   |   | d |   |
+            |   |   |   |   |   |   |   | f |   |
 
         And the ways
             | nodes | turn:lanes:forward | name     | oneway |
@@ -43,14 +37,10 @@ Feature: Turn Lane Guidance
     @sliproads
     Scenario: Separate Turn Lanes
         Given the node map
-            """
-                          e
-            a . . b . . . c g
-                    `     .
-                       `  .
-                        ` d
-                          f
-            """
+            |   |   |   |   |   |   |   | e |   |
+            | a |   |   | b |   |   |   | c | g |
+            |   |   |   |   |   |   |   | d |   |
+            |   |   |   |   |   |   |   | f |   |
 
         And the ways
             | nodes | turn:lanes:forward | name     | oneway |
@@ -72,24 +62,21 @@ Feature: Turn Lane Guidance
             | a,e       | in,cross,cross       | depart,turn left,arrive         | ,left:true straight:false right:false, |
             | a,g       | in,straight,straight | depart,new name straight,arrive | ,left:false straight:true right:false, |
             | a,f       | in,cross,cross       | depart,turn right,arrive        | ,left:false straight:false right:true, |
-
 
     @sliproads
     Scenario: Separate Turn Lanes Next to other turns
         Given the node map
-            """
-                        . e
-            a . . b . . . c g
-                  .   `   .
-                  .     ` .
-                  .       d
-                  .       f
-                  .
-                  .
-                  .
-                  .
-            i . . h . . . j
-            """
+            |   |   |   |   |   |   |   | e |   |
+            | a |   |   | b |   |   |   | c | g |
+            |   |   |   |   |   |   |   | d |   |
+            |   |   |   |   |   |   |   | f |   |
+            |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |
+            | i |   |   | h |   |   |   | j |   |
 
         And the ways
             | nodes | turn:lanes:forward | name     | oneway |
@@ -116,20 +103,17 @@ Feature: Turn Lane Guidance
             | a,j       | in,turn,other,other  | depart,turn right,turn left,arrive  | ,,left:true right:false,               |
             | a,i       | in,turn,other,other  | depart,turn right,turn right,arrive | ,,left:false right:true,               |
 
-
     @todo @2654 @none
     #https://github.com/Project-OSRM/osrm-backend/issues/2645
     #http://www.openstreetmap.org/export#map=19/52.56054/13.32152
     Scenario: Kurt-Schuhmacher-Damm
         Given the node map
-            """
-                  g   f
-                  |   |
-            j --- h - e
-                  |   |
-            a --- b - c
-                  i   d
-            """
+            |   |   |   | g |   | f |
+            |   |   |   |   |   |   |
+            | j |   |   | h |   | e |
+            |   |   |   |   |   |   |
+            | a |   |   | b |   | c |
+            |   |   |   | i |   | d |
 
         And the ways
             | nodes | name | highway        | oneway | turn:lanes        |
@@ -152,25 +136,23 @@ Feature: Turn Lane Guidance
     #http://www.openstreetmap.org/#map=19/37.77308/-122.42238
     Scenario: Market/Haight without Through Street
         Given the node map
-            """
-                          g j
-                          | |
-                          | |
-                          | |
-                          | |
-                          | |
-                          | |,f
-                          |,e
-                         ,d |
-            a --------- b c |
-                       /  | |
-                      /   | |
-                     /    | |
-                    |     | |
-                    |     | |
-                    |     | |
-                    l     h i
-            """
+            |   |   |   |   |   |   |   | g | j |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   | f |
+            |   |   |   |   |   |   |   |   | e |   |
+            |   |   |   |   |   |   |   | d |   |   |
+            | a |   |   |   |   |   | b | c |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   | l |   |   | h | i |   |
 
         And the ways
             | nodes | name   | highway     | oneway | turn:lanes:forward |
@@ -200,25 +182,23 @@ Feature: Turn Lane Guidance
     #http://www.openstreetmap.org/#map=19/37.77308/-122.42238
     Scenario: Market/Haight without Through Street
         Given the node map
-            """
-                          g j
-                          | |
-                          | |
-                          | |
-                          | |
-                          | |
-                          | |,f
-                          |,e
-                         ,d |
-            a --------- b c |
-                       /  | |
-                      /   | |
-                     /    | |
-                    |     | |
-                    |     | |
-                    |     | |
-                    l     h i
-            """
+            |   |   |   |   |   |   |   | g | j |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   | f |
+            |   |   |   |   |   |   |   |   | e |   |
+            |   |   |   |   |   |   |   | d |   |   |
+            | a |   |   |   |   |   | b | c |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   | l |   |   | h | i |   |
 
         And the ways
             | nodes | name   | highway     | oneway | turn:lanes:forward |
@@ -238,7 +218,6 @@ Feature: Turn Lane Guidance
             | a,h       | ghough,market,market | depart,turn slight right,arrive    | ,none:false straight:false straight:true straight:true,  |
             | a,j       | ghough,market,market | depart,turn left,arrive            | ,none:true straight:false straight:false straight:false, |
             | a,f       | ghough,ghough,ghough | depart,continue slight left,arrive | ,none:true straight:true straight:false straight:false,  |
-
 
     Scenario: Check sliproad handler loop's exit condition, Issue #2896
       # http://www.openstreetmap.org/way/198481519

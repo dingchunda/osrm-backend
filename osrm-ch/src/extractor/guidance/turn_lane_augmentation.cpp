@@ -1,6 +1,6 @@
 #include "extractor/guidance/turn_lane_augmentation.hpp"
 #include "extractor/guidance/turn_lane_types.hpp"
-#include "util/log.hpp"
+#include "util/simple_logger.hpp"
 
 #include <algorithm>
 #include <boost/assert.hpp>
@@ -40,6 +40,7 @@ LaneDataVector augmentMultiple(const std::size_t none_index,
                                LaneDataVector lane_data,
                                const Intersection &intersection)
 {
+
     // a none-turn is allowing multiple turns. we have to add a lane-data entry for
     // every possible turn. This should, hopefully, only be the case for single lane
     // entries?
@@ -103,67 +104,23 @@ LaneDataVector augmentMultiple(const std::size_t none_index,
             }
         }
         // this should, theoretically, never be reached
-        util::Log(logWARNING) << "Failed lane assignment. Reached bad situation.";
+        util::SimpleLogger().Write(logWARNING) << "Failed lane assignment. Reached bad situation.";
         return std::make_pair(std::size_t{0}, std::size_t{0});
     }();
-
-    const auto intersection_range_first = intersection.begin() + range.first;
-    const auto intersection_range_end = intersection.begin() + range.second;
-    const auto allowed_in_range =
-        std::count_if(intersection_range_first, intersection_range_end, [](const auto &road) {
-            return road.entry_allowed;
-        });
-
-    if (allowed_in_range > 1 && lane_data[none_index].to - lane_data[none_index].from >= 1)
+    for (auto intersection_index = range.first; intersection_index < range.second;
+         ++intersection_index)
     {
-        // check if there is a straight turn
-        auto straight_itr =
-            std::find_if(intersection_range_first, intersection_range_end, [](const auto &road) {
-                return road.instruction.direction_modifier == DirectionModifier::Straight;
-            });
-
-        // we have a straight turn?
-        if (straight_itr != intersection_range_end)
+        if (intersection[intersection_index].entry_allowed)
         {
-            for (auto itr = intersection_range_first; itr != straight_itr; ++itr)
-            {
-                lane_data.push_back({tag_by_modifier[itr->instruction.direction_modifier],
-                                     lane_data[none_index].from,
-                                     lane_data[none_index].from,
-                                     false});
-            }
-            lane_data.push_back({tag_by_modifier[straight_itr->instruction.direction_modifier],
+            // FIXME this probably can be only a subset of these turns here?
+            lane_data.push_back({tag_by_modifier[intersection[intersection_index]
+                                                     .turn.instruction.direction_modifier],
                                  lane_data[none_index].from,
                                  lane_data[none_index].to,
                                  false});
-            for (auto itr = straight_itr + 1; itr != intersection_range_end; ++itr)
-            {
-                lane_data.push_back({tag_by_modifier[itr->instruction.direction_modifier],
-                                     lane_data[none_index].to,
-                                     lane_data[none_index].to,
-                                     false});
-            }
-
-            lane_data.erase(lane_data.begin() + none_index);
         }
-        return lane_data;
     }
-    else
-    {
-        for (auto intersection_index = range.first; intersection_index < range.second;
-             ++intersection_index)
-        {
-            if (intersection[intersection_index].entry_allowed)
-            {
-                lane_data.push_back({tag_by_modifier[intersection[intersection_index]
-                                                         .instruction.direction_modifier],
-                                     lane_data[none_index].from,
-                                     lane_data[none_index].to,
-                                     false});
-            }
-        }
-        lane_data.erase(lane_data.begin() + none_index);
-    }
+    lane_data.erase(lane_data.begin() + none_index);
     return lane_data;
 }
 
@@ -205,7 +162,7 @@ LaneDataVector handleRenamingSituations(const std::size_t none_index,
         if (!road.entry_allowed)
             continue;
 
-        const auto modifier = road.instruction.direction_modifier;
+        const auto modifier = road.turn.instruction.direction_modifier;
         has_right |= modifier == DirectionModifier::Right;
         has_right |= modifier == DirectionModifier::SlightRight;
         has_right |= modifier == DirectionModifier::SharpRight;

@@ -8,11 +8,9 @@ Feature: Testbot - Walkthrough
 
     Scenario: Testbot - Processing Flow
         Given the node map
-            """
-                  d
-            a b c
-                  e
-            """
+            |   |   |   | d |
+            | a | b | c |   |
+            |   |   |   | e |
 
         And the ways
             | nodes | highway | oneway |

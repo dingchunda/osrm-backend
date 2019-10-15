@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef JSON_CONTAINER_HPP
 #define JSON_CONTAINER_HPP
 
-#include <mapbox/variant.hpp>
+#include <variant/variant.hpp>
 
 #include <string>
 #include <unordered_map>

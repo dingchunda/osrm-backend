@@ -3,9 +3,6 @@ environment:
   - configuration: Release
 #  - configuration: Debug
 
-install:
-  - ps: Install-Product node 6
-
 # scripts that are called at very beginning, before repo cloning
 init:
   - git config --global core.autocrlf input
@@ -20,14 +17,7 @@ platform: x64
 build_script:
   - CALL appveyor-build.bat
 
-before_test:
-  - node --version
-  - npm --version
-  - npm install
-  - npm link
-  - SET PATH=%CD%\osrm-deps\libs\bin;%PATH%
-  - SET OSRM_BUILD_DIR=build\%Configuration%
-  - npm test
+test: off
 
 artifacts:
   - path: osrm_Release.zip

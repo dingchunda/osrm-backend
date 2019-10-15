@@ -10,16 +10,17 @@
 #include <osmium/memory/buffer.hpp>
 
 TEST_CASE("Writer") {
+
     osmium::io::Header header;
     header.set("generator", "test_writer.cpp");
 
-    osmium::io::Reader reader{with_data_dir("t/io/data.osm")};
+    osmium::io::Reader reader(with_data_dir("t/io/data.osm"));
     osmium::memory::Buffer buffer = reader.read();
     REQUIRE(buffer);
     REQUIRE(buffer.committed() > 0);
-    const auto num = std::distance(buffer.select<osmium::OSMObject>().cbegin(), buffer.select<osmium::OSMObject>().cend());
+    auto num = std::distance(buffer.cbegin<osmium::OSMObject>(), buffer.cend<osmium::OSMObject>());
     REQUIRE(num > 0);
-    REQUIRE(buffer.select<osmium::OSMObject>().cbegin()->id() == 1);
+    REQUIRE(buffer.cbegin<osmium::OSMObject>()->id() == 1);
 
     std::string filename;
 
@@ -27,7 +28,7 @@ TEST_CASE("Writer") {
 
         SECTION("Empty buffer") {
             filename = "test-writer-out-empty-buffer.osm";
-            osmium::io::Writer writer{filename, header, osmium::io::overwrite::allow};
+            osmium::io::Writer writer(filename, header, osmium::io::overwrite::allow);
             osmium::memory::Buffer empty_buffer(1024);
             writer(std::move(empty_buffer));
             writer.close();
@@ -35,13 +36,13 @@ TEST_CASE("Writer") {
 
         SECTION("Invalid buffer") {
             filename = "test-writer-out-invalid-buffer.osm";
-            osmium::io::Writer writer{filename, header, osmium::io::overwrite::allow};
+            osmium::io::Writer writer(filename, header, osmium::io::overwrite::allow);
             osmium::memory::Buffer invalid_buffer;
             writer(std::move(invalid_buffer));
             writer.close();
         }
 
-        osmium::io::Reader reader_check{filename};
+        osmium::io::Reader reader_check(filename);
         osmium::memory::Buffer buffer_check = reader_check.read();
         REQUIRE(!buffer_check);
     }
@@ -50,7 +51,7 @@ TEST_CASE("Writer") {
 
         SECTION("Writer buffer") {
             filename = "test-writer-out-buffer.osm";
-            osmium::io::Writer writer{filename, header, osmium::io::overwrite::allow};
+            osmium::io::Writer writer(filename, header, osmium::io::overwrite::allow);
             writer(std::move(buffer));
             writer.close();
 
@@ -61,7 +62,7 @@ TEST_CASE("Writer") {
 
         SECTION("Writer item") {
             filename = "test-writer-out-item.osm";
-            osmium::io::Writer writer{filename, header, osmium::io::overwrite::allow};
+            osmium::io::Writer writer(filename, header, osmium::io::overwrite::allow);
             for (const auto& item : buffer) {
                 writer(item);
             }
@@ -70,25 +71,26 @@ TEST_CASE("Writer") {
 
         SECTION("Writer output iterator") {
             filename = "test-writer-out-iterator.osm";
-            osmium::io::Writer writer{filename, header, osmium::io::overwrite::allow};
+            osmium::io::Writer writer(filename, header, osmium::io::overwrite::allow);
             auto it = osmium::io::make_output_iterator(writer);
             std::copy(buffer.cbegin(), buffer.cend(), it);
             writer.close();
         }
 
-        osmium::io::Reader reader_check{filename};
+        osmium::io::Reader reader_check(filename);
         osmium::memory::Buffer buffer_check = reader_check.read();
         REQUIRE(buffer_check);
         REQUIRE(buffer_check.committed() > 0);
-        REQUIRE(buffer_check.select<osmium::OSMObject>().size() == num);
-        REQUIRE(buffer_check.select<osmium::OSMObject>().cbegin()->id() == 1);
+        REQUIRE(std::distance(buffer_check.cbegin<osmium::OSMObject>(), buffer_check.cend<osmium::OSMObject>()) == num);
+        REQUIRE(buffer_check.cbegin<osmium::OSMObject>()->id() == 1);
+
     }
 
     SECTION("Interrupted writer after open") {
         int error = 0;
         try {
             filename = "test-writer-out-fail1.osm";
-            osmium::io::Writer writer{filename, header, osmium::io::overwrite::allow};
+            osmium::io::Writer writer(filename, header, osmium::io::overwrite::allow);
             throw 1;
         } catch (int e) {
             error = e;
@@ -101,7 +103,7 @@ TEST_CASE("Writer") {
         int error = 0;
         try {
             filename = "test-writer-out-fail2.osm";
-            osmium::io::Writer writer{filename, header, osmium::io::overwrite::allow};
+            osmium::io::Writer writer(filename, header, osmium::io::overwrite::allow);
             writer(std::move(buffer));
             throw 2;
         } catch (int e) {
@@ -112,4 +114,5 @@ TEST_CASE("Writer") {
     }
 
 }
+
 

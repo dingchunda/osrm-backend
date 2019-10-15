@@ -2,7 +2,6 @@
 #include "extractor/edge_based_node.hpp"
 #include "extractor/query_node.hpp"
 #include "mocks/mock_datafacade.hpp"
-#include "storage/io.hpp"
 #include "engine/geospatial_query.hpp"
 #include "util/coordinate.hpp"
 #include "util/timing_util.hpp"
@@ -32,15 +31,15 @@ using BenchStaticRTree =
 
 std::vector<util::Coordinate> loadCoordinates(const boost::filesystem::path &nodes_file)
 {
-    osrm::storage::io::FileReader nodes_path_file_reader(
-        nodes_file, osrm::storage::io::FileReader::HasNoFingerprint);
+    boost::filesystem::ifstream nodes_input_stream(nodes_file, std::ios::binary);
 
     extractor::QueryNode current_node;
-    unsigned coordinate_count = nodes_path_file_reader.ReadElementCount32();
+    unsigned coordinate_count = 0;
+    nodes_input_stream.read((char *)&coordinate_count, sizeof(unsigned));
     std::vector<util::Coordinate> coords(coordinate_count);
     for (unsigned i = 0; i < coordinate_count; ++i)
     {
-        nodes_path_file_reader.ReadInto(&current_node, 1);
+        nodes_input_stream.read((char *)&current_node, sizeof(extractor::QueryNode));
         coords[i] = util::Coordinate(current_node.lon, current_node.lat);
     }
     return coords;

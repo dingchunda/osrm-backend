@@ -1,7 +1,5 @@
-'use strict';
-
-const assert = require('assert');
-const fs = require('fs');
+var assert = require('assert');
+var fs = require('fs');
 
 module.exports = function () {
     this.resetOptionsOutput = () => {
@@ -26,19 +24,11 @@ module.exports = function () {
     });
 
     this.When(/^I run "osrm\-extract\s?(.*?)"$/, (options, callback) => {
-        const stamp = this.processedCacheFile + '.extract';
-        this.runAndSafeOutput('osrm-extract', options, (err) => {
-            if (err) return callback(err);
-            fs.writeFile(stamp, 'ok', callback);
-        });
+        this.runAndSafeOutput('osrm-extract', options, callback);
     });
 
     this.When(/^I run "osrm\-contract\s?(.*?)"$/, (options, callback) => {
-        const stamp = this.processedCacheFile + '.contract';
-        this.runAndSafeOutput('osrm-contract', options, (err) => {
-            if (err) return callback(err);
-            fs.writeFile(stamp, 'ok', callback);
-        });
+        this.runAndSafeOutput('osrm-contract', options, callback);
     });
 
     this.When(/^I try to run "osrm\-routed\s?(.*?)"$/, (options, callback) => {
@@ -70,18 +60,17 @@ module.exports = function () {
         assert.ok(this.stdout.indexOf(str) > -1);
     });
 
-    this.Then(/^stderr should( not)? contain "(.*?)"$/, (not, str) => {
-        const contains = this.stderr.indexOf(str) > -1;
-        assert.ok(typeof not === 'undefined' ? contains : !contains);
+    this.Then(/^stderr should contain "(.*?)"$/, (str) => {
+        assert.ok(this.stderr.indexOf(str) > -1);
     });
 
     this.Then(/^stdout should contain \/(.*)\/$/, (regexStr) => {
-        const re = new RegExp(regexStr);
+        var re = new RegExp(regexStr);
         assert.ok(this.stdout.match(re));
     });
 
     this.Then(/^stderr should contain \/(.*)\/$/, (regexStr) => {
-        const re = new RegExp(regexStr);
+        var re = new RegExp(regexStr);
         assert.ok(this.stdout.match(re));
     });
 
@@ -97,12 +86,8 @@ module.exports = function () {
         assert.equal(this.stdout.split('\n').length - 1, parseInt(lines));
     });
 
-    this.Then(/^stderr should contain (\d+) lines?$/, (lines) => {
-        assert.equal(this.stderr.split('\n').length - 1, parseInt(lines));
-    });
-
     this.Then(/^datasource names should contain "(.+)"$/, (expectedData) => {
-        const actualData = fs.readFileSync(this.processedCacheFile + '.datasource_names', {encoding:'UTF-8'}).trim().split('\n').join(',');
+        var actualData = fs.readFileSync(this.processedCacheFile + '.datasource_names', {encoding:'UTF-8'}).trim().split('\n').join(',');
         assert.equal(actualData, expectedData);
     });
 

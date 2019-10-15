@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -34,7 +34,6 @@ DEALINGS IN THE SOFTWARE.
 */
 
 #include <cassert>
-#include <cstddef>
 #include <string>
 #include <utility>
 
@@ -54,13 +53,13 @@ namespace osmium {
 
             public:
 
-                using point_type        = std::string;
-                using linestring_type   = std::string;
-                using polygon_type      = std::string;
-                using multipolygon_type = std::string;
-                using ring_type         = std::string;
+                typedef std::string point_type;
+                typedef std::string linestring_type;
+                typedef std::string polygon_type;
+                typedef std::string multipolygon_type;
+                typedef std::string ring_type;
 
-                GeoJSONFactoryImpl(int /* srid */, int precision = 7) :
+                GeoJSONFactoryImpl(int precision = 7) :
                     m_precision(precision) {
                 }
 

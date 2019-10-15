@@ -6,107 +6,50 @@ module.exports = function () {
     this.Then(/^routability should be$/, (table, callback) => {
         this.buildWaysFromTable(table, () => {
             var directions = ['forw','backw','bothw'],
-                testedHeaders = ['forw','backw','bothw','forw_rate','backw_rate','bothw_rate'],
                 headers = new Set(Object.keys(table.hashes()[0]));
 
-            if (!testedHeaders.some(k => !!headers.has(k))) {
-                throw new Error('*** routability table must contain either "forw", "backw", "bothw", "forw_rate" or "backw_rate" column');
+            if (!directions.some(k => !!headers.has(k))) {
+                throw new Error('*** routability table must contain either "forw", "backw" or "bothw" column');
             }
 
             this.reprocessAndLoadData((e) => {
                 if (e) return callback(e);
                 var testRow = (row, i, cb) => {
-                    var outputRow = Object.assign({}, row);
-                    // clear the fields that are tested for in the copied response object
-                    for (var field in outputRow) {
-                        if (testedHeaders.indexOf(field) != -1)
-                            outputRow[field] = '';
-                    }
+                    var outputRow = row;
 
                     testRoutabilityRow(i, (err, result) => {
                         if (err) return cb(err);
-                        directions.filter(d => headers.has(d + '_rate')).forEach((direction) => {
-                            var rate = direction + '_rate';
-                            var want = row[rate];
-                            switch (true) {
-                            case '' === want:
-                                outputRow[rate] = result[direction].status ?
-                                    result[direction].status.toString() : '';
-                                break;
-                            case /^\d+$/.test(want):
-                                if (result[direction].rate && !isNaN(result[direction].rate)) {
-                                    outputRow[rate] = result[direction].rate.toString();
-                                } else {
-                                    outputRow[rate] = '';
-                                }
-                                break;
-                            default:
-                                throw new Error(util.format('*** Unknown expectation format: %s for header %s', want, rate));
-                            }
-                        });
-
                         directions.filter(d => headers.has(d)).forEach((direction) => {
-                            var usingShortcut = false,
-                                want = row[direction];
-                            // shortcuts are when a test has mapped a value like `foot` to
-                            // a value like `5 km/h`, to represent the speed that one
-                            // can travel by foot. we check for these and use the mapped to
-                            // value for later comparison.
-                            if (this.shortcutsHash[row[direction]]) {
-                                want = this.shortcutsHash[row[direction]];
-                                usingShortcut = row[direction];
-                            }
+                            var want = this.shortcutsHash[row[direction]] || row[direction];
 
-                            // TODO split out accessible/not accessible value from forw/backw headers
-                            // rename forw/backw to forw/backw_speed
                             switch (true) {
                             case '' === want:
                             case 'x' === want:
                                 outputRow[direction] = result[direction].status ?
                                     result[direction].status.toString() : '';
                                 break;
-                            case /^[\d\.]+ s/.test(want):
-                                // the result here can come back as a non-number value like
-                                // `diff`, but we only want to apply the unit when it comes
-                                // back as a number, for tableDiff's literal comparison
-                                if (result[direction].time) {
-                                    outputRow[direction] = !isNaN(result[direction].time) ?
-                                        result[direction].time.toString()+' s' :
-                                        result[direction].time.toString() || '';
-                                } else {
-                                    outputRow[direction] = '';
-                                }
+                            case /^\d+s/.test(want):
                                 break;
                             case /^\d+ km\/h/.test(want):
-                                if (result[direction].speed) {
-                                    outputRow[direction] = !isNaN(result[direction].speed) ?
-                                        result[direction].speed.toString()+' km/h' :
-                                        result[direction].speed.toString() || '';
-                                } else {
-                                    outputRow[direction] = '';
-                                }
                                 break;
                             default:
                                 throw new Error(util.format('*** Unknown expectation format: %s', want));
                             }
 
                             if (this.FuzzyMatch.match(outputRow[direction], want)) {
-                                outputRow[direction] = usingShortcut ? usingShortcut : row[direction];
+                                outputRow[direction] = row[direction];
                             }
                         });
 
                         cb(null, outputRow);
                     });
                 };
+
                 this.processRowsAndDiff(table, testRow, callback);
             });
         });
     });
 
-    // makes simple a-b request using the given cucumber test routability conditions
-    // result is an object containing the calculated values for 'rate', 'status',
-    // 'time', 'distance', and 'speed' for forwards and backwards routing, as well as
-    // a bothw object that diffs forwards/backwards
     var testRoutabilityRow = (i, cb) => {
         var result = {};
 
@@ -130,7 +73,6 @@ module.exports = function () {
                     if (r.route.split(',')[0] === util.format('w%d', i)) {
                         r.time = r.json.routes[0].duration;
                         r.distance = r.json.routes[0].distance;
-                        r.rate = Math.round(r.distance / r.json.routes[0].weight);
                         r.speed = r.time > 0 ? parseInt(3.6 * r.distance / r.time) : null;
                     } else {
                         r.status = null;
@@ -166,7 +108,7 @@ module.exports = function () {
                     scb();
                 };
 
-                ['rate', 'status', 'time', 'distance', 'speed'].forEach((key) => {
+                ['status', 'time', 'distance', 'speed'].forEach((key) => {
                     sq.defer(parseRes, key);
                 });
 

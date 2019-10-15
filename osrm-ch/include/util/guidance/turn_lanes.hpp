@@ -4,7 +4,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
-#include <unordered_map>
 #include <vector>
 
 #include "util/typedefs.hpp"
@@ -17,22 +16,16 @@ namespace util
 {
 namespace guidance
 {
-class LaneTuple;
-class LaneTupleIdPair;
+class LaneTupel;
 } // namespace guidance
 } // namespace util
 } // namespace osrm
 
 namespace std
 {
-template <> struct hash<::osrm::util::guidance::LaneTuple>
+template <> struct hash<::osrm::util::guidance::LaneTupel>
 {
-    inline std::size_t operator()(const ::osrm::util::guidance::LaneTuple &bearing_class) const;
-};
-template <> struct hash<::osrm::util::guidance::LaneTupleIdPair>
-{
-    inline std::size_t
-    operator()(const ::osrm::util::guidance::LaneTupleIdPair &bearing_class) const;
+    inline std::size_t operator()(const ::osrm::util::guidance::LaneTupel &bearing_class) const;
 };
 } // namespace std
 
@@ -59,19 +52,19 @@ namespace guidance
 //
 // we generate a set of tuples in the form of:
 // (2,1), (1,1), (1,0) for left, through and right respectively
-class LaneTuple
+class LaneTupel
 {
   public:
-    LaneTuple();
-    LaneTuple(const LaneID lanes_in_turn, const LaneID first_lane_from_the_right);
+    LaneTupel();
+    LaneTupel(const LaneID lanes_in_turn, const LaneID first_lane_from_the_right);
 
-    bool operator==(const LaneTuple other) const;
-    bool operator!=(const LaneTuple other) const;
+    bool operator==(const LaneTupel other) const;
+    bool operator!=(const LaneTupel other) const;
 
     LaneID lanes_in_turn;
-    LaneID first_lane_from_the_right; // is INVALID_LANEID when no lanes present
+    LaneID first_lane_from_the_right;
 
-    friend std::size_t hash_value(const LaneTuple &tup)
+    friend std::size_t hash_value(const LaneTupel &tup)
     {
         std::size_t seed{0};
         boost::hash_combine(seed, tup.lanes_in_turn);
@@ -80,25 +73,7 @@ class LaneTuple
     }
 };
 
-class LaneTupleIdPair
-{
-  public:
-    util::guidance::LaneTuple first;
-    LaneDescriptionID second;
-
-    bool operator==(const LaneTupleIdPair &other) const;
-
-    friend std::size_t hash_value(const LaneTupleIdPair &pair)
-    {
-        std::size_t seed{0};
-        boost::hash_combine(seed, pair.first);
-        boost::hash_combine(seed, pair.second);
-        return seed;
-    }
-};
-
-using LaneDataIdMap = std::unordered_map<LaneTupleIdPair, LaneDataID, boost::hash<LaneTupleIdPair>>;
-
+using LaneTupelIdPair = std::pair<util::guidance::LaneTupel, LaneDescriptionID>;
 } // namespace guidance
 } // namespace util
 } // namespace osrm

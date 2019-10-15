@@ -4,34 +4,24 @@
 #
 #-----------------------------------------------------------------------------
 
-language: generic
+language: cpp
 
 sudo: false
-
-cache:
-  directories:
-    - $HOME/.ccache
-
-env:
-  global:
-    - CCACHE_TEMPDIR=/tmp/.ccache-temp
-    - CCACHE_COMPRESS=1
-    - CASHER_TIME_OUT=1000
 
 matrix:
   include:
 
     # 1/ Linux Clang Builds
     - os: linux
-      compiler: linux-clang35-release
+      compiler: clang
       addons:
         apt:
           sources: ['llvm-toolchain-precise-3.5', 'ubuntu-toolchain-r-test', 'boost-latest']
-          packages: ['clang-3.5', 'cmake', 'libboost1.55-all-dev', 'libgdal-dev', 'libgeos++-dev', 'libproj-dev', 'libsparsehash-dev', 'spatialite-bin']
+          packages: ['clang-3.5', 'libboost1.55-all-dev', 'libgdal-dev', 'libgeos++-dev', 'libproj-dev', 'libsparsehash-dev', 'spatialite-bin']
       env: COMPILER='clang++-3.5' BUILD_TYPE='Release'
 
     - os: linux
-      compiler: linux-clang35-dev
+      compiler: clang
       addons:
         apt:
           sources: ['llvm-toolchain-precise-3.5', 'ubuntu-toolchain-r-test', 'boost-latest']
@@ -40,7 +30,24 @@ matrix:
 
 
     - os: linux
-      compiler: linux-clang37-release
+      compiler: clang
+      addons:
+        apt:
+          sources: ['llvm-toolchain-precise-3.6', 'ubuntu-toolchain-r-test', 'boost-latest']
+          packages: ['clang-3.6', 'libboost1.55-all-dev', 'libgdal-dev', 'libgeos++-dev', 'libproj-dev', 'libsparsehash-dev', 'spatialite-bin']
+      env: COMPILER='clang++-3.6' BUILD_TYPE='Release'
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['llvm-toolchain-precise-3.6', 'ubuntu-toolchain-r-test', 'boost-latest']
+          packages: ['clang-3.6', 'libboost1.55-all-dev', 'libgdal-dev', 'libgeos++-dev', 'libproj-dev', 'libsparsehash-dev', 'spatialite-bin']
+      env: COMPILER='clang++-3.6' BUILD_TYPE='Dev'
+
+
+    - os: linux
+      compiler: clang
       addons:
         apt:
           sources: ['llvm-toolchain-precise-3.7', 'ubuntu-toolchain-r-test', 'boost-latest']
@@ -48,7 +55,7 @@ matrix:
       env: COMPILER='clang++-3.7' BUILD_TYPE='Release'
 
     - os: linux
-      compiler: linux-clang37-dev
+      compiler: clang
       addons:
         apt:
           sources: ['llvm-toolchain-precise-3.7', 'ubuntu-toolchain-r-test', 'boost-latest']
@@ -56,26 +63,9 @@ matrix:
       env: COMPILER='clang++-3.7' BUILD_TYPE='Dev'
 
 
-    - os: linux
-      compiler: linux-clang38-release
-      addons:
-        apt:
-          sources: ['llvm-toolchain-precise-3.8', 'ubuntu-toolchain-r-test', 'boost-latest']
-          packages: ['clang-3.8', 'libboost1.55-all-dev', 'libgdal-dev', 'libgeos++-dev', 'libproj-dev', 'libsparsehash-dev', 'spatialite-bin']
-      env: COMPILER='clang++-3.8' BUILD_TYPE='Release'
-
-    - os: linux
-      compiler: linux-clang38-dev
-      addons:
-        apt:
-          sources: ['llvm-toolchain-precise-3.8', 'ubuntu-toolchain-r-test', 'boost-latest']
-          packages: ['clang-3.8', 'libboost1.55-all-dev', 'libgdal-dev', 'libgeos++-dev', 'libproj-dev', 'libsparsehash-dev', 'spatialite-bin']
-      env: COMPILER='clang++-3.8' BUILD_TYPE='Dev'
-
-
     # 2/ Linux GCC Builds
     - os: linux
-      compiler: linux-gcc48-release
+      compiler: gcc
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'boost-latest']
@@ -83,7 +73,7 @@ matrix:
       env: COMPILER='g++-4.8' COMPILER_FLAGS='-Wno-return-type' BUILD_TYPE='Release'
 
     - os: linux
-      compiler: linux-gcc48-dev
+      compiler: gcc
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'boost-latest']
@@ -92,7 +82,7 @@ matrix:
 
 
     - os: linux
-      compiler: linux-gcc49-release
+      compiler: gcc
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'boost-latest']
@@ -100,7 +90,7 @@ matrix:
       env: COMPILER='g++-4.9' BUILD_TYPE='Release'
 
     - os: linux
-      compiler: linux-gcc49-dev
+      compiler: gcc
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'boost-latest']
@@ -109,7 +99,7 @@ matrix:
 
 
     - os: linux
-      compiler: linux-gcc5-release
+      compiler: gcc
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'boost-latest']
@@ -117,7 +107,7 @@ matrix:
       env: COMPILER='g++-5' BUILD_TYPE='Release'
 
     - os: linux
-      compiler: linux-gcc5-dev
+      compiler: gcc
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'boost-latest']
@@ -125,55 +115,27 @@ matrix:
       env: COMPILER='g++-5' BUILD_TYPE='Dev'
 
 
-    - os: linux
-      compiler: linux-gcc6-release
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test', 'boost-latest']
-          packages: ['g++-6', 'libboost1.55-all-dev', 'libgdal-dev', 'libgeos++-dev', 'libproj-dev', 'libsparsehash-dev', 'spatialite-bin']
-      env: COMPILER='g++-6' BUILD_TYPE='Release'
-
-    - os: linux
-      compiler: linux-gcc6-dev
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test', 'boost-latest']
-          packages: ['g++-6', 'libboost1.55-all-dev', 'libgdal-dev', 'libgeos++-dev', 'libproj-dev', 'libsparsehash-dev', 'spatialite-bin']
-      env: COMPILER='g++-6' BUILD_TYPE='Dev'
-
-
     # 3/ OSX Clang Builds
     - os: osx
       osx_image: xcode6.4
-      compiler: xcode64-clang-release
-      env: COMPILER='clang++' BUILD_TYPE='Release'
+      compiler: clang
+      env: COMPILER='clang++' BUILD_TYPE='Dev'
 
     - os: osx
       osx_image: xcode6.4
-      compiler: xcode64-clang-dev
-      env: COMPILER='clang++' BUILD_TYPE='Dev'
+      compiler: clang
+      env: COMPILER='clang++' BUILD_TYPE='Release'
 
 
     - os: osx
       osx_image: xcode7
-      compiler: xcode7-clang-release
-      env: COMPILER='clang++' BUILD_TYPE='Release'
+      compiler: clang
+      env: COMPILER='clang++' BUILD_TYPE='Dev'
 
     - os: osx
       osx_image: xcode7
-      compiler: xcode7-clang-dev
-      env: COMPILER='clang++' BUILD_TYPE='Dev'
-
-
-    - os: osx
-      osx_image: xcode8
-      compiler: xcode8-clang-release
+      compiler: clang
       env: COMPILER='clang++' BUILD_TYPE='Release'
-
-    - os: osx
-      osx_image: xcode8
-      compiler: xcode8-clang-dev
-      env: COMPILER='clang++' BUILD_TYPE='Dev'
 
 
 install:
@@ -183,15 +145,15 @@ install:
   - |
     if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
       brew remove gdal
-      brew install cmake boost google-sparsehash gdal || true
+      brew install cmake boost google-sparsehash gdal
     fi
-  - cmake --version
 
 before_script:
   - cd ${TRAVIS_BUILD_DIR}
   - mkdir build && cd build
-  - CXX=${COMPILER} CXXFLAGS=${COMPILER_FLAGS} cmake -LA .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_WITH_CCACHE=1 -DOSM_TESTDATA="${TRAVIS_BUILD_DIR}/deps/osm-testdata"
+  - CXX=${COMPILER} CXXFLAGS=${COMPILER_FLAGS} cmake -LA .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DOSM_TESTDATA="${TRAVIS_BUILD_DIR}/deps/osm-testdata"
 
 script:
-  - make VERBOSE=1 && ctest --output-on-failure
+  - make VERBOSE=1
+  - ctest --output-on-failure
 

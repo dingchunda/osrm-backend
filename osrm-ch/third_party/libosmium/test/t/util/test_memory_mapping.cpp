@@ -33,10 +33,15 @@ TEST_CASE("anonymous mapping") {
         mapping.unmap(); // second unmap is okay
     }
 
-    SECTION("memory mapping of zero length should fail") {
-        REQUIRE_THROWS({
-             osmium::util::MemoryMapping mapping(0, osmium::util::MemoryMapping::mapping_mode::write_private);
-        });
+    SECTION("memory mapping of zero length should work") {
+        osmium::util::MemoryMapping mapping(0, osmium::util::MemoryMapping::mapping_mode::write_private);
+        REQUIRE(mapping.get_addr() != nullptr);
+
+        REQUIRE(mapping.size() == osmium::util::get_pagesize());
+
+        REQUIRE(!!mapping);
+        mapping.unmap();
+        REQUIRE(!mapping);
     }
 
     SECTION("moving a memory mapping should work") {

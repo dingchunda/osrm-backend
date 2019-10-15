@@ -15,22 +15,6 @@ Feature: Car - Oneway streets
             | highway | oneway | forw | backw |
             | primary | -1     |      | x     |
 
-    Scenario: Car - Mode specific oneway
-        Then routability should be
-            | highway | oneway:motorcar | oneway:motor_vehicle | oneway:vehicle | oneway | forw | backw |
-            | primary |                 |                      |                |        | x    | x     |
-            | primary | yes             |                      |                |        | x    |       |
-            | primary |                 | yes                  |                |        | x    |       |
-            | primary |                 |                      | yes            |        | x    |       |
-            | primary |                 |                      |                | yes    | x    |       |
-            | primary | yes             | no                   |                |        | x    |       |
-            | primary |                 | yes                  | no             |        | x    |       |
-            | primary |                 |                      | yes            | no     | x    |       |
-            | primary |                 |                      |                | yes    | x    |       |
-            | primary | no              | yes                  |                |        | x    | x     |
-            | primary |                 | no                   | yes            |        | x    | x     |
-            | primary |                 |                      | no             | yes    | x    | x     |
-
     Scenario: Car - Implied oneways
         Then routability should be
             | highway         | junction   | forw | backw | #                     |
@@ -51,10 +35,8 @@ Feature: Car - Oneway streets
 
     Scenario: Car - Around the Block
         Given the node map
-            """
-              a b
-            f d c e
-            """
+            |   | a | b |   |
+            | f | d | c | e |
 
         And the ways
             | nodes | oneway |
@@ -88,9 +70,7 @@ Feature: Car - Oneway streets
 
     Scenario: Car - Two consecutive oneways
         Given the node map
-            """
-            a b   c
-            """
+            | a | b |   | c |
 
         And the ways
             | nodes | oneway |
@@ -101,12 +81,3 @@ Feature: Car - Oneway streets
         When I route I should get
             | from | to | route    |
             | a    | c  | ab,bc,bc |
-
-
-    # Reversible oneways (low frequency) vs alternating oneways (high frequency).
-    # See: https://github.com/Project-OSRM/osrm-backend/issues/2837
-    Scenario: Car - Route over alternating but not reversible oneways
-        Then routability should be
-            | highway | oneway      | forw | backw |
-            | primary | reversible  |      |       |
-            | primary | alternating | x    | x     |

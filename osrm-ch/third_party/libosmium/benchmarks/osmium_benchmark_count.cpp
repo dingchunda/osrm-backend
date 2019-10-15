@@ -5,9 +5,7 @@
 */
 
 #include <cstdint>
-#include <cstdlib>
 #include <iostream>
-#include <string>
 
 #include <osmium/io/any_input.hpp>
 #include <osmium/handler.hpp>
@@ -19,15 +17,15 @@ struct CountHandler : public osmium::handler::Handler {
     uint64_t ways = 0;
     uint64_t relations = 0;
 
-    void node(const osmium::Node&) {
+    void node(osmium::Node&) {
         ++nodes;
     }
 
-    void way(const osmium::Way&) {
+    void way(osmium::Way&) {
         ++ways;
     }
 
-    void relation(const osmium::Relation&) {
+    void relation(osmium::Relation&) {
         ++relations;
     }
 
@@ -37,12 +35,12 @@ struct CountHandler : public osmium::handler::Handler {
 int main(int argc, char* argv[]) {
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE\n";
-        std::exit(1);
+        exit(1);
     }
 
-    const std::string input_filename{argv[1]};
+    std::string input_filename = argv[1];
 
-    osmium::io::Reader reader{input_filename};
+    osmium::io::Reader reader(input_filename);
 
     CountHandler handler;
     osmium::apply(reader, handler);

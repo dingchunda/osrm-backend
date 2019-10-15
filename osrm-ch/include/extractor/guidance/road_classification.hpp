@@ -3,10 +3,10 @@
 
 #include <cmath>
 #include <cstdint>
-#include <cstdlib>
 #include <string>
+#include <unordered_map>
 
-#include "extractor/guidance/constants.hpp"
+#include <osmium/osm.hpp>
 
 namespace osrm
 {
@@ -59,24 +59,21 @@ class RoadClassification
     // (difference <=1), we can see the road as a fork. Else one of the road classes is seen as
     // obvious choice
     RoadPriorityClass::Enum road_priority_class : 5;
-    // the number of lanes in the road
-    std::uint8_t number_of_lanes;
 
   public:
     // default construction
     RoadClassification()
-        : motorway_class(0), link_class(0), may_be_ignored(0),
-          road_priority_class(RoadPriorityClass::CONNECTIVITY), number_of_lanes(0)
+        : motorway_class(0), link_class(0), may_be_ignored(1),
+          road_priority_class(RoadPriorityClass::CONNECTIVITY)
     {
     }
 
     RoadClassification(bool motorway_class,
                        bool link_class,
                        bool may_be_ignored,
-                       RoadPriorityClass::Enum road_priority_class,
-                       std::uint8_t number_of_lanes)
+                       RoadPriorityClass::Enum road_priority_class)
         : motorway_class(motorway_class), link_class(link_class), may_be_ignored(may_be_ignored),
-          road_priority_class(road_priority_class), number_of_lanes(number_of_lanes)
+          road_priority_class(road_priority_class)
     {
     }
 
@@ -90,9 +87,6 @@ class RoadClassification
 
     bool IsLowPriorityRoadClass() const { return (0 != may_be_ignored); }
     void SetLowPriorityFlag(const bool new_value) { may_be_ignored = new_value; }
-
-    std::uint8_t GetNumberOfLanes() const { return number_of_lanes; }
-    void SetNumberOfLanes(const std::uint8_t new_value) { number_of_lanes = new_value; }
 
     std::uint32_t GetPriority() const { return static_cast<std::uint32_t>(road_priority_class); }
 
@@ -118,30 +112,14 @@ class RoadClassification
 #pragma pack(pop)
 
 static_assert(
-    sizeof(RoadClassification) == 2,
-    "Road Classification should fit two bytes. Increasing this has a severe impact on memory.");
+    sizeof(RoadClassification) == 1,
+    "Road Classification should fit a byte. Increasing this has a severe impact on memory.");
 
 inline bool canBeSeenAsFork(const RoadClassification first, const RoadClassification second)
 {
     return std::abs(static_cast<int>(first.GetPriority()) -
                     static_cast<int>(second.GetPriority())) <= 1;
 }
-
-inline bool obviousByRoadClass(const RoadClassification in_classification,
-                               const RoadClassification obvious_candidate,
-                               const RoadClassification compare_candidate)
-{
-    // lower numbers are of higher priority
-    const bool has_high_priority = PRIORITY_DISTINCTION_FACTOR * obvious_candidate.GetPriority() <
-                                   compare_candidate.GetPriority();
-
-    const bool continues_on_same_class = in_classification == obvious_candidate;
-    return (has_high_priority && continues_on_same_class) ||
-           (!obvious_candidate.IsLowPriorityRoadClass() &&
-            !in_classification.IsLowPriorityRoadClass() &&
-            compare_candidate.IsLowPriorityRoadClass());
-}
-
 } // namespace guidance
 } // namespace extractor
 } // namespace osrm

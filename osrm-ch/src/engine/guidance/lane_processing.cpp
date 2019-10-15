@@ -1,10 +1,11 @@
 #include "util/for_each_pair.hpp"
 #include "util/group_by.hpp"
+#include "util/guidance/toolkit.hpp"
 
 #include "extractor/guidance/turn_instruction.hpp"
 #include "engine/guidance/post_processing.hpp"
+#include "engine/guidance/toolkit.hpp"
 
-#include <algorithm>
 #include <iterator>
 #include <unordered_set>
 #include <utility>
@@ -13,8 +14,8 @@ using TurnInstruction = osrm::extractor::guidance::TurnInstruction;
 namespace TurnType = osrm::extractor::guidance::TurnType;
 namespace DirectionModifier = osrm::extractor::guidance::DirectionModifier;
 
-using osrm::extractor::guidance::isLeftTurn;
-using osrm::extractor::guidance::isRightTurn;
+using osrm::util::guidance::isLeftTurn;
+using osrm::util::guidance::isRightTurn;
 
 namespace osrm
 {
@@ -28,26 +29,9 @@ std::vector<RouteStep> anticipateLaneChange(std::vector<RouteStep> steps,
 {
     // Lane anticipation works on contiguous ranges of quick steps that have lane information
     const auto is_quick_has_lanes = [&](const RouteStep &step) {
+        const auto is_quick = step.duration < min_duration_needed_for_lane_change;
         const auto has_lanes = step.intersections.front().lanes.lanes_in_turn > 0;
-
-        if (!has_lanes)
-            return false;
-
-        // The more unused lanes to the left and right of the turn there are, the higher
-        // the chance the user is driving on one of those and has to cross lanes.
-        // Scale threshold for these cases to be adaptive to the situation's complexity.
-        //
-        // Note: what we could do instead: do Lane Anticipation on all step pairs and then scale
-        // the threshold based on the lanes we're constraining the user to. Would need a re-write
-        // since at the moment we first group-by and only then do Lane Anticipation selectively.
-        //
-        // We do not have a source-target lane mapping, assume worst case for lanes to cross.
-        const auto to_cross = std::max(step.NumLanesToTheRight(), step.NumLanesToTheLeft());
-        const auto scale = 1 + to_cross;
-        const auto threshold = scale * min_duration_needed_for_lane_change;
-
-        const auto is_quick = step.duration < threshold;
-        return is_quick;
+        return has_lanes && is_quick;
     };
 
     using StepIter = decltype(steps)::iterator;
@@ -96,8 +80,12 @@ std::vector<RouteStep> anticipateLaneChange(std::vector<RouteStep> steps,
             // where lanes in the turn fan in but for example the overall lanes at that location
             // fan out, we would have to know the asymmetric mapping of lanes. This is currently
             // not possible at the moment. In the following we implement a heuristic instead.
-            const LaneID current_num_lanes_right_of_turn = current.NumLanesToTheRight();
-            const LaneID current_num_lanes_left_of_turn = current.NumLanesToTheLeft();
+            const LaneID current_num_all_lanes =
+                current.intersections.front().lane_description.size();
+            const LaneID current_num_lanes_right_of_turn = current_lanes.first_lane_from_the_right;
+            const LaneID current_num_lanes_left_of_turn =
+                current_num_all_lanes -
+                (current_lanes.lanes_in_turn + current_num_lanes_right_of_turn);
 
             const LaneID num_shared_lanes = std::min(current_lanes.lanes_in_turn,   //
                                                      previous_lanes.lanes_in_turn); //
@@ -184,7 +172,7 @@ std::vector<RouteStep> anticipateLaneChange(std::vector<RouteStep> steps,
             // step as invalid, scheduled for later removal.
             if (collapsable(previous, current))
             {
-                previous.ElongateBy(current);
+                previous = elongate(previous, current);
                 current.maneuver.instruction = TurnInstruction::NO_TURN();
             }
         });
@@ -194,6 +182,29 @@ std::vector<RouteStep> anticipateLaneChange(std::vector<RouteStep> steps,
 
     // Lane Anticipation might have collapsed steps after constraining lanes. Remove invalid steps.
     steps = removeNoTurnInstructions(std::move(steps));
+
+    return steps;
+}
+
+std::vector<RouteStep> removeLanesFromRoundabouts(std::vector<RouteStep> steps)
+{
+    using namespace util::guidance;
+
+    const auto removeLanes = [](RouteStep &step) {
+        for (auto &intersection : step.intersections)
+        {
+            intersection.lane_description = {};
+            intersection.lanes = {};
+        }
+    };
+
+    for (auto &step : steps)
+    {
+        const auto inst = step.maneuver.instruction;
+
+        if (entersRoundabout(inst) || staysOnRoundabout(inst) || leavesRoundabout(inst))
+            removeLanes(step);
+    }
 
     return steps;
 }

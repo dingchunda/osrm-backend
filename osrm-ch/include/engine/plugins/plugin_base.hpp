@@ -26,7 +26,10 @@ namespace plugins
 class BasePlugin
 {
   protected:
-    bool CheckAllCoordinates(const std::vector<util::Coordinate> &coordinates) const
+    datafacade::BaseDataFacade &facade;
+    BasePlugin(datafacade::BaseDataFacade &facade_) : facade(facade_) {}
+
+    bool CheckAllCoordinates(const std::vector<util::Coordinate> &coordinates)
     {
         return !std::any_of(
             std::begin(coordinates), std::end(coordinates), [](const util::Coordinate coordinate) {
@@ -108,8 +111,7 @@ class BasePlugin
 
     // Falls back to default_radius for non-set radii
     std::vector<std::vector<PhantomNodeWithDistance>>
-    GetPhantomNodesInRange(const datafacade::BaseDataFacade &facade,
-                           const api::BaseParameters &parameters,
+    GetPhantomNodesInRange(const api::BaseParameters &parameters,
                            const std::vector<double> radiuses) const
     {
         std::vector<std::vector<PhantomNodeWithDistance>> phantom_nodes(
@@ -150,9 +152,7 @@ class BasePlugin
     }
 
     std::vector<std::vector<PhantomNodeWithDistance>>
-    GetPhantomNodes(const datafacade::BaseDataFacade &facade,
-                    const api::BaseParameters &parameters,
-                    unsigned number_of_results) const
+    GetPhantomNodes(const api::BaseParameters &parameters, unsigned number_of_results)
     {
         std::vector<std::vector<PhantomNodeWithDistance>> phantom_nodes(
             parameters.coordinates.size());
@@ -216,8 +216,7 @@ class BasePlugin
         return phantom_nodes;
     }
 
-    std::vector<PhantomNodePair> GetPhantomNodes(const datafacade::BaseDataFacade &facade,
-                                                 const api::BaseParameters &parameters) const
+    std::vector<PhantomNodePair> GetPhantomNodes(const api::BaseParameters &parameters)
     {
         std::vector<PhantomNodePair> phantom_node_pairs(parameters.coordinates.size());
 
@@ -266,6 +265,7 @@ class BasePlugin
                 }
                 else
                 {
+                    printf("[xxxx] default branch\n");
                     phantom_node_pairs[i] =
                         facade.NearestPhantomNodeWithAlternativeFromBigComponent(
                             parameters.coordinates[i]);

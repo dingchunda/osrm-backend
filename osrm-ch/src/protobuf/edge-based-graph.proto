@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package pbebg;
+
+message EdgeBasedNode {
+    uint64 u = 1;
+    uint64 v = 2;
+    bool forward_enabled = 3;
+    bool reverse_enabled = 4;
+    uint64 forward_segment_id = 5;
+    uint64 reverse_segment_id = 6;
+    uint64 name_id = 7;
+
+    uint64 forward_packed_geometry_id = 8;
+    uint64 reverse_packed_geometry_id = 9;
+    uint64 fwd_segment_position = 10;
+
+    uint64 component_id = 11;
+    bool is_tiny = 12;
+}
+
+message EdgeBasedNodeList {
+    repeated EdgeBasedNode nodes = 1;
+}
+
+message EdgeBasedEdge {
+    int64 source = 1;
+    int64 target = 2;
+    int64 edge_id = 3;
+    int64 weight = 4;
+    bool forward = 5;
+    bool backward = 6;
+}
+
+message EdgeBasedGraph {
+    uint64 count = 1;
+    repeated EdgeBasedEdge edges = 2;
+}
+
+message OriginalEdgeData {
+    uint32 via_node = 1;
+    uint32 name_id = 2;
+    uint32 travel_mode = 3;
+    uint32 lane_data_id = 4;
+    uint32 turn_instruction = 5;
+}
+
+message OriginalEdges {
+    repeated OriginalEdgeData edges = 1;
+}

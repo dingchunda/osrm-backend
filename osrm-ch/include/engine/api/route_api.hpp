@@ -61,35 +61,18 @@ class RouteAPI : public BaseAPI
         response.values["code"] = "Ok";
     }
 
-  protected:
+    // FIXME gcc 4.8 doesn't support for lambdas to call protected member functions
+    //  protected:
     template <typename ForwardIter>
     util::json::Value MakeGeometry(ForwardIter begin, ForwardIter end) const
     {
         if (parameters.geometries == RouteParameters::GeometriesType::Polyline)
         {
-            return json::makePolyline<100000>(begin, end);
-        }
-
-        if (parameters.geometries == RouteParameters::GeometriesType::Polyline6)
-        {
-            return json::makePolyline<1000000>(begin, end);
+            return json::makePolyline(begin, end);
         }
 
         BOOST_ASSERT(parameters.geometries == RouteParameters::GeometriesType::GeoJSON);
         return json::makeGeoJSONGeometry(begin, end);
-    }
-
-    template <typename GetFn>
-    util::json::Array GetAnnotations(const guidance::LegGeometry &leg, GetFn Get) const
-    {
-        util::json::Array annotations_store;
-        annotations_store.values.reserve(leg.annotations.size());
-        std::for_each(leg.annotations.begin(),
-                      leg.annotations.end(),
-                      [Get, &annotations_store](const auto &step) {
-                          annotations_store.values.push_back(Get(step));
-                      });
-        return annotations_store;
     }
 
     util::json::Object MakeRoute(const std::vector<PhantomNodes> &segment_end_coordinates,
@@ -171,6 +154,7 @@ class RouteAPI : public BaseAPI
                                                               leg_geometry,
                                                               phantoms.source_phantom,
                                                               phantoms.target_phantom);
+                leg.steps = guidance::removeLanesFromRoundabouts(std::move(leg.steps));
                 leg.steps = guidance::anticipateLaneChange(std::move(leg.steps));
                 leg.steps = guidance::collapseUseLane(std::move(leg.steps));
                 leg_geometry = guidance::resyncGeometry(std::move(leg_geometry), leg.steps);
@@ -207,18 +191,10 @@ class RouteAPI : public BaseAPI
                 [this, &leg_geometry](const guidance::RouteStep &step) {
                     if (parameters.geometries == RouteParameters::GeometriesType::Polyline)
                     {
-                        return static_cast<util::json::Value>(json::makePolyline<100000>(
-                            leg_geometry.locations.begin() + step.geometry_begin,
-                            leg_geometry.locations.begin() + step.geometry_end));
+                        return static_cast<util::json::Value>(
+                            json::makePolyline(leg_geometry.locations.begin() + step.geometry_begin,
+                                               leg_geometry.locations.begin() + step.geometry_end));
                     }
-
-                    if (parameters.geometries == RouteParameters::GeometriesType::Polyline6)
-                    {
-                        return static_cast<util::json::Value>(json::makePolyline<1000000>(
-                            leg_geometry.locations.begin() + step.geometry_begin,
-                            leg_geometry.locations.begin() + step.geometry_end));
-                    }
-
                     BOOST_ASSERT(parameters.geometries == RouteParameters::GeometriesType::GeoJSON);
                     return static_cast<util::json::Value>(json::makeGeoJSONGeometry(
                         leg_geometry.locations.begin() + step.geometry_begin,
@@ -228,70 +204,50 @@ class RouteAPI : public BaseAPI
 
         std::vector<util::json::Object> annotations;
 
-        // To maintain support for uses of the old default constructors, we check
-        // if annotations property was set manually after default construction
-        auto requested_annotations = parameters.annotations_type;
-        if ((parameters.annotations == true) &&
-            (parameters.annotations_type == RouteParameters::AnnotationsType::None))
-        {
-            requested_annotations = RouteParameters::AnnotationsType::All;
-        }
-
-        if (requested_annotations != RouteParameters::AnnotationsType::None)
+        if (parameters.annotations)
         {
             for (const auto idx : util::irange<std::size_t>(0UL, leg_geometries.size()))
             {
+                util::json::Array durations;
+                util::json::Array distances;
+                util::json::Array nodes;
+                util::json::Array datasources;
+                util::json::Array latlngs;
                 auto &leg_geometry = leg_geometries[idx];
+
+                durations.values.reserve(leg_geometry.annotations.size());
+                distances.values.reserve(leg_geometry.annotations.size());
+                nodes.values.reserve(leg_geometry.osm_node_ids.size());
+                datasources.values.reserve(leg_geometry.annotations.size());
+                latlngs.values.reserve(leg_geometry.locations.size());
+
+                std::for_each(leg_geometry.annotations.begin(),
+                              leg_geometry.annotations.end(),
+                              [this, &durations, &distances, &datasources](
+                                  const guidance::LegGeometry::Annotation &step) {
+                                  durations.values.push_back(step.duration);
+                                  distances.values.push_back(step.distance);
+                                  datasources.values.push_back(step.datasource);
+                              });
+                std::for_each(leg_geometry.osm_node_ids.begin(),
+                              leg_geometry.osm_node_ids.end(),
+                              [this, &nodes](const OSMNodeID &node_id) {
+                                  nodes.values.push_back(static_cast<std::uint64_t>(node_id));
+                              });
+                std::for_each(leg_geometry.locations.begin(),
+                              leg_geometry.locations.end(),
+                              [this, &latlngs](const util::FloatCoordinate &coordinate) {
+                                  util::json::Array latlng;
+                                  latlng.values.push_back(double(coordinate.lat));
+                                  latlng.values.push_back(double(coordinate.lon));
+                                  latlngs.values.push_back(latlng);
+                              });
                 util::json::Object annotation;
-
-                // AnnotationsType uses bit flags, & operator checks if a property is set
-                if (parameters.annotations_type & RouteParameters::AnnotationsType::Speed)
-                {
-                    annotation.values["speed"] = GetAnnotations(
-                        leg_geometry, [](const guidance::LegGeometry::Annotation &anno) {
-                            return std::round(anno.distance / anno.duration * 10.) / 10.;
-                        });
-                }
-
-                if (requested_annotations & RouteParameters::AnnotationsType::Duration)
-                {
-                    annotation.values["duration"] = GetAnnotations(
-                        leg_geometry, [](const guidance::LegGeometry::Annotation &anno) {
-                            return anno.duration;
-                        });
-                }
-                if (requested_annotations & RouteParameters::AnnotationsType::Distance)
-                {
-                    annotation.values["distance"] = GetAnnotations(
-                        leg_geometry, [](const guidance::LegGeometry::Annotation &anno) {
-                            return anno.distance;
-                        });
-                }
-                if (requested_annotations & RouteParameters::AnnotationsType::Weight)
-                {
-                    annotation.values["weight"] = GetAnnotations(
-                        leg_geometry,
-                        [](const guidance::LegGeometry::Annotation &anno) { return anno.weight; });
-                }
-                if (requested_annotations & RouteParameters::AnnotationsType::Datasources)
-                {
-                    annotation.values["datasources"] = GetAnnotations(
-                        leg_geometry, [](const guidance::LegGeometry::Annotation &anno) {
-                            return anno.datasource;
-                        });
-                }
-                if (requested_annotations & RouteParameters::AnnotationsType::Nodes)
-                {
-                    util::json::Array nodes;
-                    nodes.values.reserve(leg_geometry.osm_node_ids.size());
-                    std::for_each(leg_geometry.osm_node_ids.begin(),
-                                  leg_geometry.osm_node_ids.end(),
-                                  [this, &nodes](const OSMNodeID &node_id) {
-                                      nodes.values.push_back(static_cast<std::uint64_t>(node_id));
-                                  });
-                    annotation.values["nodes"] = std::move(nodes);
-                }
-
+                annotation.values["distance"] = std::move(distances);
+                annotation.values["duration"] = std::move(durations);
+                annotation.values["nodes"] = std::move(nodes);
+                annotation.values["datasources"] = std::move(datasources);
+                annotation.values["latlngs"] = std::move(latlngs);
                 annotations.push_back(std::move(annotation));
             }
         }
@@ -300,8 +256,7 @@ class RouteAPI : public BaseAPI
                                       json::makeRouteLegs(std::move(legs),
                                                           std::move(step_geometries),
                                                           std::move(annotations)),
-                                      std::move(json_overview),
-                                      facade.GetWeightName());
+                                      std::move(json_overview));
 
         return result;
     }

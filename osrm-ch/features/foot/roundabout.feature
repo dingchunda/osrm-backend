@@ -10,13 +10,11 @@ Feature: Roundabout Instructions
     # make sense when you're going the opposite way around the roundabout.
 
         Given the node map
-            """
-                v
-                d
-            s a   c u
-                b
-                t
-            """
+            |   |   | v |   |   |
+            |   |   | d |   |   |
+            | s | a |   | c | u |
+            |   |   | b |   |   |
+            |   |   | t |   |   |
 
         And the ways
             | nodes | junction   |

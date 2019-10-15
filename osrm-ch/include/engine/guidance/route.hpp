@@ -10,9 +10,8 @@ namespace guidance
 
 struct Route
 {
-    double distance;
     double duration;
-    double weight;
+    double distance;
 };
 }
 }

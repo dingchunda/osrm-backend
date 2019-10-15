@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -37,6 +37,7 @@ DEALINGS IN THE SOFTWARE.
 #include <cstddef>
 #include <iterator>
 #include <map>
+#include <stdexcept>
 #include <vector>
 
 #include <osmium/index/map.hpp>
@@ -76,18 +77,10 @@ namespace osmium {
                     m_elements[id] = value;
                 }
 
-                TValue get(const TId id) const final {
-                    const auto it = m_elements.find(id);
+                const TValue get(const TId id) const final {
+                    auto it = m_elements.find(id);
                     if (it == m_elements.end()) {
-                        throw osmium::not_found{id};
-                    }
-                    return it->second;
-                }
-
-                TValue get_noexcept(const TId id) const noexcept final {
-                    const auto it = m_elements.find(id);
-                    if (it == m_elements.end()) {
-                        return osmium::index::empty_value<TValue>();
+                        not_found_error(id);
                     }
                     return it->second;
                 }
@@ -105,7 +98,7 @@ namespace osmium {
                 }
 
                 void dump_as_list(const int fd) final {
-                    using t = typename std::map<TId, TValue>::value_type;
+                    typedef typename std::map<TId, TValue>::value_type t;
                     std::vector<t> v;
                     v.reserve(m_elements.size());
                     std::copy(m_elements.cbegin(), m_elements.cend(), std::back_inserter(v));

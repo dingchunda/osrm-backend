@@ -11,7 +11,7 @@ module.exports = {
 
     errorReason: (err) => {
         return err.signal ?
-            'killed by signal ' + err.signal :
-            'exited with code ' + err.code;
+            util.format('killed by signal %s', err.signal) :
+            util.format('exited with code %d', err.code);
     }
 };

@@ -7,11 +7,9 @@ Feature: Bike - Squares and other areas
     @square
     Scenario: Bike - Route along edge of a squares
         Given the node map
-            """
-            x
-            a b
-            d c
-            """
+            | x |   |
+            | a | b |
+            | d | c |
 
         And the ways
             | nodes | area | highway     |
@@ -32,11 +30,9 @@ Feature: Bike - Squares and other areas
     @building
     Scenario: Bike - Don't route on buildings
         Given the node map
-            """
-            x
-            a b
-            d c
-            """
+            | x |   |
+            | a | b |
+            | d | c |
 
         And the ways
             | nodes | highway | area | building | access |
@@ -57,11 +53,9 @@ Feature: Bike - Squares and other areas
     @parking
     Scenario: Bike - parking areas
         Given the node map
-            """
-            e     f
-            x a b y
-              d c
-            """
+            | e |   |   | f |
+            | x | a | b | y |
+            |   | d | c |   |
 
         And the ways
             | nodes | highway | amenity |
@@ -87,10 +81,8 @@ Feature: Bike - Squares and other areas
     @train @platform
     Scenario: Bike - railway platforms
         Given the node map
-            """
-            x a b y
-              d c
-            """
+            | x | a | b | y |
+            |   | d | c |   |
 
         And the ways
             | nodes | highway | railway  |

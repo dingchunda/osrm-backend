@@ -15,11 +15,9 @@ namespace plugins
 class NearestPlugin final : public BasePlugin
 {
   public:
-    explicit NearestPlugin(const int max_results);
+    explicit NearestPlugin(datafacade::BaseDataFacade &facade, const int max_results);
 
-    Status HandleRequest(const std::shared_ptr<const datafacade::BaseDataFacade> facade,
-                         const api::NearestParameters &params,
-                         util::json::Object &result) const;
+    Status HandleRequest(const api::NearestParameters &params, util::json::Object &result);
 
   private:
     const int max_results;

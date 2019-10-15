@@ -70,6 +70,9 @@ std::vector<OutputEdgeT> directedEdgesFromCompressed(const std::vector<InputEdge
 {
     std::vector<OutputEdgeT> output_edge_list;
 
+    int split_to_print = 10;
+    int split_num = 0;
+
     OutputEdgeT edge;
     for (const auto &input_edge : input_edge_list)
     {
@@ -86,6 +89,14 @@ std::vector<OutputEdgeT> directedEdgesFromCompressed(const std::vector<InputEdge
 
         output_edge_list.push_back(edge);
 
+        // debug
+        if (input_edge.is_split) {
+            split_num++;
+            if (split_num < split_to_print) {
+                printf(" - split edge: %d -> %d\n", edge.source, edge.target);
+            }
+        }
+
         if (!input_edge.is_split)
         {
             std::swap(edge.source, edge.target);
@@ -93,6 +104,8 @@ std::vector<OutputEdgeT> directedEdgesFromCompressed(const std::vector<InputEdge
             output_edge_list.push_back(edge);
         }
     }
+
+    printf(" - split total: %d\n", split_num);
 
     return output_edge_list;
 }

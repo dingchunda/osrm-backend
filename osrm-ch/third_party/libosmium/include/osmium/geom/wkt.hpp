@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -45,44 +45,29 @@ namespace osmium {
 
     namespace geom {
 
-        enum class wkt_type : bool {
-            wkt  = false,
-            ewkt = true
-        }; // enum class wkt_type
-
         namespace detail {
 
             class WKTFactoryImpl {
 
-                std::string m_srid_prefix;
                 std::string m_str;
                 int m_precision;
-                wkt_type m_wkt_type;
 
             public:
 
-                using point_type        = std::string;
-                using linestring_type   = std::string;
-                using polygon_type      = std::string;
-                using multipolygon_type = std::string;
-                using ring_type         = std::string;
+                typedef std::string point_type;
+                typedef std::string linestring_type;
+                typedef std::string polygon_type;
+                typedef std::string multipolygon_type;
+                typedef std::string ring_type;
 
-                WKTFactoryImpl(int srid, int precision = 7, wkt_type wtype = wkt_type::wkt) :
-                    m_srid_prefix(),
-                    m_precision(precision),
-                    m_wkt_type(wtype) {
-                    if (m_wkt_type == wkt_type::ewkt) {
-                        m_srid_prefix = "SRID=";
-                        m_srid_prefix += std::to_string(srid);
-                        m_srid_prefix += ';';
-                    }
+                WKTFactoryImpl(int precision = 7) :
+                    m_precision(precision) {
                 }
 
                 /* Point */
 
                 point_type make_point(const osmium::geom::Coordinates& xy) const {
-                    std::string str {m_srid_prefix};
-                    str += "POINT";
+                    std::string str {"POINT"};
                     xy.append_to_string(str, '(', ' ', ')', m_precision);
                     return str;
                 }
@@ -90,8 +75,7 @@ namespace osmium {
                 /* LineString */
 
                 void linestring_start() {
-                    m_str = m_srid_prefix;
-                    m_str += "LINESTRING(";
+                    m_str = "LINESTRING(";
                 }
 
                 void linestring_add_location(const osmium::geom::Coordinates& xy) {
@@ -113,8 +97,7 @@ namespace osmium {
                 /* MultiPolygon */
 
                 void multipolygon_start() {
-                    m_str = m_srid_prefix;
-                    m_str += "MULTIPOLYGON(";
+                    m_str = "MULTIPOLYGON(";
                 }
 
                 void multipolygon_polygon_start() {

@@ -9,9 +9,7 @@ Feature: Basic Distance Matrix
 
     Scenario: Testbot - Travel time matrix of minimal network
         Given the node map
-            """
-            a b
-            """
+            | a | b |
 
         And the ways
             | nodes |
@@ -24,9 +22,7 @@ Feature: Basic Distance Matrix
 
     Scenario: Testbot - Travel time matrix with different way speeds
         Given the node map
-            """
-            a b c d
-            """
+            | a | b | c | d |
 
         And the ways
             | nodes | highway   |
@@ -43,25 +39,21 @@ Feature: Basic Distance Matrix
 
     Scenario: Testbot - Travel time matrix with fuzzy match
         Given the node map
-            """
-            a b
-            """
+            | a | b |
 
         And the ways
             | nodes |
             | ab    |
 
         When I request a travel time matrix I should get
-            |   | a  | b  |
-            | a | 0  | 10 |
-            | b | 10 | 0  |
+            |   | a       | b        |
+            | a | 0       | 9 +- 2   |
+            | b | 9  ~15% | 0        |
 
     Scenario: Testbot - Travel time matrix of small grid
         Given the node map
-            """
-            a b c
-            d e f
-            """
+            | a | b | c |
+            | d | e | f |
 
         And the ways
             | nodes |
@@ -80,9 +72,7 @@ Feature: Basic Distance Matrix
 
     Scenario: Testbot - Travel time matrix of network with unroutable parts
         Given the node map
-            """
-            a b
-            """
+            | a | b |
 
         And the ways
             | nodes | oneway |
@@ -95,10 +85,8 @@ Feature: Basic Distance Matrix
 
     Scenario: Testbot - Travel time matrix of network with oneways
         Given the node map
-            """
-            x a b y
-              d e
-            """
+            | x | a | b | y |
+            |   | d | e |   |
 
         And the ways
             | nodes | oneway |
@@ -115,10 +103,8 @@ Feature: Basic Distance Matrix
 
     Scenario: Testbot - Travel time matrix and with only one source
         Given the node map
-            """
-            a b c
-            d e f
-            """
+            | a | b | c |
+            | d | e | f |
 
         And the ways
             | nodes |
@@ -134,10 +120,8 @@ Feature: Basic Distance Matrix
 
      Scenario: Testbot - Travel time 3x2 matrix
         Given the node map
-            """
-            a b c
-            d e f
-            """
+            | a | b | c |
+            | d | e | f |
 
         And the ways
             | nodes |
@@ -156,10 +140,8 @@ Feature: Basic Distance Matrix
         Given a grid size of 300 meters
         Given the extract extra arguments "--small-component-size 4"
         Given the node map
-            """
-            a b   f
-            d e   g
-            """
+            | a | b |  | f |
+            | d | e |  | g |
 
         And the ways
             | nodes |
@@ -178,10 +160,8 @@ Feature: Basic Distance Matrix
         Given a grid size of 300 meters
         Given the extract extra arguments "--small-component-size 4"
         Given the node map
-            """
-            a b   f h
-            d e   g i
-            """
+            | a | b |  | f | h |
+            | d | e |  | g | i |
 
         And the ways
             | nodes |
@@ -201,10 +181,8 @@ Feature: Basic Distance Matrix
 
     Scenario: Testbot - Travel time matrix with loops
         Given the node map
-            """
-            a 1 2 b
-            d 4 3 c
-            """
+            | a | 1 | 2 | b |
+            | d | 4 | 3 | c |
 
         And the ways
             | nodes | oneway |
@@ -219,74 +197,3 @@ Feature: Basic Distance Matrix
             | 2 | 70 +-1 | 0      | 30 +-1 | 40 +-1 |
             | 3 | 40 +-1 | 50 +-1 | 0      | 10 +-1 |
             | 4 | 30 +-1 | 40 +-1 | 70 +-1 | 0  |
-
-    Scenario: Testbot - Travel time matrix based on segment durations
-        Given the profile file "testbot" extended with
-        """
-        api_version = 1
-        properties.traffic_signal_penalty = 0
-        properties.u_turn_penalty = 0
-        function segment_function (segment)
-          segment.weight = 2
-          segment.duration = 11
-        end
-        """
-
-        And the node map
-          """
-          a-b-c-d
-              .
-              e
-          """
-
-        And the ways
-          | nodes |
-          | abcd  |
-          | ce    |
-
-        When I request a travel time matrix I should get
-          |   |  a |  b |  c |  d |  e |
-          | a |  0 | 11 | 22 | 33 | 33 |
-          | b | 11 |  0 | 11 | 22 | 22 |
-          | c | 22 | 11 |  0 | 11 | 11 |
-          | d | 33 | 22 | 11 |  0 | 22 |
-          | e | 33 | 22 | 11 | 22 |  0 |
-
-
-    Scenario: Testbot - Travel time matrix for alternative loop paths
-        Given the profile file "testbot" extended with
-        """
-        api_version = 1
-        properties.traffic_signal_penalty = 0
-        properties.u_turn_penalty = 0
-        properties.weight_precision = 3
-        function segment_function (segment)
-          segment.weight = 777
-          segment.duration = 3
-        end
-        """
-        And the node map
-            """
-            a 2 1 b
-            7     4
-            8     3
-            c 5 6 d
-            """
-
-        And the ways
-            | nodes | oneway |
-            | ab    | yes    |
-            | bd    | yes    |
-            | dc    | yes    |
-            | ca    | yes    |
-
-        When I request a travel time matrix I should get
-          |   |   1 |   2 |   3 |   4 |    5 |   6 |   7 |   8 |
-          | 1 |   0 |  11 |   3 |   2 |    6 |   5 | 8.9 | 7.9 |
-          | 2 |   1 |   0 |   4 |   3 |    7 |   6 | 9.9 | 8.9 |
-          | 3 |   9 |   8 |   0 |  11 |    3 |   2 | 5.9 | 4.9 |
-          | 4 |  10 |   9 |   1 |   0 |    4 |   3 | 6.9 | 5.9 |
-          | 5 |   6 |   5 |   9 |   8 |    0 |  11 | 2.9 | 1.9 |
-          | 6 |   7 |   6 |  10 |   9 |    1 |   0 | 3.9 | 2.9 |
-          | 7 | 3.1 | 2.1 | 6.1 | 5.1 |  9.1 | 8.1 |   0 |  11 |
-          | 8 | 4.1 | 3.1 | 7.1 | 6.1 | 10.1 | 9.1 |   1 | 0   |

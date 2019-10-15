@@ -3,14 +3,11 @@ Feature: Car - Street names in instructions
 
     Background:
         Given the profile "car"
-        Given a grid size of 5 meters
 
     Scenario: Car - A named street
         Given the node map
-            """
-            a b
-              c
-            """
+            | a | b |
+            |   | c |
 
         And the ways
             | nodes | name     | ref |
@@ -23,11 +20,9 @@ Feature: Car - Street names in instructions
 
     Scenario: Car - A named street with pronunciation
         Given the node map
-            """
-            a b d
-              1
-              c
-            """
+            | a | b | d |
+            |   | 1 |   |
+            |   | c |   |
 
         And the ways
             | nodes | name     |name:pronunciation  | ref |
@@ -36,18 +31,16 @@ Feature: Car - Street names in instructions
             | cd    | Your Way | yourewaye          |     |
 
         When I route I should get
-            | from | to | route                | pronunciations      | ref    |
-            | a    | d  | My Way,My Way,My Way | ,meyeway,meyeway    | ,A1,A1 |
-            | 1    | c  | Your Way,Your Way    | yourewaye,yourewaye | ,      |
+            | from | to | route              | pronunciations       | ref   |
+            | a    | d  | My Way,My Way      | ,meyeway             | ,A1   |
+            | 1    | c  | Your Way,Your Way  | yourewaye,yourewaye  | ,     |
 
     # See #2860
     Scenario: Car - same street name but different pronunciation
         Given the node map
-            """
-            a b c
-              d
-              e
-            """
+            | a | b | c |
+            |   | d |   |
+            |   | e |   |
 
         And the ways
             | nodes | name       | name:pronunciation |
@@ -62,9 +55,7 @@ Feature: Car - Street names in instructions
     @todo
     Scenario: Car - Use way type to describe unnamed ways
         Given the node map
-            """
-            a b c d
-            """
+            | a | b | c | d |
 
         And the ways
             | nodes | highway     | name |
@@ -77,25 +68,23 @@ Feature: Car - Street names in instructions
 
     Scenario: Inner city expressway with on road
         Given the node map
-            """
-            a b . . . c g
-                   `f .
-                     `
-                      .
-                      .
-                      d
-                      .
-                      .
-                      .
-                      e
-            """
+            | a | b |   |   |   | c | g |
+            |   |   |   |   | f |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   | d |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   | e |   |
 
         And the ways
-            | nodes | highway      | name     | name:pronunciation | oneway |
-            | abc   | primary      | road     | roooaad            |        |
-            | cg    | primary      | road     | roooaad            |        |
-            | bfd   | trunk_link   | sliproad |                    | yes    |
-            | cde   | trunk        | trunk    | truank             | yes    |
+            | nodes | highway      | name  | name:pronunciation |
+            | abc   | primary      | road  | roooaad            |
+            | cg    | primary      | road  | roooaad            |
+            | bfd   | trunk_link   |       |                    |
+            | cde   | trunk        | trunk | truank             |
 
         And the relations
             | type        | way:from | way:to | node:via | restriction   |

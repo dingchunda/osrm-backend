@@ -7,11 +7,9 @@ Feature: End Of Road Instructions
 
     Scenario: End of Road with through street
         Given the node map
-            """
-                c
-            a e b
-              f d
-            """
+            |   |   | c |
+            | a | e | b |
+            |   | f | d |
 
         And the ways
             | nodes  | highway |
@@ -23,52 +21,12 @@ Feature: End Of Road Instructions
             | waypoints | route       | turns                           |
             | a,c       | aeb,cbd,cbd | depart,end of road left,arrive  |
             | a,d       | aeb,cbd,cbd | depart,end of road right,arrive |
-
-    @3605
-    Scenario: End of Road with oneway through street
-        Given the node map
-            """
-                    c
-            a e     b
-              f     d
-            """
-
-        And the ways
-            | nodes  | highway | oneway |
-            | aeb    | primary | no     |
-            | cbd    | primary | yes    |
-            | ef     | primary | no     |
-
-       When I route I should get
-            | waypoints | route       | turns                           |
-            | a,d       | aeb,cbd,cbd | depart,end of road right,arrive |
-
-    @3605
-    Scenario: End of Road fromnameless onto through street
-        Given the node map
-            """
-                    c
-            a e     b
-              f     d
-            """
-
-        And the ways
-            | nodes  | highway | oneway | name |
-            | aeb    | primary | no     |      |
-            | cbd    | primary | yes    | cbd  |
-            | ef     | primary | no     | ef   |
-
-       When I route I should get
-            | waypoints | route    | turns                           |
-            | a,d       | ,cbd,cbd | depart,end of road right,arrive |
 
     Scenario: End of Road with three streets
         Given the node map
-            """
-                c
-            a e b
-              f d
-            """
+            |   |   | c |
+            | a | e | b |
+            |   | f | d |
 
         And the ways
             | nodes  | highway |
@@ -84,11 +42,9 @@ Feature: End Of Road Instructions
 
     Scenario: End of Road with three streets, slightly angled
         Given the node map
-            """
-            a e       c
-              f       b
-                      d
-            """
+            | a | e |   |   |   | c |
+            |   | f |   |   |   | b |
+            |   |   |   |   |   | d |
 
         And the ways
             | nodes  | highway |
@@ -104,11 +60,9 @@ Feature: End Of Road Instructions
 
     Scenario: End of Road with three streets, slightly angled
         Given the node map
-            """
-                      c
-              f       b
-            a e       d
-            """
+            |   |   |   |   |   | c |
+            |   | f |   |   |   | b |
+            | a | e |   |   |   | d |
 
         And the ways
             | nodes  | highway |
@@ -124,11 +78,9 @@ Feature: End Of Road Instructions
 
     Scenario: End of Road with through street, slightly angled
         Given the node map
-            """
-            a e       c
-              f       b
-                      d
-            """
+            | a | e |   |   |   | c |
+            |   | f |   |   |   | b |
+            |   |   |   |   |   | d |
 
         And the ways
             | nodes  | highway |
@@ -143,11 +95,9 @@ Feature: End Of Road Instructions
 
     Scenario: End of Road with through street, slightly angled
         Given the node map
-            """
-                      c
-              f       b
-            a e       d
-            """
+            |   |   |   |   |   | c |
+            |   | f |   |   |   | b |
+            | a | e |   |   |   | d |
 
         And the ways
             | nodes  | highway |
@@ -162,11 +112,9 @@ Feature: End Of Road Instructions
 
     Scenario: End of Road with two ramps - prefer ramp over end of road
         Given the node map
-            """
-                c
-            a e b
-              f d
-            """
+            |   |   | c |
+            | a | e | b |
+            |   | f | d |
 
         And the ways
             | nodes  | highway       |
@@ -184,21 +132,19 @@ Feature: End Of Road Instructions
     @end-of-road @negative
     Scenario: Don't Handle Circles as End-Of-Road
         Given the node map
-            """
-              r       q
-                      a s
-                  b
-                          j
-
-            l   c         i       k
-
-                          h
-            m
-                d                 n
-                  e     g
-                    f
-                    o   p
-            """
+            |   | r |   |   |   | q |   |   |   |   |   |   |
+            |   |   |   |   |   | a | s |   |   |   |   |   |
+            |   |   |   | b |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   | j |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |   |
+            | l |   | c |   |   |   |   | i |   |   |   | k |
+            |   |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   | h |   |   |   |   |
+            | m |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   | d |   |   |   |   |   |   |   |   | n |
+            |   |   |   | e |   |   | g |   |   |   |   |   |
+            |   |   |   |   | f |   |   |   |   |   |   |   |
+            |   |   |   |   | o |   | p |   |   |   |   |   |
 
         And the ways
             | nodes        | highway     | name  | oneway |

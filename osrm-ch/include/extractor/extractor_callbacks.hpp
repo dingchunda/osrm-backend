@@ -43,7 +43,6 @@ class ExtractionContainers;
 struct InputRestrictionContainer;
 struct ExtractionNode;
 struct ExtractionWay;
-struct ProfileProperties;
 
 /**
  * This class is used by the extractor with the results of the
@@ -62,11 +61,9 @@ class ExtractorCallbacks
     std::unordered_map<MapKey, MapVal> string_map;
     guidance::LaneDescriptionMap lane_description_map;
     ExtractionContainers &external_memory;
-    bool fallback_to_duration;
 
   public:
-    explicit ExtractorCallbacks(ExtractionContainers &extraction_containers,
-                                const ProfileProperties &properties);
+    explicit ExtractorCallbacks(ExtractionContainers &extraction_containers);
 
     ExtractorCallbacks(const ExtractorCallbacks &) = delete;
     ExtractorCallbacks &operator=(const ExtractorCallbacks &) = delete;

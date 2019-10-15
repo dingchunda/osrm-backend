@@ -6,7 +6,6 @@
 #include "extractor/compressed_edge_container.hpp"
 #include "extractor/edge_based_edge.hpp"
 #include "extractor/edge_based_node.hpp"
-#include "extractor/extraction_turn.hpp"
 #include "extractor/original_edge_data.hpp"
 #include "extractor/profile_properties.hpp"
 #include "extractor/query_node.hpp"
@@ -29,6 +28,7 @@
 #include <iosfwd>
 #include <memory>
 #include <queue>
+#include <string>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -60,32 +60,21 @@ struct SegmentBlock
 {
     OSMNodeID this_osm_node_id;
     double segment_length;
-    EdgeWeight segment_weight;
-    EdgeWeight segment_duration;
+    std::int32_t segment_weight;
 };
 #pragma pack(pop)
-static_assert(sizeof(SegmentBlock) == 24, "SegmentBlock is not packed correctly");
+static_assert(sizeof(SegmentBlock) == 20, "SegmentBlock is not packed correctly");
 
 #pragma pack(push, 1)
-struct TurnPenaltiesHeader
+struct PenaltyBlock
 {
-    //! the number of penalties in each block
-    std::uint64_t number_of_penalties;
-};
-#pragma pack(pop)
-static_assert(std::is_trivial<TurnPenaltiesHeader>::value, "TurnPenaltiesHeader is not trivial");
-static_assert(sizeof(TurnPenaltiesHeader) == 8, "TurnPenaltiesHeader is not packed correctly");
-
-#pragma pack(push, 1)
-struct TurnIndexBlock
-{
+    std::uint32_t fixed_penalty;
     OSMNodeID from_id;
     OSMNodeID via_id;
     OSMNodeID to_id;
 };
 #pragma pack(pop)
-static_assert(std::is_trivial<TurnIndexBlock>::value, "TurnIndexBlock is not trivial");
-static_assert(sizeof(TurnIndexBlock) == 24, "TurnIndexBlock is not packed correctly");
+static_assert(sizeof(PenaltyBlock) == 28, "PenaltyBlock is not packed correctly");
 }
 
 class EdgeBasedGraphFactory
@@ -95,7 +84,7 @@ class EdgeBasedGraphFactory
     EdgeBasedGraphFactory &operator=(const EdgeBasedGraphFactory &) = delete;
 
     explicit EdgeBasedGraphFactory(std::shared_ptr<util::NodeBasedDynamicGraph> node_based_graph,
-                                   CompressedEdgeContainer &compressed_edge_container,
+                                   const CompressedEdgeContainer &compressed_edge_container,
                                    const std::unordered_set<NodeID> &barrier_nodes,
                                    const std::unordered_set<NodeID> &traffic_lights,
                                    std::shared_ptr<const RestrictionMap> restriction_map,
@@ -110,9 +99,7 @@ class EdgeBasedGraphFactory
              const std::string &original_edge_data_filename,
              const std::string &turn_lane_data_filename,
              const std::string &edge_segment_lookup_filename,
-             const std::string &turn_weight_penalties_filename,
-             const std::string &turn_duration_penalties_filename,
-             const std::string &turn_penalties_index_filename,
+             const std::string &edge_penalty_filename,
              const bool generate_edge_lookup);
 
     // The following get access functions destroy the content in the factory
@@ -162,7 +149,7 @@ class EdgeBasedGraphFactory
 
     const std::unordered_set<NodeID> &m_barrier_nodes;
     const std::unordered_set<NodeID> &m_traffic_lights;
-    CompressedEdgeContainer &m_compressed_edge_container;
+    const CompressedEdgeContainer &m_compressed_edge_container;
 
     ProfileProperties profile_properties;
 
@@ -171,15 +158,14 @@ class EdgeBasedGraphFactory
     std::vector<guidance::TurnLaneType::Mask> &turn_lane_masks;
     guidance::LaneDescriptionMap &lane_description_map;
 
+    void CompressGeometry();
     unsigned RenumberEdges();
     void GenerateEdgeExpandedNodes();
     void GenerateEdgeExpandedEdges(ScriptingEnvironment &scripting_environment,
                                    const std::string &original_edge_data_filename,
                                    const std::string &turn_lane_data_filename,
                                    const std::string &edge_segment_lookup_filename,
-                                   const std::string &turn_weight_penalties_filename,
-                                   const std::string &turn_duration_penalties_filename,
-                                   const std::string &turn_penalties_index_filename,
+                                   const std::string &edge_fixed_penalties_filename,
                                    const bool generate_edge_lookup);
 
     void InsertEdgeBasedNode(const NodeID u, const NodeID v);

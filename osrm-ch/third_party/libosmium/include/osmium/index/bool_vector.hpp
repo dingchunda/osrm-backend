@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -33,15 +33,50 @@ DEALINGS IN THE SOFTWARE.
 
 */
 
-#include <osmium/index/id_set.hpp>
+#include <type_traits>
+#include <vector>
 
 namespace osmium {
 
     namespace index {
 
-        /// @deprecated Use osmium::index::IdSet instead.
+        /**
+         * Index storing one bit for each Id. The index automatically scales
+         * with the Ids stored. Default value is 'false'. Storage uses
+         * std::vector<bool> and needs a minimum of memory if the Ids are
+         * dense.
+         */
         template <typename T>
-        using BoolVector = IdSet<T>;
+        class BoolVector {
+
+            static_assert(std::is_unsigned<T>::value, "Needs unsigned type");
+
+            std::vector<bool> m_bits;
+
+        public:
+
+            BoolVector() = default;
+
+            BoolVector(const BoolVector&) = default;
+            BoolVector(BoolVector&&) = default;
+            BoolVector& operator=(const BoolVector&) = default;
+            BoolVector& operator=(BoolVector&&) = default;
+
+            ~BoolVector() noexcept = default;
+
+            void set(T id, bool value = true) {
+                if (m_bits.size() <= id) {
+                    m_bits.resize(id + 1024 * 1024);
+                }
+
+                m_bits[id] = value;
+            }
+
+            bool get(T id) const {
+                return id < m_bits.size() && m_bits[id];
+            }
+
+        }; // class BoolVector
 
     } // namespace index
 

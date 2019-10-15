@@ -3,16 +3,14 @@
 #include "extractor/guidance/turn_discovery.hpp"
 #include "extractor/guidance/turn_lane_augmentation.hpp"
 #include "extractor/guidance/turn_lane_matcher.hpp"
-#include "util/bearing.hpp"
-#include "util/log.hpp"
+#include "util/simple_logger.hpp"
 #include "util/typedefs.hpp"
 
 #include <cstddef>
 #include <cstdint>
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/numeric/conversion/cast.hpp>
-
-using osrm::util::angularDeviation;
 
 namespace osrm
 {
@@ -37,19 +35,20 @@ TurnLaneHandler::TurnLaneHandler(const util::NodeBasedDynamicGraph &node_based_g
                                  std::vector<std::uint32_t> &turn_lane_offsets,
                                  std::vector<TurnLaneType::Mask> &turn_lane_masks,
                                  LaneDescriptionMap &lane_description_map,
+                                 const std::vector<QueryNode> &node_info_list,
                                  const TurnAnalysis &turn_analysis,
-                                 util::guidance::LaneDataIdMap &id_map)
+                                 LaneDataIdMap &id_map)
     : node_based_graph(node_based_graph), turn_lane_offsets(turn_lane_offsets),
       turn_lane_masks(turn_lane_masks), lane_description_map(lane_description_map),
-      turn_analysis(turn_analysis), id_map(id_map)
+      node_info_list(node_info_list), turn_analysis(turn_analysis), id_map(id_map)
 {
     count_handled = count_called = 0;
 }
 
 TurnLaneHandler::~TurnLaneHandler()
 {
-    util::Log() << "Handled: " << count_handled << " of " << count_called
-                << " lanes: " << (double)(count_handled * 100) / (count_called) << " %.";
+    std::cout << "Handled: " << count_handled << " of " << count_called
+              << " lanes: " << (double)(count_handled * 100) / (count_called) << " %." << std::endl;
 }
 
 /*
@@ -149,17 +148,6 @@ TurnLaneScenario TurnLaneHandler::deduceScenario(const NodeID at,
                                                  LaneDataVector &previous_lane_data,
                                                  LaneDescriptionID &previous_description_id)
 {
-    // as long as we don't want to emit lanes on roundabout, don't assign them
-    if (node_based_graph.GetEdgeData(via_edge).roundabout)
-        return TurnLaneScenario::NONE;
-
-    // really don't touch roundabouts (#2626)
-    if (intersection.end() !=
-        std::find_if(intersection.begin(), intersection.end(), [](const auto &road) {
-            return hasRoundaboutType(road.instruction);
-        }))
-        return TurnLaneScenario::NONE;
-
     // if only a uturn exists, there is nothing we can do
     if (intersection.size() == 1)
         return TurnLaneScenario::NONE;
@@ -180,8 +168,8 @@ TurnLaneScenario TurnLaneHandler::deduceScenario(const NodeID at,
         (intersection.size() == 2 &&
          ((lane_description_id != INVALID_LANE_DESCRIPTIONID &&
            lane_description_id ==
-               node_based_graph.GetEdgeData(intersection[1].eid).lane_description_id) ||
-          angularDeviation(intersection[1].angle, STRAIGHT_ANGLE) < FUZZY_ANGLE_DIFFERENCE));
+               node_based_graph.GetEdgeData(intersection[1].turn.eid).lane_description_id) ||
+          angularDeviation(intersection[1].turn.angle, STRAIGHT_ANGLE) < FUZZY_ANGLE_DIFFERENCE));
 
     if (is_going_straight_and_turns_continue)
         return TurnLaneScenario::NONE;
@@ -199,27 +187,24 @@ TurnLaneScenario TurnLaneHandler::deduceScenario(const NodeID at,
     // Due to sliproads, we might need access to the previous intersection at this point already;
     previous_node = SPECIAL_NODEID;
     previous_via_edge = SPECIAL_EDGEID;
-    IntersectionView previous_intersection_view;
     if (findPreviousIntersection(at,
                                  via_edge,
                                  intersection,
-                                 turn_analysis.GetIntersectionGenerator(),
+                                 turn_analysis,
                                  node_based_graph,
                                  previous_node,
                                  previous_via_edge,
-                                 previous_intersection_view))
+                                 previous_intersection))
     {
         extractLaneData(previous_via_edge, previous_description_id, previous_lane_data);
-        previous_intersection = turn_analysis.AssignTurnTypes(
-            previous_node, previous_via_edge, previous_intersection_view);
         for (std::size_t road_index = 0; road_index < previous_intersection.size(); ++road_index)
         {
             const auto &road = previous_intersection[road_index];
             // in case of a sliproad that is connected to road of simlar angle, we handle the
             // turn as a combined turn
-            if (road.instruction.type == TurnType::Sliproad)
+            if (road.turn.instruction.type == TurnType::Sliproad)
             {
-                if (via_edge == road.eid)
+                if (via_edge == road.turn.eid)
                     return TurnLaneScenario::SLIPROAD;
 
                 const auto &closest_road = [&]() {
@@ -233,16 +218,16 @@ TurnLaneScenario TurnLaneHandler::deduceScenario(const NodeID at,
                         BOOST_ASSERT(road_index + 1 < previous_intersection.size());
                         return previous_intersection[road_index + 1];
                     }
-                    else if (angularDeviation(road.angle,
-                                              previous_intersection.at(road_index - 1).angle) <
-                             angularDeviation(road.angle,
-                                              previous_intersection.at(road_index + 1).angle))
+                    else if (angularDeviation(road.turn.angle,
+                                              previous_intersection.at(road_index - 1).turn.angle) <
+                             angularDeviation(road.turn.angle,
+                                              previous_intersection.at(road_index + 1).turn.angle))
                         return previous_intersection[road_index - 1];
                     else
                         return previous_intersection[road_index + 1];
                 }();
 
-                if (via_edge == closest_road.eid)
+                if (via_edge == closest_road.turn.eid)
                     return TurnLaneScenario::SLIPROAD;
             }
         }
@@ -498,8 +483,8 @@ bool TurnLaneHandler::isSimpleIntersection(const LaneDataVector &lane_data,
         all_simple &= (best_match->entry_allowed ||
                        // check for possible u-turn match on non-reversed edge
                        ((match_index == 0 || match_index + 1 == intersection.size()) &&
-                        !node_based_graph.GetEdgeData(best_match->eid).reversed));
-        all_simple &= isValidMatch(data.tag, best_match->instruction);
+                        !node_based_graph.GetEdgeData(best_match->turn.eid).reversed));
+        all_simple &= isValidMatch(data.tag, best_match->turn.instruction);
     }
 
     // either all indices are matched, or we have a single none-value
@@ -543,7 +528,7 @@ std::pair<LaneDataVector, LaneDataVector> TurnLaneHandler::partitionLaneData(
     // Try and maitch lanes to available turns. For Turns that are not directly matchable, check
     // whether we can match them at the upcoming intersection.
 
-    const auto straightmost = intersection.findClosestTurn(STRAIGHT_ANGLE);
+    const auto straightmost = findClosestTurn(intersection, STRAIGHT_ANGLE);
 
     BOOST_ASSERT(straightmost < intersection.cend());
 
@@ -555,9 +540,10 @@ std::pair<LaneDataVector, LaneDataVector> TurnLaneHandler::partitionLaneData(
     std::vector<bool> matched_at_second(turn_lane_data.size(), false);
 
     // find out about the next intersection. To check for valid matches, we also need the turn
-    // types. We can skip merging/angle adjustments, though
-    const auto next_intersection = turn_analysis.AssignTurnTypes(
-        at, straightmost->eid, turn_analysis.GetIntersectionGenerator()(at, straightmost->eid));
+    // types
+    auto next_intersection = turn_analysis.getIntersection(at, straightmost->turn.eid);
+    next_intersection =
+        turn_analysis.assignTurnTypes(at, straightmost->turn.eid, std::move(next_intersection));
 
     // check where we can match turn lanes
     std::size_t straightmost_tag_index = turn_lane_data.size();
@@ -569,7 +555,7 @@ std::pair<LaneDataVector, LaneDataVector> TurnLaneHandler::partitionLaneData(
 
         const auto best_match = findBestMatch(turn_lane_data[lane].tag, intersection);
         if (best_match->entry_allowed &&
-            isValidMatch(turn_lane_data[lane].tag, best_match->instruction))
+            isValidMatch(turn_lane_data[lane].tag, best_match->turn.instruction))
         {
             matched_at_first[lane] = true;
 
@@ -580,7 +566,8 @@ std::pair<LaneDataVector, LaneDataVector> TurnLaneHandler::partitionLaneData(
         const auto best_match_at_next_intersection =
             findBestMatch(turn_lane_data[lane].tag, next_intersection);
         if (best_match_at_next_intersection->entry_allowed &&
-            isValidMatch(turn_lane_data[lane].tag, best_match_at_next_intersection->instruction))
+            isValidMatch(turn_lane_data[lane].tag,
+                         best_match_at_next_intersection->turn.instruction))
         {
             if (!matched_at_first[lane] || turn_lane_data[lane].tag == TurnLaneType::straight ||
                 getMatchingQuality(turn_lane_data[lane].tag, *best_match) >
@@ -634,8 +621,6 @@ std::pair<LaneDataVector, LaneDataVector> TurnLaneHandler::partitionLaneData(
     };
 
     LaneDataVector first, second;
-    first.reserve(turn_lane_data.size());
-    second.reserve(turn_lane_data.size());
     for (std::size_t lane = 0; lane < turn_lane_data.size(); ++lane)
     {
         if (matched_at_second[lane])
@@ -695,7 +680,7 @@ Intersection TurnLaneHandler::handleSliproadTurn(Intersection intersection,
                       std::find_if(previous_intersection.begin(),
                                    previous_intersection.end(),
                                    [](const ConnectedRoad &road) {
-                                       return road.instruction.type == TurnType::Sliproad;
+                                       return road.turn.instruction.type == TurnType::Sliproad;
                                    }));
 
     BOOST_ASSERT(sliproad_index <= previous_intersection.size());
@@ -713,18 +698,18 @@ Intersection TurnLaneHandler::handleSliproadTurn(Intersection intersection,
             BOOST_ASSERT(sliproad_index + 1 < previous_intersection.size());
             return previous_intersection[sliproad_index + 1];
         }
-        else if (angularDeviation(sliproad.angle,
-                                  previous_intersection.at(sliproad_index - 1).angle) <
-                 angularDeviation(sliproad.angle,
-                                  previous_intersection.at(sliproad_index + 1).angle))
+        else if (angularDeviation(sliproad.turn.angle,
+                                  previous_intersection.at(sliproad_index - 1).turn.angle) <
+                 angularDeviation(sliproad.turn.angle,
+                                  previous_intersection.at(sliproad_index + 1).turn.angle))
             return previous_intersection[sliproad_index - 1];
         else
             return previous_intersection[sliproad_index + 1];
     }();
     const auto main_description_id =
-        node_based_graph.GetEdgeData(main_road.eid).lane_description_id;
+        node_based_graph.GetEdgeData(main_road.turn.eid).lane_description_id;
     const auto sliproad_description_id =
-        node_based_graph.GetEdgeData(sliproad.eid).lane_description_id;
+        node_based_graph.GetEdgeData(sliproad.turn.eid).lane_description_id;
 
     if (main_description_id == INVALID_LANE_DESCRIPTIONID ||
         sliproad_description_id == INVALID_LANE_DESCRIPTIONID)
@@ -732,7 +717,7 @@ Intersection TurnLaneHandler::handleSliproadTurn(Intersection intersection,
 
     TurnLaneDescription combined_description;
     // is the sliproad going off to the right?
-    if (main_road.angle > sliproad.angle)
+    if (main_road.turn.angle > sliproad.turn.angle)
     {
         combined_description.insert(
             combined_description.end(),

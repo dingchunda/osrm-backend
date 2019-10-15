@@ -83,17 +83,19 @@ module.exports = function () {
                             duration = json.matchings[0].duration;
                         }
 
-                        // annotation response values are requested by 'a:{type_name}'
-                        var found = false;
-                        headers.forEach((h) => { if (h.match(/^a:/)) found = true; });
-                        if (found) {
+                        if (headers.has('annotation')) {
                             if (json.matchings.length != 1) throw new Error('*** Checking annotation only supported for matchings with one subtrace');
                             annotation = this.annotationList(json.matchings[0]);
                         }
 
                         if (headers.has('geometry')) {
                             if (json.matchings.length != 1) throw new Error('*** Checking geometry only supported for matchings with one subtrace');
-                            geometry = json.matchings[0].geometry;
+                            geometry = json.matchings[0].geometry.coordinates;
+                        }
+
+                        if (headers.has('OSM IDs')) {
+                            if (json.matchings.length != 1) throw new Error('*** Checking annotation only supported for matchings with one subtrace');
+                            OSMIDs = this.OSMIDList(json.matchings[0]);
                         }
                     }
 
@@ -109,28 +111,15 @@ module.exports = function () {
                         got.duration = duration.toString();
                     }
 
-                    // if header matches 'a:*', parse out the values for *
-                    // and return in that header
-                    headers.forEach((k) => {
-                        let whitelist = ['duration', 'distance', 'datasources', 'nodes', 'weight'];
-                        if (k.match(/^a:/)) {
-                            let a_type = k.slice(2);
-                            if (whitelist.indexOf(a_type) == -1)
-                                return cb(new Error('Unrecognized annotation field:' + a_type));
-                            if (!annotation[a_type])
-                                return cb(new Error('Annotation not found in response: ' + a_type));
-                            got[k] = annotation[a_type];
-                        }
-                    });
+                    if (headers.has('annotation')) {
+                        got.annotation = annotation.toString();
+                    }
 
                     if (headers.has('geometry')) {
-                        if (this.queryParams['geometries'] === 'polyline') {
+                        if (this.queryParams['geometries'] === 'polyline')
                             got.geometry = polyline.decode(geometry).toString();
-                        } else if (this.queryParams['geometries'] === 'polyline6') {
-                            got.geometry = polyline.decode(geometry,6).toString();
-                        } else {
-                            got.geometry = geometry.coordinates;
-                        }
+                        else
+                            got.geometry = geometry;
                     }
 
                     if (headers.has('OSM IDs')) {

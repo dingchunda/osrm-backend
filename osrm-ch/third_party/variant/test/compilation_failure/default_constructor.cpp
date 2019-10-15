@@ -1,6 +1,7 @@
+
 // @EXPECTED: First type in variant must be default constructible to allow default construction of variant
 
-#include <mapbox/variant.hpp>
+#include <variant.hpp>
 
 // Checks that the first type in a variant must be default constructible to
 // make the variant default constructible.

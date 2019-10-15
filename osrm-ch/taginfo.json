@@ -21,27 +21,12 @@
         },
         {
             "key": "service",
-            "value": "driveway",
-            "object_types": [ "way" ]
-        },
-        {
-            "key": "service",
             "value": "alley",
             "object_types": [ "way" ]
         },
         {
             "key": "service",
             "value": "emergency_access",
-            "object_types": [ "way" ]
-        },
-        {
-            "key": "service",
-            "value": "drive-through",
-            "object_types": [ "way" ]
-        },
-        {
-            "key": "service",
-            "value": "parking",
             "object_types": [ "way" ]
         },
         {
@@ -61,14 +46,8 @@
         },
         {
             "key": "oneway",
-            "value": "alternating",
-            "description": "high frequency reversible oneways are routed over taking the waiting period into account",
-            "object_types": [ "way" ]
-        },
-        {
-            "key": "oneway",
             "value": "reversible",
-            "description": "low frequency reversible oneways are marked as non-routable because of time-dependence",
+            "description": "is marked as non-routable because of time-dependence",
             "object_types": [ "way" ]
         },
         {
@@ -209,8 +188,6 @@
         {"key": "highway", "value": "default"},
         {"key": "width", "description": "Penalties for narrow streets"},
         {"key": "lanes", "description": "Penalties for shared single lane streets"},
-        {"key": "lanes:forward", "description": "Lanes in forward direction"},
-        {"key": "lanes:backward", "description": "Lanes in backward direction"},
         {"key": "surface", "value": "asphalt"},
         {"key": "surface", "value": "concrete"},
         {"key": "surface", "value": "concrete:plates"},
@@ -321,45 +298,14 @@
             "description": "Destination of road for navigation instructions, supplements name."
         },
         {
-            "key": "destination:forward",
-            "object_types": [ "way" ],
-            "description": "Destination and direction of road for oneways for navigation instructions, supplements name."
-        },
-        {
-            "key": "destination:backward",
-            "object_types": [ "way" ],
-            "description": "Destination and direction of road for oneways for navigation instructions, supplements name."
-        },
-        {
-            "key": "destination:street",
-            "object_types": [ "way" ],
-            "description": "Destination of road for navigation instructions, supplements name."
-        },
-        {
             "key": "destination:ref",
             "object_types": [ "way" ],
             "description": "Destination of road for navigation instructions, supplements name."
         },
         {
-            "key": "destination:ref:forward",
-            "object_types": [ "way" ],
-            "description": "Destination and direction of road for oneways for navigation instructions, supplements name."
-        },
-        {
-            "key": "destination:ref:backward",
-            "object_types": [ "way" ],
-            "description": "Destination and direction of road for oneways for navigation instructions, supplements name."
-        },
-        {
             "key": "junction",
             "object_types": [ "way" ],
             "value": "roundabout"
-        },
-        {
-            "key": "junction",
-            "object_types": [ "way" ],
-            "value": "circular",
-            "description": "A Roundabout where the traffic on the roundabout not always has right of way."
         },
         {
             "key": "type",

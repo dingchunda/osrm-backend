@@ -22,6 +22,10 @@ OSRM_ATTR_WARN_UNUSED
 std::vector<RouteStep> anticipateLaneChange(std::vector<RouteStep> steps,
                                             const double min_duration_needed_for_lane_change = 15);
 
+// Remove all lane information from roundabouts. See #2626.
+OSRM_ATTR_WARN_UNUSED
+std::vector<RouteStep> removeLanesFromRoundabouts(std::vector<RouteStep> steps);
+
 } // namespace guidance
 } // namespace engine
 } // namespace osrm

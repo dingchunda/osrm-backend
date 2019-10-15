@@ -6,12 +6,10 @@ Feature: Car - Destination only, no passing through
 
     Scenario: Car - Destination only street
         Given the node map
-            """
-            a       e
-              b c d
-
-            x       y
-            """
+            | a |   |   |   | e |
+            |   | b | c | d |   |
+            |   |   |   |   |   |
+            | x |   |   |   | y |
 
         And the ways
             | nodes | access      |
@@ -33,12 +31,10 @@ Feature: Car - Destination only, no passing through
 
     Scenario: Car - Destination only street
         Given the node map
-            """
-            a       e
-              b c d
-
-            x       y
-            """
+            | a |   |   |   | e |
+            |   | b | c | d |   |
+            |   |   |   |   |   |
+            | x |   |   |   | y |
 
         And the ways
             | nodes | access      |
@@ -61,11 +57,9 @@ Feature: Car - Destination only, no passing through
 
     Scenario: Car - Routing inside a destination only area
         Given the node map
-            """
-            a   c   e
-              b   d
-            x       y
-            """
+            | a |   | c |   | e |
+            |   | b |   | d |   |
+            | x |   |   |   | y |
 
         And the ways
             | nodes | access      |

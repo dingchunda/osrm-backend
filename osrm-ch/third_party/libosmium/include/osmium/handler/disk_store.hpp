@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -51,16 +51,13 @@ namespace osmium {
     namespace handler {
 
         /**
-         * Writes OSM data in the Osmium-internal serialized format to disk
-         * keeping track of object offsets in the indexes given to the
-         * constructor.
          *
          * Note: This handler will only work if either all object IDs are
          *       positive or all object IDs are negative.
          */
         class DiskStore : public osmium::handler::Handler {
 
-            using offset_index_type = osmium::index::map::Map<unsigned_object_id_type, size_t>;
+            typedef osmium::index::map::Map<unsigned_object_id_type, size_t> offset_index_type;
 
             size_t m_offset = 0;
             int m_data_fd;
@@ -98,8 +95,10 @@ namespace osmium {
                 m_offset += relation.byte_size();
             }
 
+            // XXX
             void operator()(const osmium::memory::Buffer& buffer) {
                 osmium::io::detail::reliable_write(m_data_fd, buffer.data(), buffer.committed());
+
                 osmium::apply(buffer.begin(), buffer.end(), *this);
             }
 

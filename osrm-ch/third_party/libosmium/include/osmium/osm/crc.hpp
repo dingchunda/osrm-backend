@@ -5,7 +5,7 @@
 
 This file is part of Osmium (http://osmcode.org/libosmium).
 
-Copyright 2013-2017 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2013-2016 Jochen Topf <jochen@topf.org> and others (see README).
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -36,17 +36,11 @@ DEALINGS IN THE SOFTWARE.
 #include <cstdint>
 
 #include <osmium/osm/area.hpp>
-#include <osmium/osm/box.hpp>
 #include <osmium/osm/changeset.hpp>
-#include <osmium/osm/item_type.hpp>
 #include <osmium/osm/location.hpp>
 #include <osmium/osm/node.hpp>
-#include <osmium/osm/node_ref.hpp>
 #include <osmium/osm/node_ref_list.hpp>
-#include <osmium/osm/object.hpp>
 #include <osmium/osm/relation.hpp>
-#include <osmium/osm/tag.hpp>
-#include <osmium/osm/timestamp.hpp>
 #include <osmium/osm/way.hpp>
 #include <osmium/util/endian.hpp>
 
@@ -77,8 +71,8 @@ namespace osmium {
 # if defined(__GNUC__) || defined(__clang__)
             return __builtin_bswap64(value);
 # else
-            const uint64_t val1 = byte_swap_32(value & 0xFFFFFFFF);
-            const uint64_t val2 = byte_swap_32(value >> 32);
+            uint64_t val1 = byte_swap_32(value & 0xFFFFFFFF);
+            uint64_t val2 = byte_swap_32(value >> 32);
             return (val1 << 32) | val2;
 # endif
         }
@@ -92,100 +86,99 @@ namespace osmium {
 
     public:
 
-        TCRC& operator()() noexcept {
+        TCRC& operator()() {
             return m_crc;
         }
 
-        const TCRC& operator()() const noexcept {
+        const TCRC& operator()() const {
             return m_crc;
         }
 
-        void update_bool(const bool value) noexcept {
+        void update_bool(const bool value) {
             m_crc.process_byte(value);
         }
 
-        void update_int8(const uint8_t value) noexcept {
+        void update_int8(const uint8_t value) {
             m_crc.process_byte(value);
         }
 
-        void update_int16(const uint16_t value) noexcept {
+        void update_int16(const uint16_t value) {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
             m_crc.process_bytes(&value, sizeof(uint16_t));
 #else
-            const uint16_t v = osmium::util::byte_swap_16(value);
+            uint16_t v = osmium::util::byte_swap_16(value);
             m_crc.process_bytes(&v, sizeof(uint16_t));
 #endif
         }
 
-        void update_int32(const uint32_t value) noexcept {
+        void update_int32(const uint32_t value) {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
             m_crc.process_bytes(&value, sizeof(uint32_t));
 #else
-            const uint32_t v = osmium::util::byte_swap_32(value);
+            uint32_t v = osmium::util::byte_swap_32(value);
             m_crc.process_bytes(&v, sizeof(uint32_t));
 #endif
         }
 
-        void update_int64(const uint64_t value) noexcept {
+        void update_int64(const uint64_t value) {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
             m_crc.process_bytes(&value, sizeof(uint64_t));
 #else
-            const uint64_t v = osmium::util::byte_swap_64(value);
+            uint64_t v = osmium::util::byte_swap_64(value);
             m_crc.process_bytes(&v, sizeof(uint64_t));
 #endif
         }
 
-        void update_string(const char* str) noexcept {
+        void update_string(const char* str) {
             while (*str) {
                 m_crc.process_byte(*str++);
             }
         }
 
-        void update(const Timestamp& timestamp) noexcept {
+        void update(const Timestamp& timestamp) {
             update_int32(uint32_t(timestamp));
         }
 
-        void update(const osmium::Location& location) noexcept {
+        void update(const osmium::Location& location) {
             update_int32(location.x());
             update_int32(location.y());
         }
 
-        void update(const osmium::Box& box) noexcept {
+        void update(const osmium::Box& box) {
             update(box.bottom_left());
             update(box.top_right());
         }
 
-        void update(const NodeRef& node_ref) noexcept {
+        void update(const NodeRef& node_ref) {
             update_int64(node_ref.ref());
-            update(node_ref.location());
         }
 
-        void update(const NodeRefList& node_refs) noexcept {
+        void update(const NodeRefList& node_refs) {
             for (const NodeRef& node_ref : node_refs) {
                 update(node_ref);
             }
         }
 
-        void update(const TagList& tags) noexcept {
+        void update(const TagList& tags) {
             for (const Tag& tag : tags) {
                 update_string(tag.key());
                 update_string(tag.value());
             }
         }
 
-        void update(const osmium::RelationMember& member) noexcept {
+        void update(const osmium::RelationMember& member) {
             update_int64(member.ref());
             update_int16(uint16_t(member.type()));
             update_string(member.role());
         }
 
-        void update(const osmium::RelationMemberList& members) noexcept {
+        void update(const osmium::RelationMemberList& members) {
             for (const RelationMember& member : members) {
                 update(member);
             }
         }
 
-        void update(const osmium::OSMObject& object) noexcept {
+        void update(const osmium::OSMObject& object) {
             update_int64(object.id());
             update_bool(object.visible());
             update_int32(object.version());
@@ -195,32 +188,32 @@ namespace osmium {
             update(object.tags());
         }
 
-        void update(const osmium::Node& node) noexcept {
+        void update(const osmium::Node& node) {
             update(static_cast<const osmium::OSMObject&>(node));
             update(node.location());
         }
 
-        void update(const osmium::Way& way) noexcept {
+        void update(const osmium::Way& way) {
             update(static_cast<const osmium::OSMObject&>(way));
             update(way.nodes());
         }
 
-        void update(const osmium::Relation& relation) noexcept {
+        void update(const osmium::Relation& relation) {
             update(static_cast<const osmium::OSMObject&>(relation));
             update(relation.members());
         }
 
-        void update(const osmium::Area& area) noexcept {
+        void update(const osmium::Area& area) {
             update(static_cast<const osmium::OSMObject&>(area));
-            for (const auto& subitem : area) {
-                if (subitem.type() == osmium::item_type::outer_ring ||
-                    subitem.type() == osmium::item_type::inner_ring) {
-                    update(static_cast<const osmium::NodeRefList&>(subitem));
+            for (auto it = area.cbegin(); it != area.cend(); ++it) {
+                if (it->type() == osmium::item_type::outer_ring ||
+                    it->type() == osmium::item_type::inner_ring) {
+                    update(static_cast<const osmium::NodeRefList&>(*it));
                 }
             }
         }
 
-        void update(const osmium::ChangesetDiscussion& discussion) noexcept {
+        void update(const osmium::ChangesetDiscussion& discussion) {
             for (const auto& comment : discussion) {
                 update(comment.date());
                 update_int32(comment.uid());
@@ -229,7 +222,7 @@ namespace osmium {
             }
         }
 
-        void update(const osmium::Changeset& changeset) noexcept {
+        void update(const osmium::Changeset& changeset) {
             update_int64(changeset.id());
             update(changeset.created_at());
             update(changeset.closed_at());

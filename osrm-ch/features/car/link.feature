@@ -9,10 +9,8 @@ Feature: Car - Speed on links
 
     Scenario: Car - Use motorway_link when reasonable
         Given the node map
-            """
-                e       f
-            x a b       c d y
-            """
+            |   |   | e |   |   |   | f |   |   |
+            | x | a | b |   |   |   | c | d | y |
 
         And the ways
             | nodes | highway       |
@@ -32,10 +30,8 @@ Feature: Car - Speed on links
 
     Scenario: Car - Use trunk_link when reasonable
         Given the node map
-            """
-                e       f
-            x a b       c d y
-            """
+            |   |   | e |   |   |   | f |   |   |
+            | x | a | b |   |   |   | c | d | y |
 
         And the ways
             | nodes | highway      |
@@ -54,10 +50,8 @@ Feature: Car - Speed on links
 
     Scenario: Car - Use primary_link when reasonable
         Given the node map
-            """
-                e       f
-            x a b       c d y
-            """
+            |   |   | e |   |   |   | f |   |   |
+            | x | a | b |   |   |   | c | d | y |
 
         And the ways
             | nodes | highway        |
@@ -76,10 +70,8 @@ Feature: Car - Speed on links
 
     Scenario: Car - Use secondary_link when reasonable
         Given the node map
-            """
-                e       f
-            x a b       c d y
-            """
+            |   |   | e |   |   |   | f |   |   |
+            | x | a | b |   |   |   | c | d | y |
 
         And the ways
             | nodes | highway          |
@@ -99,10 +91,8 @@ Feature: Car - Speed on links
 
     Scenario: Car - Use tertiary_link when reasonable
         Given the node map
-            """
-                e       f
-            x a b       c d y
-            """
+            |   |   | e |   |   |   | f |   |   |
+            | x | a | b |   |   |   | c | d | y |
 
         And the ways
             | nodes | highway         |

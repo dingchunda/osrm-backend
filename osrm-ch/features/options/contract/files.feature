@@ -3,9 +3,7 @@ Feature: osrm-contract command line options: files
     Background:
         Given the profile "testbot"
         And the node map
-            """
-            a b
-            """
+            | a | b |
         And the ways
             | nodes |
             | ab    |

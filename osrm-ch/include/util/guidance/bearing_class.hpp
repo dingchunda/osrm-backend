@@ -39,8 +39,6 @@ namespace guidance
 class BearingClass
 {
   public:
-    BearingClass();
-
     // Add a bearing to the set
     void add(const DiscreteBearing bearing);
 
