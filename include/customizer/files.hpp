@@ -79,14 +79,13 @@ writeCellMetrics(const boost::filesystem::path &path,
         {
             serialization::write(writer, prefix + "/" + std::to_string(id++), exclude_metric);
 
-            // osrm weights are measured by distance
-            // osrm duration -> re weight
-            // osrm weight -> re distance
+            // osrm weights are measured by duration
+            // osrm duration reset by distance
             auto pb_metric = pb_metrics.add_metrics();
-            for(auto i : exclude_metric.durations) {
+            for(auto i : exclude_metric.weights) {
                 pb_metric->add_weights(i);
             }
-            for(auto i : exclude_metric.weights) {
+            for(auto i : exclude_metric.durations) {
                 pb_metric->add_distances(i);
             }
         }

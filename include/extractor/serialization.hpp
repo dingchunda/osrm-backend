@@ -129,13 +129,13 @@ inline void write(storage::tar::FileWriter &writer,
     for (auto i : segment_data.nodes){
         pb_cnbg.add_nodes(i);
     }
-    for (auto i : segment_data.fwd_durations){
+    for (auto i : segment_data.fwd_weights){
         pb_cnbg.add_forward_weights(i);
     }
-    for (auto i : segment_data.rev_durations){
+    for (auto i : segment_data.rev_weights){
         pb_cnbg.add_reverse_weights(i);
     }
-    for (auto i : segment_data.fwd_weights){
+    for (auto i : segment_data.fwd_durations){
         pb_cnbg.add_distances(i);
     }
 
