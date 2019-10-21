@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package pbqg;
+
+message Node {
+    int32 first_edge = 1;
+}
+
+message EdgeData {
+    int32 id = 1;
+    bool shortcut = 2;
+    int32 weight = 3;
+    bool forward = 4;
+    bool backward = 5;
+}
+
+message Edge {
+    int32 target = 1;
+    EdgeData data = 2;
+}
+
+message QueryGraph {
+    int32 V = 1;
+    int32 E = 2;
+
+    repeated Node nodes = 3;
+    repeated Edge edges = 4;
+}
+
+message NodeLevels {
+    repeated int32 levels = 1;
+}

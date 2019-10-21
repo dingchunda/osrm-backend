@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package pbrtree;
+
+import "edge-based-graph.proto";
+
+message Rectangle {
+    uint64 min_lat = 1;
+    uint64 min_lon = 2;
+    uint64 max_lat = 3;
+    uint64 max_lon = 4;
+}
+
+message LeafNode {
+    uint64 itemCount = 1;
+    Rectangle minimum_bounding_rectangle = 2;
+    repeated pbebg.EdgeBasedNode items = 3;
+}
+
+message Leaves {
+    repeated LeafNode items = 1;
+}

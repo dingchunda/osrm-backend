@@ -54,4 +54,5 @@ message QueryGraph {
     repeated EdgeData edges = 2;
     repeated uint32 node_level_offset = 3;
     repeated int32 node_weights = 4;
+    repeated int32 node_distances = 5;
 }
