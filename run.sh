@@ -1,4 +1,6 @@
 #!/bin/bash
+
+
 cityname="SIN"
 cd build
 echo `date`
