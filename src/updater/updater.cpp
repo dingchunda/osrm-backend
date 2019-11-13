@@ -230,7 +230,7 @@ updateSegmentData(const UpdaterConfig &config,
             });
 
             auto fwd_weights_range = segment_data.GetForwardWeights(geometry_id);
-            auto fwd_durations_range = segment_data.GetForwardDurations(geometry_id);
+            //auto fwd_durations_range = segment_data.GetForwardDurations(geometry_id);
             auto fwd_datasources_range = segment_data.GetForwardDatasources(geometry_id);
             bool fwd_was_updated = false;
             for (const auto segment_offset : util::irange<std::size_t>(0, fwd_weights_range.size()))
@@ -246,13 +246,13 @@ updateSegmentData(const UpdaterConfig &config,
                 if (auto value = segment_speed_lookup({u, v}))
                 {
                     auto segment_length = segment_lengths[segment_offset];
-                    auto new_duration = convertToDuration(value->speed, segment_length);
+                    convertToDuration(value->speed, segment_length);
                     auto new_weight =
                         convertToWeight(fwd_weights_range[segment_offset], *value, segment_length);
                     fwd_was_updated = true;
 
                     fwd_weights_range[segment_offset] = new_weight;
-                    fwd_durations_range[segment_offset] = new_duration;
+                    //fwd_durations_range[segment_offset] = new_duration;
                     fwd_datasources_range[segment_offset] = value->source;
                     counters[value->source] += 1;
                 }
@@ -267,8 +267,8 @@ updateSegmentData(const UpdaterConfig &config,
             // In this case we want it oriented from in forward directions
             auto rev_weights_range =
                 boost::adaptors::reverse(segment_data.GetReverseWeights(geometry_id));
-            auto rev_durations_range =
-                boost::adaptors::reverse(segment_data.GetReverseDurations(geometry_id));
+            // auto rev_durations_range =
+            //     boost::adaptors::reverse(segment_data.GetReverseDurations(geometry_id));
             auto rev_datasources_range =
                 boost::adaptors::reverse(segment_data.GetReverseDatasources(geometry_id));
             bool rev_was_updated = false;
@@ -286,13 +286,13 @@ updateSegmentData(const UpdaterConfig &config,
                 if (auto value = segment_speed_lookup({v, u}))
                 {
                     auto segment_length = segment_lengths[segment_offset];
-                    auto new_duration = convertToDuration(value->speed, segment_length);
+                    convertToDuration(value->speed, segment_length);
                     auto new_weight =
                         convertToWeight(rev_weights_range[segment_offset], *value, segment_length);
                     rev_was_updated = true;
 
                     rev_weights_range[segment_offset] = new_weight;
-                    rev_durations_range[segment_offset] = new_duration;
+                    //rev_durations_range[segment_offset] = new_duration;
                     rev_datasources_range[segment_offset] = value->source;
                     counters[value->source] += 1;
                 }
