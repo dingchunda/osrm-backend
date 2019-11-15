@@ -723,6 +723,28 @@ Updater::LoadAndUpdateEdgeExpandedGraph(std::vector<extractor::EdgeBasedEdge> &e
                                   compute_new_weight_and_duration(updated_segments[index]);
                           }
                       });
+    const auto update_node = [&](const uint32_t node_id) {
+        const auto geometry_id = node_data.GetGeometryID(node_id);
+        auto updated_iter = std::lower_bound(updated_segments.begin(),
+                                        updated_segments.end(),
+                                        geometry_id,
+                                        [](const GeometryID lhs, const GeometryID rhs) {
+                                            return std::tie(lhs.id, lhs.forward) <
+                                                    std::tie(rhs.id, rhs.forward);
+                                        });
+        if (updated_iter != updated_segments.end() && updated_iter->id == geometry_id.id &&
+        updated_iter->forward == geometry_id.forward)
+        {
+            // Find a segment with zero speed and simultaneously compute the new edge
+            // weight
+            EdgeWeight new_weight;
+            EdgeWeight new_duration;
+            std::tie(new_weight, new_duration) =
+                accumulated_segment_data[updated_iter - updated_segments.begin()];
+            node_weights[node_id] = node_weights[node_id] & 0x80000000 ? new_weight | 0x80000000 : new_weight;
+            node_durations[node_id] = new_duration;
+        }
+    };
 
     const auto update_edge = [&](extractor::EdgeBasedEdge &edge) {
         const auto node_id = edge.source;
@@ -748,9 +770,9 @@ Updater::LoadAndUpdateEdgeExpandedGraph(std::vector<extractor::EdgeBasedEdge> &e
             // only, it doesn't include the turn. We may visit the same node multiple times,
             // but we should always assign the same value here.
             BOOST_ASSERT(edge.source < node_weights.size());
-            node_weights[edge.source] =
-                node_weights[edge.source] & 0x80000000 ? new_weight | 0x80000000 : new_weight;
-            node_durations[edge.source] = new_duration;
+            // node_weights[edge.source] =
+            //     node_weights[edge.source] & 0x80000000 ? new_weight | 0x80000000 : new_weight;
+            // node_durations[edge.source] = new_duration;
 
             // We found a zero-speed edge, so we'll skip this whole edge-based-edge
             // which
@@ -790,6 +812,13 @@ Updater::LoadAndUpdateEdgeExpandedGraph(std::vector<extractor::EdgeBasedEdge> &e
 
     if (updated_segments.size() > 0)
     {
+        tbb::parallel_for(tbb::blocked_range<std::size_t>(0, number_of_edge_based_nodes),
+                        [&](const auto &range) {
+                            for (auto node_id = range.begin(); node_id < range.end(); ++node_id)
+                            {
+                                update_node(node_id);     
+                            }    
+                        });
         tbb::parallel_for(tbb::blocked_range<std::size_t>(0, edge_based_edge_list.size()),
                           [&](const auto &range) {
                               for (auto index = range.begin(); index < range.end(); ++index)
