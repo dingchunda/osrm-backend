@@ -165,6 +165,13 @@ int Customizer::Run(const CustomizationConfig &config)
     TIMER_STOP(writing_mld_data);
     util::Log() << "MLD customization writing took " << TIMER_SEC(writing_mld_data) << " seconds";
 
+    if(config.updater_config.IsOverride()){
+        TIMER_START(writing_enw);
+        customizer::files::writeEdgeBasedNodeWeightsDurations(config.GetPath(".osrm.enw"), node_weights, node_durations);
+        TIMER_STOP(writing_enw);
+        util::Log() << "enw writing took " << TIMER_SEC(writing_enw) << " seconds";
+    }
+
     TIMER_START(writing_graph);
     MultiLevelEdgeBasedGraph shaved_graph{
         std::move(graph), std::move(node_weights), std::move(node_durations)};
@@ -172,7 +179,7 @@ int Customizer::Run(const CustomizationConfig &config)
         config.GetPath(".osrm.mldgr"), shaved_graph, connectivity_checksum);
     TIMER_STOP(writing_graph);
     util::Log() << "Graph writing took " << TIMER_SEC(writing_graph) << " seconds";
-
+    
     return 0;
 }
 

@@ -66,12 +66,17 @@ struct UpdaterConfig final : storage::IOConfig
         IOConfig::UseDefaultOutputNames(base);
     }
 
+    bool IsOverride() const {
+        return override;
+    }
+
     double log_edge_updates_factor;
     std::time_t valid_now;
 
     std::vector<std::string> segment_speed_lookup_paths;
     std::vector<std::string> turn_penalty_lookup_paths;
     std::string tz_file_path;
+    bool override;
 };
 }
 }

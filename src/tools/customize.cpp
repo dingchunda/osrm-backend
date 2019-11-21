@@ -70,7 +70,13 @@ return_code parseArguments(int argc,
                 &customization_config.updater_config.tz_file_path)
                 ->default_value(""),
             "Required for conditional turn restriction parsing, provide a geojson file containing "
-            "time zone boundaries");
+            "time zone boundaries")(
+            "override",
+            boost::program_options::value<bool>(
+                &customization_config.updater_config.override)
+                ->default_value(false),
+            "Two types of customize mode:override or do nothing to current weight in .enw file"
+            "default:do not update .enw file");
 
     // hidden options, will be allowed on command line, but will not be
     // shown to the user
