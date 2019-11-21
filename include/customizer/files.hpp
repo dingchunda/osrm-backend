@@ -126,6 +126,20 @@ inline void writeGraph(const boost::filesystem::path &path,
     writer.WriteFrom("/mld/connectivity_checksum", connectivity_checksum);
     serialization::write(writer, "/mld/multilevelgraph", graph);
 }
+
+//override .osrm.enw file
+template <typename NodeWeigtsVectorT, typename NodeDurationsVectorT>
+void writeEdgeBasedNodeWeightsDurations(const boost::filesystem::path &path,
+                                        const NodeWeigtsVectorT &weights,
+                                        const NodeDurationsVectorT &durations)
+{
+    const auto fingerprint = storage::tar::FileWriter::GenerateFingerprint;
+    storage::tar::FileWriter writer{path, fingerprint};
+
+    storage::serialization::write(writer, "/extractor/edge_based_node_weights", weights);
+    storage::serialization::write(writer, "/extractor/edge_based_node_durations", durations);
+}
+
 }
 }
 }

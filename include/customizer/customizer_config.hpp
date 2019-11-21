@@ -24,7 +24,8 @@ struct CustomizationConfig final : storage::IOConfig
                     ".osrm.properties",
                     ".osrm.enw"},
                    {},
-                   {".osrm.cell_metrics", ".osrm.mldgr"}),
+                   {".osrm.cell_metrics", ".osrm.mldgr",
+                    ".osrm.enw"}),
           requested_num_threads(0)
     {
     }
