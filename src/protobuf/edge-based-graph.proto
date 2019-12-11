@@ -27,4 +27,9 @@ message TurnPenalties {
     repeated uint32 turn_penalties = 1;
 }
 
+message DuplicatedNodes {
+    repeated uint32 origin = 1;
+    repeated uint32 duplicated =2;
+}
+
 

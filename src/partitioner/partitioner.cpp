@@ -163,6 +163,23 @@ int Partitioner::Run(const PartitionerConfig &config)
         renumber(node_sequences, permutation);
         extractor::files::writeManeuverOverrides(filename, maneuver_overrides, node_sequences);
     }
+    {
+        std::fstream pb_in("1.ebg.duplicated.pb", std::ios::in | std::ios::binary);
+        pbebg::DuplicatedNodes pb_node;
+        pb_node.ParseFromIstream(&pb_in);
+        for (auto i =0;i<pb_node.origin_size();i++)
+        {
+            auto id = pb_node.origin(i);
+            pb_node.set_origin(i,permutation[id]);
+        }
+        for (auto i =0;i<pb_node.duplicated_size();i++)
+        {
+            auto id = pb_node.duplicated(i);
+            pb_node.set_duplicated(i,permutation[id]);
+        }
+        std::fstream pb_out("1.ebg.duplicated.pb", std::ios::out | std::ios::binary);
+        pb_node.SerializeToOstream(&pb_out);
+    }
     if (boost::filesystem::exists(config.GetPath(".osrm.hsgr")))
     {
         util::Log(logWARNING) << "Found existing .osrm.hsgr file, removing. You need to re-run "

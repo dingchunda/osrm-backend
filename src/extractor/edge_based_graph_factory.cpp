@@ -379,6 +379,7 @@ EdgeBasedGraphFactory::GenerateEdgeExpandedNodes(const WayRestrictionMap &way_re
             NodeID(m_number_of_edge_based_nodes - way_restriction_map.NumberOfDuplicatedNodes());
         std::size_t progress_counter = 0;
         // allocate enough space for the mapping
+        pbebg::DuplicatedNodes pb_node;
         for (const auto way : via_ways)
         {
             const auto node_u = way.from;
@@ -408,9 +409,15 @@ EdgeBasedGraphFactory::GenerateEdgeExpandedNodes(const WayRestrictionMap &way_re
             m_edge_based_node_durations.push_back(
                 m_edge_based_node_durations[nbe_to_ebn_mapping[eid]]);
 
+            pb_node.add_origin(nbe_to_ebn_mapping[eid]);
+            pb_node.add_duplicated(edge_based_node_id);
+
             edge_based_node_id++;
+
             progress.PrintStatus(progress_counter++);
         }
+        std::fstream pb_out("1.ebg.duplicated.pb", std::ios::out | std::ios::binary);
+        pb_node.SerializeToOstream(&pb_out);
     }
 
     BOOST_ASSERT(m_edge_based_node_segments.size() == m_edge_based_node_is_startpoint.size());
